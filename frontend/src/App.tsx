@@ -1,9 +1,5 @@
-function App() {
-  return (
-    <div>
-      <h1>Hope Bridge Brazil - Frontend Working</h1>
-    </div>
-  )
-}
+import LandingPage from './LandingPage'
 
-export default App
+export default function App() {
+  return <LandingPage />
+}
