@@ -1,0 +1,16 @@
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# .NET / Backend
+bin/
+obj/
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.user
