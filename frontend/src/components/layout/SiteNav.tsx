@@ -26,7 +26,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${containerClass}`}>
-      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="w-full px-4 py-4 lg:px-8 flex items-center justify-between">
         <a href="/" className={`text-xl font-bold tracking-tight transition-colors duration-300 ${brandClass} flex items-center gap-2`}>
           <img src="/logo.png" alt="BrighterPath logo" className="h-8 w-8 rounded-full object-cover" />
           <span>BrighterPath</span>
@@ -35,12 +35,21 @@ export default function SiteNav({ variant }: SiteNavProps) {
         <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
           {primaryNavItems.map((item) => (
             <li key={item.label}>
-              <a
-                href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                className={`transition-colors hover:text-teal-400 ${linkClass}`}
-              >
-                {item.label}
-              </a>
+              {item.label === 'Get Help' ? (
+                <a
+                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                  className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <a
+                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                  className={`transition-colors hover:text-teal-400 ${linkClass}`}
+                >
+                  {item.label}
+                </a>
+              )}
             </li>
           ))}
           <li>
@@ -73,14 +82,25 @@ export default function SiteNav({ variant }: SiteNavProps) {
       {open && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 pb-5 pt-3 flex flex-col gap-4 text-stone-600 text-sm font-medium">
           {primaryNavItems.map((item) => (
-            <a
-              key={item.label}
-              href={variant === 'landing' ? item.landingHref : item.defaultHref}
-              onClick={() => setOpen(false)}
-              className="hover:text-teal-700"
-            >
-              {item.label}
-            </a>
+            item.label === 'Get Help' ? (
+              <a
+                key={item.label}
+                href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                onClick={() => setOpen(false)}
+                className="self-start rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700"
+              >
+                {item.label}
+              </a>
+            ) : (
+              <a
+                key={item.label}
+                href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                onClick={() => setOpen(false)}
+                className="hover:text-teal-700"
+              >
+                {item.label}
+              </a>
+            )
           ))}
           <a
             href={variant === 'landing' ? '#donate' : '/#donate'}
