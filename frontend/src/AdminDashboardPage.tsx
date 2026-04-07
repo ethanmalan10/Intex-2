@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import PublicLayout from './components/layout/PublicLayout'
 
 type AdminData = {
   generatedAtUtc: string
