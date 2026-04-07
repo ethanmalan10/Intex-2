@@ -4,7 +4,7 @@ Last updated: April 6, 2026
 
 This Privacy Policy explains how Lighthouse (the "Organization", "we", "our", or "us") collects, uses, stores, and protects personal information when you use our website, donation tools, volunteer forms, and related services.
 
-1) INFORMATION WE COLLECT
+1) INFORMATION WE COLLECT 
 
 We may collect:
 - Contact information (name, email, phone number, address)
