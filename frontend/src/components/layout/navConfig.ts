@@ -9,7 +9,6 @@ export const primaryNavItems: NavItem[] = [
   { label: 'Admin Dashboard', landingHref: '/admin-dashboard', defaultHref: '/admin-dashboard' },
   { label: 'Process Recording', landingHref: '/process-recording', defaultHref: '/process-recording' },
   { label: 'Get Help', landingHref: '#get-help', defaultHref: '/#get-help' },
-  { label: 'Our Story', landingHref: '#our-story', defaultHref: '/#our-story' },
 ]
 
 export const footerNavItems = [

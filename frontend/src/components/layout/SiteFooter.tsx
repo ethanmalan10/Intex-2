@@ -2,10 +2,10 @@ import { footerNavItems } from './navConfig'
 
 export default function SiteFooter() {
   return (
-    <footer className="bg-stone-900 px-6 py-16">
-      <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-10 mb-12">
+    <footer className="bg-stone-900 px-6 py-12">
+      <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-8 mb-8">
         <div>
-          <p className="text-xl font-bold text-teal-400 mb-3">BrighterPath</p>
+          <p className="text-xl font-bold text-teal-500 mb-3">BrighterPath</p>
           <p className="text-stone-500 text-sm leading-relaxed">
             Safe homes, healing, and reintegration for survivors of abuse and trafficking in Brazil.
           </p>
@@ -31,7 +31,7 @@ export default function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto pt-8 border-t border-stone-800 text-center text-stone-600 text-xs leading-relaxed">
+      <div className="max-w-6xl mx-auto pt-6 border-t border-stone-800 text-center text-stone-600 text-xs leading-relaxed">
         BrighterPath is a registered nonprofit organization. All resident information is anonymized to protect privacy and safety.
       </div>
     </footer>
