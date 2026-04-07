@@ -115,6 +115,94 @@ public class AdminDashboardController : ControllerBase
             .OrderByDescending(r => r.RiskScore)
             .Take(10)
             .ToList();
+        var topFiveHighRiskNames = supporterRows
+            .Where(r => r.RiskBand == "High")
+            .OrderByDescending(r => r.RiskScore)
+            .Take(5)
+            .Select(r => r.DisplayName)
+            .ToList();
+
+        var allResidents = await _db.Residents.ToListAsync();
+        var allProcess = await _db.ProcessRecordings.ToListAsync();
+        var allPlans = await _db.InterventionPlans.ToListAsync();
+        var allIncidents = await _db.IncidentReports.ToListAsync();
+        var allPosts = await _db.SocialMediaPosts.ToListAsync();
+        var allDonations = await _db.Donations.ToListAsync();
+        var allSupporters = await _db.Supporters.ToListAsync();
+
+        var counselingRows = allResidents
+            .Where(r => r.DateEnrolled != default)
+            .Select(r =>
+            {
+                var featEnd = r.DateEnrolled.AddDays(90);
+                var targetEnd = featEnd.AddDays(365);
+                var sessions90 = allProcess
+                    .Where(p => p.ResidentId == r.ResidentId && p.SessionDate >= r.DateEnrolled && p.SessionDate <= featEnd)
+                    .ToList();
+                return new
+                {
+                    r.ResidentId,
+                    SessionCount90 = sessions90.Count,
+                    Minutes90 = sessions90.Sum(s => s.SessionDurationMinutes),
+                    Ready365 = r.DateClosed != null && r.DateClosed > featEnd && r.DateClosed <= targetEnd
+                };
+            })
+            .ToList();
+
+        var countCut = counselingRows.Count == 0 ? 0 : counselingRows.Select(x => x.SessionCount90).OrderBy(v => v).ElementAt((int)Math.Floor((counselingRows.Count - 1) * 0.67));
+        var minuteCut = counselingRows.Count == 0 ? 0 : counselingRows.Select(x => x.Minutes90).OrderBy(v => v).ElementAt((int)Math.Floor((counselingRows.Count - 1) * 0.67));
+        var highIntensity = counselingRows.Where(x => x.SessionCount90 >= countCut && x.Minutes90 >= minuteCut).ToList();
+        var lowIntensity = counselingRows.Except(highIntensity).ToList();
+        var highReadyRate = highIntensity.Count == 0 ? 0 : Math.Round(highIntensity.Count(x => x.Ready365) * 100.0 / highIntensity.Count, 1);
+        var lowReadyRate = lowIntensity.Count == 0 ? 0 : Math.Round(lowIntensity.Count(x => x.Ready365) * 100.0 / lowIntensity.Count, 1);
+
+        var firstDonationBySupporter = allDonations
+            .GroupBy(d => d.SupporterId)
+            .ToDictionary(g => g.Key, g => g.Min(x => x.DonationDate));
+        var donorWindows = firstDonationBySupporter
+            .Select(kv =>
+            {
+                var anchor = kv.Value;
+                var featEnd = anchor.AddDays(60);
+                var targetStart = featEnd.AddDays(1);
+                var targetEnd = featEnd.AddDays(240);
+                var futureCount = allDonations.Count(d => d.SupporterId == kv.Key && d.DonationDate >= targetStart && d.DonationDate <= targetEnd);
+                return new { SupporterId = kv.Key, DonatedAgain = futureCount > 0 };
+            })
+            .ToList();
+        var recurrenceRate = donorWindows.Count == 0 ? 0 : Math.Round(donorWindows.Count(x => x.DonatedAgain) * 100.0 / donorWindows.Count, 1);
+
+        var readinessEligible = allResidents.Where(r => r.DateEnrolled != default).ToList();
+        var readinessRows = readinessEligible.Select(r =>
+        {
+            var targetEnd = r.DateEnrolled.AddDays(365);
+            var ready = r.DateClosed != null && r.DateClosed <= targetEnd;
+            var daysToClose = r.DateClosed == null ? (int?)null : (r.DateClosed.Value.DayNumber - r.DateEnrolled.DayNumber);
+            return new { ready, daysToClose };
+        }).ToList();
+        var readinessRate = readinessRows.Count == 0 ? 0 : Math.Round(readinessRows.Count(x => x.ready) * 100.0 / readinessRows.Count, 1);
+        var medianDaysToClose = readinessRows.Where(x => x.daysToClose != null).Select(x => x.daysToClose!.Value).OrderBy(v => v).DefaultIfEmpty(0).ElementAt(readinessRows.Count(x => x.daysToClose != null) / 2);
+
+        var concernResidents = allProcess
+            .Where(p => p.SessionDate >= today.AddDays(-90) && p.ConcernsFlagged)
+            .Select(p => p.ResidentId)
+            .Distinct()
+            .ToHashSet();
+        var severeIncidentResidents = allIncidents
+            .Where(i => string.Equals(i.Severity, "High", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Severity, "Critical", StringComparison.OrdinalIgnoreCase))
+            .Select(i => i.ResidentId)
+            .Distinct()
+            .ToHashSet();
+        var riskEscalatedResidents = concernResidents.Union(severeIncidentResidents).Count();
+
+        var donatedWithPost = allDonations.Where(d => d.ReferralPostId != null).ToList();
+        var avgDonationFromSocial = donatedWithPost.Count == 0 ? 0m : Math.Round(donatedWithPost.Average(d => d.Amount ?? d.EstimatedValue ?? 0m), 2);
+        var topPlatform = (from d in donatedWithPost
+                           join p in allPosts on d.ReferralPostId equals p.PostId
+                           group d by p.Platform into g
+                           orderby g.Count() descending
+                           select new { Platform = g.Key, Count = g.Count() }).FirstOrDefault();
+        var topPlatformLabel = topPlatform == null ? "N/A" : $"{topPlatform.Platform} ({topPlatform.Count} referred donations)";
 
         return Ok(new
         {
@@ -134,6 +222,82 @@ public class AdminDashboardController : ControllerBase
                 mediumRiskCount,
                 lowRiskCount,
                 topAtRisk
+            },
+            pipelineResults = new[]
+            {
+                new
+                {
+                    name = "inactive_supporter_risk",
+                    businessProblem = "Which active supporters are at risk of going silent so staff can intervene before donor lapse?",
+                    runStatus = "Live from database",
+                    results = new[]
+                    {
+                        $"Active supporters scored: {activeSupporters.Count}",
+                        $"High risk: {highRiskCount}, Medium risk: {mediumRiskCount}, Low risk: {lowRiskCount}",
+                        $"Top risk score: {(topAtRisk.FirstOrDefault()?.RiskScore ?? 0):0.000}",
+                        $"Top 5 high-risk supporters: {(topFiveHighRiskNames.Count == 0 ? "None" : string.Join(", ", topFiveHighRiskNames))}"
+                    }
+                },
+                new
+                {
+                    name = "counseling-intensity-readiness-effect",
+                    businessProblem = "How does counseling count/intensity relate to readiness so case effort can be prioritized?",
+                    runStatus = "Live summary from resident/process data",
+                    results = new[]
+                    {
+                        $"Residents evaluated: {counselingRows.Count}",
+                        $"High-intensity residents: {highIntensity.Count} (cutoffs count>={countCut}, minutes>={minuteCut})",
+                        $"Readiness rate high vs low intensity: {highReadyRate:0.0}% vs {lowReadyRate:0.0}%"
+                    }
+                },
+                new
+                {
+                    name = "donor-recurrence-forecast",
+                    businessProblem = "Which donors are likely to donate again soon so outreach timing can be optimized?",
+                    runStatus = "Live summary from supporter/donation history",
+                    results = new[]
+                    {
+                        $"Supporters with usable window: {donorWindows.Count}",
+                        $"Observed donate-again rate (day 61-240): {recurrenceRate:0.0}%",
+                        $"Recent donations (30d): {donationsLast30Count}"
+                    }
+                },
+                new
+                {
+                    name = "reintegration-readiness",
+                    businessProblem = "Which residents are likely ready for reintegration to support case conference decisions?",
+                    runStatus = "Live summary from resident timelines",
+                    results = new[]
+                    {
+                        $"Residents evaluated: {readinessRows.Count}",
+                        $"Closed within 365 days of enrollment: {readinessRate:0.0}%",
+                        $"Median days-to-close among closed cases: {medianDaysToClose}"
+                    }
+                },
+                new
+                {
+                    name = "resident-risk-escalation",
+                    businessProblem = "Which resident cases are escalating so preventive interventions happen earlier?",
+                    runStatus = "Live summary from concerns/incidents",
+                    results = new[]
+                    {
+                        $"Residents with concerns flagged in last 90d: {concernResidents.Count}",
+                        $"Residents with severe incidents: {severeIncidentResidents.Count}",
+                        $"Total residents flagged by escalation signals: {riskEscalatedResidents}"
+                    }
+                },
+                new
+                {
+                    name = "social-content-donation-impact",
+                    businessProblem = "Which social content is associated with stronger donation outcomes?",
+                    runStatus = "Live summary from social posts + donation referrals",
+                    results = new[]
+                    {
+                        $"Donations with social referral post id: {donatedWithPost.Count}",
+                        $"Average donation from social referrals: {avgDonationFromSocial:0.00}",
+                        $"Top platform by referred donations: {topPlatformLabel}"
+                    }
+                }
             }
         });
     }

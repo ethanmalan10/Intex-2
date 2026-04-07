@@ -6,6 +6,8 @@ import CookieConsent from './CookieConsent'
 import PrivacyNoticePage from './PrivacyNoticePage'
 import ImpactDashboardPage from './ImpactDashboardPage'
 import AdminDashboardPage from './AdminDashboardPage'
+import ProcessRecordingPage from './ProcessRecordingPage'
+import ReportsAnalyticsPage from './ReportsAnalyticsPage'
 import LoginPage from './pages/public/LoginPage'
 
 function PublicLandingWrapper() {
@@ -29,24 +31,12 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Protected admin routes */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <AdminDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute>
-                <AdminDashboardPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/process-recording" element={<ProtectedRoute><ProcessRecordingPage /></ProtectedRoute>} />
+          <Route path="/reports-analytics" element={<ProtectedRoute><ReportsAnalyticsPage /></ProtectedRoute>} />
 
-          {/* Legacy paths redirect */}
+          {/* Legacy redirects */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
 
           {/* Catch-all */}
