@@ -54,20 +54,25 @@ const FALLBACK: AdminData = {
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminData>(FALLBACK)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
 
   useEffect(() => {
-    const url = `${API_BASE_URL}/api/admin-dashboard`
-    fetch(url)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+    fetch(apiUrl)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
       .then((json: AdminData) => {
         setData(json)
         setLoadError(null)
       })
-      .catch(() => {
-        setLoadError('Live API unavailable. Showing fallback preview data.')
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLoadError(`Live API unavailable (${msg}). Showing fallback preview data from mock values.`)
         setData(FALLBACK)
       })
-  }, [])
+  }, [apiUrl])
 
   const cc = data.commandCenter
   const risk = data.inactiveSupporterRisk
@@ -90,6 +95,7 @@ export default function AdminDashboardPage() {
           Daily operations overview: resident capacity, donation flow, upcoming conferences, and inactive-supporter pipeline risk.
         </p>
         <p className="mt-2 text-sm text-stone-500">Updated: {new Date(data.generatedAtUtc).toLocaleString()}</p>
+        <p className="mt-1 text-xs text-stone-400">API source: <code>{apiUrl}</code></p>
         {loadError && <p className="mt-2 text-sm text-amber-700">{loadError}</p>}
       </section>
 

@@ -4,6 +4,25 @@ using backend.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        var originsEnv = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN");
+        var origins = (originsEnv ?? string.Empty)
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        if (origins.Length > 0)
+        {
+            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+        }
+        else
+        {
+            // Safe local/dev fallback when FRONTEND_ORIGIN isn't configured yet.
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        }
+    });
+});
 
 var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection")
@@ -33,6 +52,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 var app = builder.Build();
+app.UseCors("FrontendPolicy");
 
 // Run migrations and seed on startup
 using (var scope = app.Services.CreateScope())
