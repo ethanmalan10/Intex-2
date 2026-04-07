@@ -51,7 +51,7 @@ const FALLBACK_DATA: DashboardData = {
     { label: 'Counseling sessions', value: 915, whyItMatters: 'Captures mental health support volume across programs.' },
     { label: 'Active safehouses', value: 6, whyItMatters: 'Indicates current shelter capacity.' },
     { label: 'Volunteer hours', value: 1340, whyItMatters: 'Tracks community contribution to operations.' },
-    { label: 'Monthly donations', value: 42500, prefix: 'R$ ', whyItMatters: 'Supports planning for care, staffing, and supplies.' },
+    { label: 'Monthly donations', value: 42500, prefix: '$', whyItMatters: 'Supports planning for care, staffing, and supplies.' },
   ],
   monthlyReintegrations: [
     { month: 'Jan', reintegrations: 8 }, { month: 'Feb', reintegrations: 11 }, { month: 'Mar', reintegrations: 7 },
@@ -207,7 +207,7 @@ export default function ImpactDashboardPage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-12" aria-labelledby="table-heading">
-        <h2 id="table-heading" className="mb-3 text-lg font-semibold text-stone-900">Text Alternative (Accessible Summary Table)</h2>
+        <h2 id="table-heading" className="mb-3 text-lg font-semibold text-stone-900">Text Alternative</h2>
         <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
           <table className="min-w-full text-left text-sm">
             <thead>

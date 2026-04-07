@@ -412,7 +412,7 @@ function ImpactDashboard() {
           <AnimatedStat target={6}   label="Active safehouses" />
           <AnimatedStat target={183} label="Counseling sessions this month" />
           <AnimatedStat target={340} label="Volunteer hours this month" delay={100} />
-          <AnimatedStat target={42500} prefix="R$ " label="Donations this month" delay={200} />
+          <AnimatedStat target={42500} prefix="$" label="Donations this month" delay={200} />
         </Fade>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -597,7 +597,7 @@ function DonateCTA() {
             or one more step toward a girl's future.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {['R$ 50', 'R$ 150', 'R$ 500', 'Custom'].map(amt => (
+            {['$50', '$150', '$500', 'Custom'].map(amt => (
               <button key={amt}
                 className="px-8 py-3 rounded-full bg-white/20 border border-white/30 text-white font-semibold hover:bg-white hover:text-teal-700 transition-all">
                 {amt}
