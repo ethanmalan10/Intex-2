@@ -6,7 +6,8 @@ export type NavItem = {
 
 export const primaryNavItems: NavItem[] = [
   { label: 'Our Impact', landingHref: '/impact-dashboard', defaultHref: '/impact-dashboard' },
-  { label: 'Admin Dashboard', landingHref: '/admin-dashboard', defaultHref: '/admin-dashboard' },
+  { label: 'Admin Dashboard', landingHref: '/admin', defaultHref: '/admin' },
+  { label: 'Process Recording', landingHref: '/process-recording', defaultHref: '/process-recording' },
   { label: 'Get Help', landingHref: '#get-help', defaultHref: '/#get-help' },
   { label: 'Our Story', landingHref: '#our-story', defaultHref: '/#our-story' },
 ]
