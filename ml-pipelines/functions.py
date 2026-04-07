@@ -18,7 +18,7 @@ def standardize_column_names(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     out.columns = (
         out.columns.str.strip()
-        .str.lower()
+        .str.lower() 
         .str.replace(r"[^a-z0-9]+", "_", regex=True)
         .str.replace(r"_+", "_", regex=True)
         .str.strip("_")
