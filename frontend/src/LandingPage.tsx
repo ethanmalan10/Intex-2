@@ -170,7 +170,7 @@ function Navbar() {
         <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
           {['Our Impact', 'Get Help', 'Our Story'].map(l => (
             <li key={l}>
-              <a href={`#${l.toLowerCase().replace(' ', '-')}`}
+              <a href={l === 'Our Impact' ? '/impact-dashboard' : `#${l.toLowerCase().replace(' ', '-')}`}
                 className={`transition-colors hover:text-teal-400 ${scrolled ? 'text-stone-600' : 'text-white/80'}`}>
                 {l}
               </a>
@@ -201,7 +201,7 @@ function Navbar() {
       {open && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 pb-5 pt-3 flex flex-col gap-4 text-stone-600 text-sm font-medium">
           {['Our Impact', 'Get Help', 'Our Story'].map(l => (
-            <a key={l} href="#" onClick={() => setOpen(false)} className="hover:text-teal-700">{l}</a>
+            <a key={l} href={l === 'Our Impact' ? '/impact-dashboard' : '#'} onClick={() => setOpen(false)} className="hover:text-teal-700">{l}</a>
           ))}
           <a href="#donate" className="self-start px-5 py-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition-colors">Donate</a>
         </div>
@@ -246,7 +246,7 @@ function Hero() {
               className="px-8 py-3.5 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-400 transition-colors shadow-lg shadow-teal-900/40">
               Donate Now
             </a>
-            <a href="#our-impact"
+            <a href="/impact-dashboard"
               className="px-8 py-3.5 rounded-full border-2 border-white/30 text-white font-semibold hover:bg-white/10 transition-colors backdrop-blur">
               See Our Impact
             </a>
@@ -500,7 +500,7 @@ function MeetAna() {
                   className="px-7 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm">
                   Donate in Ana's Honor
                 </a>
-                <a href="#our-impact"
+                <a href="/impact-dashboard"
                   className="px-7 py-3 rounded-full border-2 border-stone-200 text-stone-600 font-semibold hover:border-teal-400 hover:text-teal-600 transition-colors">
                   See All Impact
                 </a>
@@ -634,7 +634,7 @@ function Footer() {
           <p className="text-stone-400 font-semibold text-xs uppercase tracking-wider mb-4">Navigate</p>
           <ul className="flex flex-col gap-2 text-stone-500 text-sm">
             {[
-              { label: 'Our Impact', href: '#our-impact' },
+              { label: 'Our Impact', href: '/impact-dashboard' },
               { label: 'Get Help', href: '#get-help' },
               { label: 'Our Story', href: '#our-story' },
               { label: 'Donate', href: '#donate' },
