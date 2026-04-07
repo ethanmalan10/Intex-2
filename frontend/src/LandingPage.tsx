@@ -168,9 +168,9 @@ function Navbar() {
           <span>BrighterPath</span>
         </span>
         <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {['Our Impact', 'Get Help', 'Our Story'].map(l => (
+          {['Our Impact', 'Admin Dashboard', 'Get Help', 'Our Story'].map(l => (
             <li key={l}>
-              <a href={l === 'Our Impact' ? '/impact-dashboard' : `#${l.toLowerCase().replace(' ', '-')}`}
+              <a href={l === 'Our Impact' ? '/impact-dashboard' : l === 'Admin Dashboard' ? '/admin-dashboard' : `#${l.toLowerCase().replace(' ', '-')}`}
                 className={`transition-colors hover:text-teal-400 ${scrolled ? 'text-stone-600' : 'text-white/80'}`}>
                 {l}
               </a>
@@ -200,8 +200,15 @@ function Navbar() {
       </div>
       {open && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 pb-5 pt-3 flex flex-col gap-4 text-stone-600 text-sm font-medium">
-          {['Our Impact', 'Get Help', 'Our Story'].map(l => (
-            <a key={l} href={l === 'Our Impact' ? '/impact-dashboard' : '#'} onClick={() => setOpen(false)} className="hover:text-teal-700">{l}</a>
+          {['Our Impact', 'Admin Dashboard', 'Get Help', 'Our Story'].map(l => (
+            <a
+              key={l}
+              href={l === 'Our Impact' ? '/impact-dashboard' : l === 'Admin Dashboard' ? '/admin-dashboard' : '#'}
+              onClick={() => setOpen(false)}
+              className="hover:text-teal-700"
+            >
+              {l}
+            </a>
           ))}
           <a href="#donate" className="self-start px-5 py-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition-colors">Donate</a>
         </div>
