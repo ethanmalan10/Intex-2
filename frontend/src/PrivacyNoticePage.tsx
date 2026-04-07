@@ -1,3 +1,5 @@
+import PublicLayout from './components/layout/PublicLayout'
+
 const sections = [
   {
     title: '1) Information We Collect',
@@ -90,7 +92,8 @@ const sections = [
 
 export default function PrivacyNoticePage() {
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-800">
+    <PublicLayout navVariant="default" offsetTop={true}>
+      <div className="min-h-screen bg-stone-50 text-stone-800">
       <section className="bg-gradient-to-br from-teal-900 to-stone-900 px-6 py-14 text-white">
         <div className="mx-auto max-w-5xl">
           <a href="/" className="inline-block text-sm text-teal-200 hover:text-white">
@@ -118,6 +121,7 @@ export default function PrivacyNoticePage() {
           ))}
         </div>
       </section>
-    </main>
+      </div>
+    </PublicLayout>
   )
 }
