@@ -1,26 +1,30 @@
 import { useEffect, useState } from 'react'
-
-type ConsentChoice = 'accepted' | 'rejected'
-
-const STORAGE_KEY = 'cookie_consent_choice'
+import {
+  type ConsentPreferences,
+  getConsentPreferences,
+  saveConsentPreferences,
+} from './consent'
 
 export default function CookieConsent() {
-  const [choice, setChoice] = useState<ConsentChoice | null>(null)
+  const [preferences, setPreferences] = useState<ConsentPreferences | null>(null)
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(true)
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as ConsentChoice | null
-    if (saved === 'accepted' || saved === 'rejected') {
-      setChoice(saved)
+    const saved = getConsentPreferences()
+    if (saved) {
+      setPreferences(saved)
+      setAnalyticsEnabled(saved.analytics)
       setOpen(false)
       return
     }
     setOpen(true)
   }, [])
 
-  function saveConsent(next: ConsentChoice) {
-    localStorage.setItem(STORAGE_KEY, next)
-    setChoice(next)
+  function applyConsent(next: ConsentPreferences) {
+    saveConsentPreferences(next)
+    setPreferences(next)
+    setAnalyticsEnabled(next.analytics)
     setOpen(false)
   }
 
@@ -33,27 +37,58 @@ export default function CookieConsent() {
             We use essential cookies to keep this site working. With your permission, we also use
             analytics cookies to improve performance and user experience.
           </p>
+          <div className="mt-3 rounded-xl border border-stone-200 p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-stone-800">Essential cookies</p>
+                <p className="text-[11px] text-stone-500">Required for security and core site features.</p>
+              </div>
+              <span className="rounded-full bg-stone-100 px-2 py-1 text-[10px] font-semibold text-stone-600">
+                Always on
+              </span>
+            </div>
+          </div>
+          <div className="mt-2 rounded-xl border border-stone-200 p-3">
+            <label className="flex cursor-pointer items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold text-stone-800">Analytics cookies</p>
+                <p className="text-[11px] text-stone-500">Help us understand site performance and improve content.</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={analyticsEnabled}
+                onChange={(e) => setAnalyticsEnabled(e.target.checked)}
+                className="h-4 w-4 accent-teal-600"
+              />
+            </label>
+          </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button
-              onClick={() => saveConsent('rejected')}
+              onClick={() => applyConsent({ essential: true, analytics: false })}
               className="rounded-full border border-stone-300 px-4 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50"
             >
               Reject Non-Essential
             </button>
             <button
-              onClick={() => saveConsent('accepted')}
+              onClick={() => applyConsent({ essential: true, analytics: true })}
               className="rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700"
             >
               Accept All
             </button>
+            <button
+              onClick={() => applyConsent({ essential: true, analytics: analyticsEnabled })}
+              className="rounded-full border border-teal-300 px-4 py-2 text-xs font-semibold text-teal-700 hover:bg-teal-50"
+            >
+              Save Preferences
+            </button>
           </div>
           <p className="mt-2 text-[11px] text-stone-500">
-            You can change this choice anytime with the Cookie Settings button.
+            You can change this anytime with Cookie Settings. Read our <a href="/privacy-notice" className="underline">Privacy Notice</a>.
           </p>
         </div>
       )}
 
-      {!open && choice && (
+      {!open && preferences && (
         <button
           onClick={() => setOpen(true)}
           className="fixed bottom-4 right-4 z-[998] rounded-full border border-stone-300 bg-white px-4 py-2 text-xs font-medium text-stone-700 shadow hover:bg-stone-50"
