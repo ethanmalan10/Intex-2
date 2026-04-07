@@ -163,8 +163,9 @@ function Navbar() {
       ${scrolled ? 'bg-white/95 backdrop-blur shadow-sm border-b border-stone-100' : 'bg-transparent'}`}>
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         <span className={`text-xl font-bold tracking-tight transition-colors duration-300
-          ${scrolled ? 'text-teal-700' : 'text-white'}`}>
-          Circle Healing
+          ${scrolled ? 'text-teal-700' : 'text-white'} flex items-center gap-2`}>
+          <img src="/logo.png" alt="BrighterPath logo" className="h-8 w-8 rounded-full object-cover" />
+          <span>BrighterPath</span>
         </span>
         <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
           {['Our Impact', 'Get Help', 'Our Story'].map(l => (
@@ -237,7 +238,7 @@ function Hero() {
             to heal.
           </h1>
           <p className="text-white/70 text-lg leading-relaxed mb-10 max-w-md">
-            Circle Healing provides safehouses, rehabilitation, and reintegration for girls
+            BrighterPath provides safehouses, rehabilitation, and reintegration for girls
             who are survivors of sexual abuse and trafficking in Brazil.
           </p>
           <div className="flex flex-wrap gap-4">
@@ -379,7 +380,7 @@ function RealitySection() {
           <div className="mt-4 max-w-xl">
             <p className="text-stone-400 text-base leading-relaxed">
               These are not distant statistics. They are daughters, sisters, neighbors.
-              Circle Healing exists because someone has to show up for them.
+              BrighterPath exists because someone has to show up for them.
             </p>
           </div>
         </Fade>
@@ -487,7 +488,7 @@ function MeetAna() {
               </h3>
               <p className="text-stone-400 text-sm">Admitted at 14 · Now 19</p>
               <p className="text-stone-600 leading-relaxed text-base">
-                Ana came to Circle Healing at 14 after being referred by a local NGO. During her time in our safehouse
+                Ana came to BrighterPath at 14 after being referred by a local NGO. During her time in our safehouse
                 she completed her secondary education and discovered a passion for graphic design. Today she runs a
                 small freelance design business and volunteers mentoring younger girls in our program.
               </p>
@@ -608,7 +609,7 @@ function DonateCTA() {
             Donate Securely
           </a>
           <p className="text-teal-100/50 text-xs mt-6">
-            Circle Healing is a registered nonprofit. All donations are tax-deductible where applicable.
+            BrighterPath is a registered nonprofit. All donations are tax-deductible where applicable.
           </p>
         </Fade>
       </div>
@@ -624,7 +625,7 @@ function Footer() {
     <footer className="bg-stone-900 px-6 py-16">
       <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-10 mb-12">
         <div>
-          <p className="text-xl font-bold text-teal-400 mb-3">Circle Healing</p>
+          <p className="text-xl font-bold text-teal-400 mb-3">BrighterPath</p>
           <p className="text-stone-500 text-sm leading-relaxed">
             Safe homes, healing, and reintegration for survivors of abuse and trafficking in Brazil.
           </p>
@@ -650,14 +651,14 @@ function Footer() {
         <div>
           <p className="text-stone-400 font-semibold text-xs uppercase tracking-wider mb-4">Contact</p>
           <ul className="flex flex-col gap-2 text-stone-500 text-sm">
-            <li>contact@circlehealing.org</li>
+            <li>contact@brighterpath.org</li>
             <li>+55 11 99999-9999</li>
             <li>São Paulo, Brazil</li>
           </ul>
         </div>
       </div>
       <div className="max-w-6xl mx-auto pt-8 border-t border-stone-800 text-center text-stone-600 text-xs leading-relaxed">
-        Circle Healing is a registered nonprofit organization. All resident information is anonymized to protect privacy and safety.
+        BrighterPath is a registered nonprofit organization. All resident information is anonymized to protect privacy and safety.
       </div>
     </footer>
   )
