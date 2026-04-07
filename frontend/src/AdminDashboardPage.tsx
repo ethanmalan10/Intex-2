@@ -52,6 +52,39 @@ const FALLBACK: AdminData = {
   },
 }
 
+const PIPELINE_PROBLEMS = [
+  {
+    name: 'inactive_supporter_risk',
+    businessProblem:
+      'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
+  },
+  {
+    name: 'counseling-intensity-readiness-effect',
+    businessProblem:
+      'How does counseling count/intensity relate to later reintegration readiness, and where should case effort be prioritized?',
+  },
+  {
+    name: 'donor-recurrence-forecast',
+    businessProblem:
+      'Which donors are likely to give again soon, so outreach timing and campaign targeting can be optimized?',
+  },
+  {
+    name: 'reintegration-readiness',
+    businessProblem:
+      'Which residents are most likely to be reintegration-ready, to support case planning and case conference decisions?',
+  },
+  {
+    name: 'resident-risk-escalation',
+    businessProblem:
+      'Which resident cases show early signs of risk escalation so staff can trigger preventive actions quickly?',
+  },
+  {
+    name: 'social-content-donation-impact',
+    businessProblem:
+      'Which social content patterns are associated with stronger donation outcomes to guide outreach strategy?',
+  },
+]
+
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminData>(FALLBACK)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -152,6 +185,19 @@ export default function AdminDashboardPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-6 pb-12">
+          <h2 className="mb-3 text-lg font-semibold text-stone-900">ML Pipelines and Business Problems</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {PIPELINE_PROBLEMS.map((pipeline) => (
+              <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
+                <p className="mt-1 font-semibold text-teal-700">{pipeline.name}</p>
+                <p className="mt-3 text-sm text-stone-700">{pipeline.businessProblem}</p>
+              </article>
+            ))}
           </div>
         </section>
       </div>
