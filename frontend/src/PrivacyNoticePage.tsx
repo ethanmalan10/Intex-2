@@ -3,12 +3,14 @@ const sections = [
     title: '1) Information We Collect',
     body: [
       'We may collect contact details, donation/payment records, volunteer/supporter profile details, communication preferences, and technical usage data such as IP address, browser type, and timestamps.',
+      'We may use aggregated and anonymized data to demonstrate how donations contribute to program outcomes without identifying individuals.',
     ],
   },
   {
     title: '2) How We Use Information',
     body: [
       'We use personal information to process donations and receipts, communicate updates, manage supporter and volunteer relationships, improve programs and website performance, and comply with legal obligations.',
+      'We collect only the minimum amount of personal data necessary to fulfill the purposes described.',
     ],
   },
   {
@@ -32,7 +34,9 @@ const sections = [
   {
     title: '6) Data Security',
     body: [
-      'We use reasonable safeguards including access controls, secure storage/transmission practices, and incident response procedures.',
+      'We implement administrative, technical, and physical safeguards including encryption in transit (HTTPS/TLS), encryption at rest for sensitive data, role-based access controls, least-privilege access, and secure authentication practices.',
+      'We maintain monitoring, logging, and incident response procedures to detect and respond to unauthorized access or misuse.',
+      'In the event of a data breach, we will take appropriate steps to contain, investigate, and notify affected individuals and authorities as required by applicable law.',
     ],
   },
   {
@@ -50,13 +54,15 @@ const sections = [
   {
     title: '9) International Transfers',
     body: [
-      'When data is transferred across borders, we apply reasonable safeguards consistent with applicable law.',
+      'When personal data is transferred across borders, we apply appropriate safeguards such as contractual protections, secure transfer mechanisms, and compliance with applicable laws including LGPD and other international data protection requirements.',
     ],
   },
   {
     title: "10) Children's Privacy",
     body: [
-      'Our services are not intended for unsupervised use by children where consent is legally required.',
+      'Our public website is not intended for direct use by children where consent is legally required.',
+      'While our organization serves minors in a safeguarding context, we do not collect personal data from children through the public website.',
+      'Any data related to minors is collected and processed only through secure internal systems under strict legal, ethical, and safeguarding controls.',
     ],
   },
   {
@@ -65,6 +71,21 @@ const sections = [
       'This notice may be updated. The revised date at the top indicates the latest version.',
     ],
   },
+  {
+    title: '12) Jurisdiction-Specific Rights (U.S. and Brazil)',
+    body: [
+      'For users in Brazil, personal data is processed in accordance with the Lei Geral de Proteção de Dados (LGPD). You may have rights to confirmation of processing, access, correction, anonymization, blocking, deletion, and information about data sharing.',
+      'For users in the United States, including California residents under the California Consumer Privacy Act (CCPA/CPRA), you may have rights to access, delete, and correct personal data, and to opt out of certain data uses where applicable.',
+    ],
+  },
+  {
+    title: '13) Sensitive Data and Safeguarding',
+    body: [
+      'Due to the nature of our mission, we may process highly sensitive information related to vulnerable individuals through secure internal systems.',
+      'Such data is encrypted at rest and in transit and is strictly limited to authorized personnel under role-based access controls and confidentiality obligations.',
+      'Sensitive data is never publicly displayed in identifiable form and is only used for legitimate safeguarding, case management, and protection purposes.',
+    ],
+  }
 ]
 
 export default function PrivacyNoticePage() {
@@ -95,19 +116,6 @@ export default function PrivacyNoticePage() {
               ))}
             </article>
           ))}
-
-          <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-stone-800">12) Contact Us</h2>
-            <p className="mt-3 text-sm leading-7 text-stone-600">
-              If you have questions about this Privacy Notice or our data practices, contact:
-            </p>
-            <div className="mt-3 text-sm leading-7 text-stone-700">
-              <p>Lighthouse</p>
-              <p>Email: [INSERT CONTACT EMAIL]</p>
-              <p>Phone: [INSERT CONTACT PHONE]</p>
-              <p>Address: [INSERT MAILING ADDRESS]</p>
-            </div>
-          </article>
         </div>
       </section>
     </main>
