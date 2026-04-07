@@ -110,6 +110,11 @@ export default function AdminDashboardPage() {
 
   const cc = data.commandCenter
   const risk = data.inactiveSupporterRisk
+  const topFiveHighRiskNames = (
+    risk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5).length > 0
+      ? risk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5)
+      : risk.topAtRisk.slice(0, 5)
+  ).map((s) => s.displayName)
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -196,6 +201,20 @@ export default function AdminDashboardPage() {
                 <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
                 <p className="mt-1 font-semibold text-teal-700">{pipeline.name}</p>
                 <p className="mt-3 text-sm text-stone-700">{pipeline.businessProblem}</p>
+                {pipeline.name === 'inactive_supporter_risk' && (
+                  <div className="mt-3 text-sm text-stone-700">
+                    <p className="font-semibold">Top 5 most at-risk supporters:</p>
+                    {topFiveHighRiskNames.length === 0 ? (
+                      <p className="mt-1 text-stone-500">No high-risk supporters found.</p>
+                    ) : (
+                      <ol className="mt-1 list-decimal space-y-1 pl-5">
+                        {topFiveHighRiskNames.map((name) => (
+                          <li key={name}>{name}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
               </article>
             ))}
           </div>
