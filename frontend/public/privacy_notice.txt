@@ -1,8 +1,8 @@
-PRIVACY POLICY
+PRIVACY NOTICE
 
-Last updated: April 6, 2026
+Last updated: April 7, 2026
 
-This Privacy Policy explains how Lighthouse (the "Organization", "we", "our", or "us") collects, uses, stores, and protects personal information when you use our website, donation tools, volunteer forms, and related services.
+This Privacy Notice explains how Lighthouse (the "Organization", "we", "our", or "us") collects, uses, stores, and protects personal information when you use our website, donation tools, volunteer forms, and related services.
 
 1) INFORMATION WE COLLECT
 
@@ -70,12 +70,9 @@ To exercise these rights, contact us using the details below.
 
 8) COOKIES AND TRACKING
 
-Our website may use cookies or similar technologies for:
-- Basic site functionality
-- Analytics and performance measurement
-- Improving user experience
+Our website uses essential cookies for core functionality. With consent, we may also use non-essential analytics cookies to improve performance and user experience.
 
-You can manage cookie preferences through browser settings.
+You can manage your cookie preferences using the cookie banner/settings control on the site, and through browser settings.
 
 9) INTERNATIONAL DATA TRANSFERS
 
@@ -85,20 +82,15 @@ If data is transferred across borders, we take reasonable steps to ensure approp
 
 Our services are not intended for unsupervised use by children where consent is required by law. If you believe a child provided data improperly, contact us for review and removal.
 
-11) CHANGES TO THIS POLICY
+11) CHANGES TO THIS NOTICE
 
-We may update this Privacy Policy from time to time. Updated versions will include a revised "Last updated" date.
+We may update this Privacy Notice from time to time. Updated versions will include a revised "Last updated" date.
 
 12) CONTACT US
 
-If you have questions about this Privacy Policy or our data practices, contact:
+If you have questions about this Privacy Notice or our data practices, contact:
 
 Lighthouse
 Email: [INSERT CONTACT EMAIL]
 Phone: [INSERT CONTACT PHONE]
 Address: [INSERT MAILING ADDRESS]
-
----
-
-PROJECT NOTE:
-If this file is used for your class project, replace all bracketed placeholders before publishing.
