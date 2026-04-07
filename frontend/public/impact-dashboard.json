@@ -33,7 +33,7 @@
     {
       "label": "Monthly donations",
       "value": 42690,
-      "prefix": "R$ ",
+      "prefix": "$",
       "whyItMatters": "Supports planning for care, staffing, and supplies."
     }
   ],
