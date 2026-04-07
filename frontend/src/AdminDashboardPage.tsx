@@ -79,26 +79,17 @@ export default function AdminDashboardPage() {
   const risk = data.inactiveSupporterRisk
 
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-800">
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <a href="/" className="flex items-center gap-2 text-teal-700">
-            <img src="/logo.png" alt="BrighterPath logo" className="h-8 w-8 rounded-full object-cover" />
-            <span className="text-lg font-semibold">BrighterPath</span>
-          </a>
-          <span className="text-sm text-stone-500">Admin Command Center</span>
-        </div>
-      </header>
-
-      <section className="mx-auto max-w-6xl px-6 py-10">
-        <h1 className="text-3xl font-bold text-stone-900">Admin Dashboard</h1>
-        <p className="mt-2 text-stone-600">
-          Daily operations overview: resident capacity, donation flow, upcoming conferences, and inactive-supporter pipeline risk.
-        </p>
-        <p className="mt-2 text-sm text-stone-500">Updated: {new Date(data.generatedAtUtc).toLocaleString()}</p>
-        <p className="mt-1 text-xs text-stone-400">API source: <code>{apiUrl}</code></p>
-        {loadError && <p className="mt-2 text-sm text-amber-700">{loadError}</p>}
-      </section>
+    <PublicLayout navVariant="default" offsetTop={true}>
+      <div className="min-h-screen bg-stone-50 text-stone-800">
+        <section className="mx-auto max-w-6xl px-6 py-10">
+          <h1 className="text-3xl font-bold text-stone-900">Admin Dashboard</h1>
+          <p className="mt-2 text-stone-600">
+            Daily operations overview: resident capacity, donation flow, upcoming conferences, and inactive-supporter pipeline risk.
+          </p>
+          <p className="mt-2 text-sm text-stone-500">Updated: {new Date(data.generatedAtUtc).toLocaleString()}</p>
+          <p className="mt-1 text-xs text-stone-400">API source: <code>{apiUrl}</code></p>
+          {loadError && <p className="mt-2 text-sm text-amber-700">{loadError}</p>}
+        </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -134,36 +125,37 @@ export default function AdminDashboardPage() {
         </article>
       </section>
 
-      <section className="mx-auto max-w-6xl px-6 pb-12">
-        <h2 className="mb-3 text-lg font-semibold text-stone-900">Top At-Risk Active Supporters</h2>
-        <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-          <table className="min-w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-stone-200 text-stone-700">
-                <th className="py-2 pr-4">Supporter</th>
-                <th className="py-2 pr-4">Risk Band</th>
-                <th className="py-2 pr-4">Risk Score</th>
-                <th className="py-2 pr-4">Recency (days)</th>
-                <th className="py-2 pr-4">Donations (365d)</th>
-                <th className="py-2">Channels (365d)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {risk.topAtRisk.map((r) => (
-                <tr key={r.supporterId} className="border-b border-stone-100">
-                  <td className="py-2 pr-4">{r.displayName}</td>
-                  <td className="py-2 pr-4">{r.riskBand}</td>
-                  <td className="py-2 pr-4">{r.riskScore.toFixed(3)}</td>
-                  <td className="py-2 pr-4">{r.recencyDays}</td>
-                  <td className="py-2 pr-4">{r.frequency365}</td>
-                  <td className="py-2">{r.channelCount365}</td>
+        <section className="mx-auto max-w-6xl px-6 pb-12">
+          <h2 className="mb-3 text-lg font-semibold text-stone-900">Top At-Risk Active Supporters</h2>
+          <div className="overflow-x-auto rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="border-b border-stone-200 text-stone-700">
+                  <th className="py-2 pr-4">Supporter</th>
+                  <th className="py-2 pr-4">Risk Band</th>
+                  <th className="py-2 pr-4">Risk Score</th>
+                  <th className="py-2 pr-4">Recency (days)</th>
+                  <th className="py-2 pr-4">Donations (365d)</th>
+                  <th className="py-2">Channels (365d)</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
+              </thead>
+              <tbody>
+                {risk.topAtRisk.map((r) => (
+                  <tr key={r.supporterId} className="border-b border-stone-100">
+                    <td className="py-2 pr-4">{r.displayName}</td>
+                    <td className="py-2 pr-4">{r.riskBand}</td>
+                    <td className="py-2 pr-4">{r.riskScore.toFixed(3)}</td>
+                    <td className="py-2 pr-4">{r.recencyDays}</td>
+                    <td className="py-2 pr-4">{r.frequency365}</td>
+                    <td className="py-2">{r.channelCount365}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </PublicLayout>
   )
 }
 
