@@ -13,7 +13,7 @@ type AdminData = {
   inactiveSupporterRisk: {
     activeSupporters: number
     highRiskCount: number
-    mediumRiskCount: number
+    mediumRiskCount: number 
     lowRiskCount: number
     topAtRisk: Array<{
       supporterId: number
