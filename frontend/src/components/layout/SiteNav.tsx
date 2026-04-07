@@ -53,10 +53,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
             </li>
           ))}
           <li>
-            <a
-              href="/login"
-              className={`transition-colors hover:text-teal-400 ${linkClass}`}
-            >
+            <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
               Login
             </a>
           </li>
