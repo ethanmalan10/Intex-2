@@ -1,0 +1,77 @@
+{
+  "updatedAt": "2026-04-07",
+  "anonymization": {
+    "minGroupSize": 5,
+    "roundingBase": 5
+  },
+  "kpis": [
+    {
+      "label": "Girls served this year",
+      "value": 192,
+      "whyItMatters": "Shows how many lives received direct support."
+    },
+    {
+      "label": "Successful reintegrations",
+      "value": 126,
+      "whyItMatters": "Represents stable transitions back to family or community."
+    },
+    {
+      "label": "Counseling sessions",
+      "value": 918,
+      "whyItMatters": "Captures mental health support volume across programs."
+    },
+    {
+      "label": "Active safehouses",
+      "value": 6,
+      "whyItMatters": "Indicates current shelter capacity."
+    },
+    {
+      "label": "Volunteer hours",
+      "value": 1338,
+      "whyItMatters": "Tracks community contribution to operations."
+    },
+    {
+      "label": "Monthly donations",
+      "value": 42690,
+      "prefix": "R$ ",
+      "whyItMatters": "Supports planning for care, staffing, and supplies."
+    }
+  ],
+  "monthlyReintegrations": [
+    { "month": "Jan", "reintegrations": 8 },
+    { "month": "Feb", "reintegrations": 11 },
+    { "month": "Mar", "reintegrations": 7 },
+    { "month": "Apr", "reintegrations": 13 },
+    { "month": "May", "reintegrations": 10 },
+    { "month": "Jun", "reintegrations": 9 },
+    { "month": "Jul", "reintegrations": 14 },
+    { "month": "Aug", "reintegrations": 12 },
+    { "month": "Sep", "reintegrations": 10 },
+    { "month": "Oct", "reintegrations": 15 },
+    { "month": "Nov", "reintegrations": 11 },
+    { "month": "Dec", "reintegrations": 4 }
+  ],
+  "allocation": [
+    { "name": "Education", "value": 35 },
+    { "name": "Wellbeing", "value": 30 },
+    { "name": "Operations", "value": 20 },
+    { "name": "Outreach", "value": 15 }
+  ],
+  "progressIndicators": [
+    {
+      "area": "Education Progress",
+      "value": 78,
+      "description": "Residents reaching targeted education milestone bands."
+    },
+    {
+      "area": "Wellbeing Improvement",
+      "value": 72,
+      "description": "Residents with improved wellbeing score trends."
+    },
+    {
+      "area": "Reintegration Readiness",
+      "value": 69,
+      "description": "Residents in readiness bands for next-step planning."
+    }
+  ]
+}
