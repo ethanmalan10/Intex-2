@@ -26,6 +26,12 @@ type AdminData = {
       riskBand: 'High' | 'Medium' | 'Low'
     }>
   }
+  pipelineResults: Array<{
+    name: string
+    businessProblem: string
+    runStatus: string
+    results: string[]
+  }>
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
@@ -50,40 +56,45 @@ const FALLBACK: AdminData = {
       { supporterId: 103, displayName: 'Sample Supporter C', recencyDays: 149, frequency365: 2, channelCount365: 1, recurringShare365: 0, riskScore: 0.74, riskBand: 'High' },
     ],
   },
+  pipelineResults: [
+    {
+      name: 'inactive_supporter_risk',
+      businessProblem: 'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
+      runStatus: 'Preview fallback',
+      results: ['Active supporters scored: 120', 'High risk: 18, Medium risk: 41, Low risk: 61', 'Top risk score: 0.880'],
+    },
+    {
+      name: 'counseling-intensity-readiness-effect',
+      businessProblem: 'How does counseling intensity relate to readiness so case effort can be prioritized?',
+      runStatus: 'Preview fallback',
+      results: ['Residents evaluated: 60', 'High-intensity residents: 18', 'Readiness rate high vs low intensity: 23.0% vs 31.0%'],
+    },
+    {
+      name: 'donor-recurrence-forecast',
+      businessProblem: 'Which donors are likely to donate again soon so outreach timing can be optimized?',
+      runStatus: 'Preview fallback',
+      results: ['Supporters with usable window: 98', 'Observed donate-again rate (day 61-240): 44.0%', 'Recent donations (30d): 108'],
+    },
+    {
+      name: 'reintegration-readiness',
+      businessProblem: 'Which residents are likely ready for reintegration to support case conference decisions?',
+      runStatus: 'Preview fallback',
+      results: ['Residents evaluated: 60', 'Closed within 365 days of enrollment: 27.0%', 'Median days-to-close among closed cases: 180'],
+    },
+    {
+      name: 'resident-risk-escalation',
+      businessProblem: 'Which resident cases are escalating so preventive interventions happen earlier?',
+      runStatus: 'Preview fallback',
+      results: ['Residents with concerns flagged in last 90d: 14', 'Residents with severe incidents: 9', 'Total residents flagged by escalation signals: 19'],
+    },
+    {
+      name: 'social-content-donation-impact',
+      businessProblem: 'Which social content is associated with stronger donation outcomes?',
+      runStatus: 'Preview fallback',
+      results: ['Donations with social referral post id: 37', 'Average donation from social referrals: 742.50', 'Top platform by referred donations: Instagram (21 referred donations)'],
+    },
+  ],
 }
-
-const PIPELINE_PROBLEMS = [
-  {
-    name: 'inactive_supporter_risk',
-    businessProblem:
-      'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
-  },
-  {
-    name: 'counseling-intensity-readiness-effect',
-    businessProblem:
-      'How does counseling count/intensity relate to later reintegration readiness, and where should case effort be prioritized?',
-  },
-  {
-    name: 'donor-recurrence-forecast',
-    businessProblem:
-      'Which donors are likely to give again soon, so outreach timing and campaign targeting can be optimized?',
-  },
-  {
-    name: 'reintegration-readiness',
-    businessProblem:
-      'Which residents are most likely to be reintegration-ready, to support case planning and case conference decisions?',
-  },
-  {
-    name: 'resident-risk-escalation',
-    businessProblem:
-      'Which resident cases show early signs of risk escalation so staff can trigger preventive actions quickly?',
-  },
-  {
-    name: 'social-content-donation-impact',
-    businessProblem:
-      'Which social content patterns are associated with stronger donation outcomes to guide outreach strategy?',
-  },
-]
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<AdminData>(FALLBACK)
@@ -189,13 +200,19 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-6 pb-12">
-          <h2 className="mb-3 text-lg font-semibold text-stone-900">ML Pipelines and Business Problems</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {PIPELINE_PROBLEMS.map((pipeline) => (
+          <h2 className="mb-3 text-lg font-semibold text-stone-900">Pipeline Results by Use Case</h2>
+          <div className="space-y-4">
+            {data.pipelineResults.map((pipeline) => (
               <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
                 <p className="mt-1 font-semibold text-teal-700">{pipeline.name}</p>
-                <p className="mt-3 text-sm text-stone-700">{pipeline.businessProblem}</p>
+                <p className="mt-2 text-sm text-stone-700"><strong>Business problem:</strong> {pipeline.businessProblem}</p>
+                <p className="mt-2 text-sm text-stone-600"><strong>Status:</strong> {pipeline.runStatus}</p>
+                <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
+                  {pipeline.results.map((line) => (
+                    <li key={line}>{line}</li>
+                  ))}
+                </ul>
               </article>
             ))}
           </div>
