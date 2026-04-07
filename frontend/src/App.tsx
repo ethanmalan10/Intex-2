@@ -4,12 +4,12 @@ import PrivacyNoticePage from './PrivacyNoticePage'
 import ImpactDashboardPage from './ImpactDashboardPage'
 
 export default function App() {
-  /*const isPrivacyNoticePage = window.location.pathname === '/privacy-notice'*/
+  const isPrivacyNoticePage = window.location.pathname === '/privacy-notice'
   const isImpactDashboardPage = window.location.pathname === '/impact-dashboard'
 
-  /*if (isPrivacyNoticePage) {
+  if (isPrivacyNoticePage) {
     return <PrivacyNoticePage />
-  }*/
+  }
 
   if (isImpactDashboardPage) {
     return <ImpactDashboardPage />

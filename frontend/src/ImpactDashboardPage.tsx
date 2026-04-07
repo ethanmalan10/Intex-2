@@ -136,7 +136,6 @@ export default function ImpactDashboardPage() {
             <img src="/logo.png" alt="BrighterPath logo" className="h-8 w-8 rounded-full object-cover" />
             <span className="text-lg font-semibold">BrighterPath</span>
           </a>
-          <a href="/privacy-notice" className="text-sm font-medium text-teal-700 hover:text-teal-800">Privacy Notice</a>
         </div>
       </header>
 
