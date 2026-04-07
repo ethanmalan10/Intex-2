@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from 'recharts'
+import PublicLayout from './components/layout/PublicLayout'
 
 type Kpi = {
   label: string
@@ -129,16 +130,8 @@ export default function ImpactDashboardPage() {
   const data = useMemo(() => sanitizeDashboardData(rawData), [rawData])
 
   return (
-    <main className="min-h-screen bg-stone-50 text-stone-800">
-      <header className="border-b border-stone-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <a href="/" className="flex items-center gap-2 text-teal-700">
-            <img src="/logo.png" alt="BrighterPath logo" className="h-8 w-8 rounded-full object-cover" />
-            <span className="text-lg font-semibold">BrighterPath</span>
-          </a>
-        </div>
-      </header>
-
+    <PublicLayout navVariant="default" offsetTop={true}>
+      <div className="min-h-screen bg-stone-50 text-stone-800">
       <section className="mx-auto max-w-6xl px-6 py-10">
         <h1 className="text-3xl font-bold text-stone-900">Impact Dashboard</h1>
         <p className="mt-3 max-w-3xl text-stone-600">
@@ -228,8 +221,7 @@ export default function ImpactDashboardPage() {
           </table>
         </div>
       </section>
-
-      <footer className="border-t border-stone-200 bg-white">
+      <section className="border-t border-stone-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-6 text-sm text-stone-600">
           <p>
             Transparency note: All dashboard values are aggregated and anonymized with suppression for groups smaller than
@@ -239,7 +231,8 @@ export default function ImpactDashboardPage() {
             Methodology: values are compiled from program systems and published as donor-facing operational summaries.
           </p>
         </div>
-      </footer>
-    </main>
+      </section>
+      </div>
+    </PublicLayout>
   )
 }
