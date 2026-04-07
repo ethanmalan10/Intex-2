@@ -13,7 +13,7 @@ We may collect:
 - Communication preferences and outreach history
 - Technical usage data (IP address, browser type, pages visited, timestamps)
 
-2) HOW WE USE INFORMATION
+2) HOW WE USE INFORMATION 
 
 We use personal information to:
 - Process donations and provide receipts
