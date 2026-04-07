@@ -233,7 +233,7 @@ function Hero() {
           </div>
           <h1 className="text-5xl sm:text-6xl font-bold text-white leading-tight mb-6">
             Every girl<br />deserves a<br />
-            <span className="text-teal-400">safe place</span><br />
+            <span className="text-amber-400">safe place</span><br />
             to heal.
           </h1>
           <p className="text-white/70 text-lg leading-relaxed mb-10 max-w-md">
