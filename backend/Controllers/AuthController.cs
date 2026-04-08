@@ -45,9 +45,11 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
+        // Accept either email or username
+        var user = await _userManager.FindByEmailAsync(request.UsernameOrEmail)
+                   ?? await _userManager.FindByNameAsync(request.UsernameOrEmail);
         if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
-            return Unauthorized(new { message = "Invalid email or password." });
+            return Unauthorized(new { message = "Invalid username or password." });
 
         var token = await GenerateJwtToken(user);
         return Ok(new { token });
