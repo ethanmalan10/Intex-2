@@ -230,7 +230,7 @@ export default function ReportsAnalyticsPage() {
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-                {pipeline.name === 'inactive_supporter_risk' && (
+                {pipeline.name === 'Inactive Supporter Risk' && (
                   <div className="mt-3 text-sm text-stone-700">
                     <p className="font-semibold">Top 5 most at-risk supporters:</p>
                     {topFiveHighRiskNames.length === 0 ? (
@@ -244,7 +244,7 @@ export default function ReportsAnalyticsPage() {
                     )}
                   </div>
                 )}
-                {pipeline.name === 'resident-risk-escalation' && (
+                {pipeline.name === 'Resident Risk Escalation' && (
                   <div className="mt-3 text-sm text-stone-700">
                     <p className="font-semibold">Top 5 residents by escalation risk:</p>
                     {topFiveEscalationResidents.length === 0 ? (
@@ -258,7 +258,7 @@ export default function ReportsAnalyticsPage() {
                     )}
                   </div>
                 )}
-                {pipeline.name === 'inactive_supporter_risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
+                {pipeline.name === 'Inactive Supporter Risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -280,7 +280,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
+                {pipeline.name === 'Counseling Intensity Readiness Effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={counselingReadinessGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
@@ -294,7 +294,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'donor-recurrence-forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
+                {pipeline.name === 'Donor Recurrence Forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={donorTopTenChartData} layout="vertical" margin={{ top: 8, right: 16, left: 24, bottom: 8 }}>
@@ -307,7 +307,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'reintegration-readiness' && (
+                {pipeline.name === 'Reintegration Readiness' && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -353,7 +353,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'resident-risk-escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
+                {pipeline.name === 'Resident Risk Escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -392,7 +392,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'social-content-donation-impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
+                {pipeline.name === 'Social Content Donation Impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
