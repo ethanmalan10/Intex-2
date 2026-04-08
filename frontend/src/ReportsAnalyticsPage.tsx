@@ -1,6 +1,21 @@
 import { useEffect, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  RadialBarChart,
+  RadialBar,
+  PolarAngleAxis,
+} from 'recharts'
 
 type ReportsData = {
   generatedAtUtc: string
@@ -106,6 +121,71 @@ export default function ReportsAnalyticsPage() {
   const topFiveLikelyDonors = data.donorRecurrenceForecast.topLikelyToDonateAgain.slice(0, 5)
   const topFiveLikelyReadyResidents = data.reintegrationReadiness.topLikelyReadyResidents.slice(0, 5)
   const topFiveEscalationResidents = data.residentRiskEscalation.topEscalationResidents.slice(0, 5)
+  const residentEscalationGroupedData = (() => {
+    const counts = data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts ?? []
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+    const concernsFlagged =
+      counts.find((item) => normalize(item.label).includes('concern'))?.value ?? 0
+    const severeIncidents =
+      counts.find((item) => normalize(item.label).includes('severe'))?.value ?? 0
+    const totalFlagged =
+      counts.find((item) => normalize(item.label).includes('total'))?.value ?? 0
+
+    return [{ group: 'Escalation Categories', concernsFlagged, severeIncidents, totalFlagged }]
+  })()
+  const reintegrationDonutData = (() => {
+    const overview = data.pipelineVisuals?.reintegrationReadiness?.readinessOverview ?? []
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+    const closedWithin365 =
+      overview.find((item) => normalize(item.label).includes('closed') && normalize(item.label).includes('365'))?.value ?? 0
+    const explicitRemaining =
+      overview.find((item) => normalize(item.label).includes('remaining'))?.value
+    const total =
+      overview.find((item) => normalize(item.label).includes('total'))?.value
+
+    const remaining =
+      explicitRemaining ?? (typeof total === 'number' ? Math.max(total - closedWithin365, 0) : 0)
+
+    return [
+      { label: 'Closed within 365 days', value: closedWithin365 },
+      { label: 'Remaining', value: remaining },
+    ]
+  })()
+  const donorRecurrenceGaugeData = (() => {
+    const scores = data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores ?? []
+    const averageScore =
+      scores.length > 0 ? scores.reduce((sum, item) => sum + item.score, 0) / scores.length : 0
+    const recurrenceRate = Math.max(0, Math.min(100, averageScore * 100))
+
+    return [{ name: 'Recurrence Rate', value: recurrenceRate }]
+  })()
+  const counselingReadinessGroupedData = (() => {
+    const comparison = data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison ?? []
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+    const highIntensity =
+      comparison.find((item) => normalize(item.label).includes('high'))?.value ?? 0
+    const lowIntensity =
+      comparison.find((item) => normalize(item.label).includes('low'))?.value ?? 0
+
+    return [{ group: 'Readiness Rate', highIntensity, lowIntensity }]
+  })()
+  const inactiveSupporterRiskPieData = (() => {
+    const counts = data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts ?? []
+    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+
+    const high = counts.find((item) => normalize(item.label).includes('high'))?.value ?? 0
+    const medium = counts.find((item) => normalize(item.label).includes('medium'))?.value ?? 0
+    const low = counts.find((item) => normalize(item.label).includes('low'))?.value ?? 0
+
+    return [
+      { label: 'High', value: high, color: '#dc2626' },
+      { label: 'Medium', value: medium, color: '#f59e0b' },
+      { label: 'Low', value: low, color: '#16a34a' },
+    ]
+  })()
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -192,25 +272,35 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'inactive_supporter_risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.inactiveSupporterRisk.riskBandCounts}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
-                        <YAxis />
+                      <PieChart>
                         <Tooltip />
-                        <Bar dataKey="value" fill="#0f766e" />
-                      </BarChart>
+                        <Legend />
+                        <Pie
+                          data={inactiveSupporterRiskPieData}
+                          dataKey="value"
+                          nameKey="label"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={82}
+                        >
+                          {inactiveSupporterRiskPieData.map((entry) => (
+                            <Cell key={entry.label} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
                     </ResponsiveContainer>
                   </div>
                 )}
                 {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.counselingIntensityReadinessEffect.readinessRateComparison}>
+                      <BarChart data={counselingReadinessGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
+                        <XAxis dataKey="group" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#2563eb" />
+                        <Bar dataKey="highIntensity" name="High Intensity" fill="#2563eb" />
+                        <Bar dataKey="lowIntensity" name="Low Intensity" fill="#0ea5e9" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -218,38 +308,63 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'donor-recurrence-forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.donorRecurrenceForecast.topLikelyDonorScores}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" hide />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="score" fill="#7c3aed" />
-                      </BarChart>
+                      <RadialBarChart
+                        data={donorRecurrenceGaugeData}
+                        cx="50%"
+                        cy="75%"
+                        innerRadius="65%"
+                        outerRadius="100%"
+                        startAngle={180}
+                        endAngle={0}
+                      >
+                        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                        <RadialBar dataKey="value" cornerRadius={12} fill="#7c3aed" background />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Recurrence Rate']} />
+                        <text x="50%" y="72%" textAnchor="middle" className="fill-stone-700 text-sm">
+                          Recurrence Rate
+                        </text>
+                        <text x="50%" y="84%" textAnchor="middle" className="fill-stone-900 text-xl font-semibold">
+                          {donorRecurrenceGaugeData[0].value.toFixed(1)}%
+                        </text>
+                      </RadialBarChart>
                     </ResponsiveContainer>
                   </div>
                 )}
                 {pipeline.name === 'reintegration-readiness' && data.pipelineVisuals?.reintegrationReadiness?.readinessOverview && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.reintegrationReadiness.readinessOverview}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
-                        <YAxis />
+                      <PieChart>
                         <Tooltip />
-                        <Bar dataKey="value" fill="#059669" />
-                      </BarChart>
+                        <Legend />
+                        <Pie
+                          data={reintegrationDonutData}
+                          dataKey="value"
+                          nameKey="label"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={52}
+                          outerRadius={82}
+                          paddingAngle={2}
+                        >
+                          {reintegrationDonutData.map((entry) => (
+                            <Cell key={entry.label} fill={entry.label.includes('Closed') ? '#059669' : '#94a3b8'} />
+                          ))}
+                        </Pie>
+                      </PieChart>
                     </ResponsiveContainer>
                   </div>
                 )}
                 {pipeline.name === 'resident-risk-escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.residentRiskEscalation.escalationSignalCounts}>
+                      <BarChart data={residentEscalationGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
+                        <XAxis dataKey="group" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#dc2626" />
+                        <Bar dataKey="concernsFlagged" name="Concerns Flagged" fill="#f59e0b" />
+                        <Bar dataKey="severeIncidents" name="Severe Incidents" fill="#dc2626" />
+                        <Bar dataKey="totalFlagged" name="Total Flagged" fill="#7c3aed" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -257,10 +372,14 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'social-content-donation-impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={data.pipelineVisuals.socialContentDonationImpact.donationImpactSummary}>
+                      <BarChart
+                        data={data.pipelineVisuals.socialContentDonationImpact.donationImpactSummary}
+                        layout="vertical"
+                        margin={{ top: 8, right: 16, left: 24, bottom: 8 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="label" />
-                        <YAxis />
+                        <XAxis type="number" />
+                        <YAxis type="category" dataKey="label" width={110} />
                         <Tooltip />
                         <Bar dataKey="value" fill="#ea580c" />
                       </BarChart>
