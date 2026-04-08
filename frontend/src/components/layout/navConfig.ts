@@ -12,17 +12,17 @@ export const primaryNavItems: NavItem[] = [
 export const adminViewItems: NavItem[] = [
   { label: 'Admin Dashboard', landingHref: '/admin', defaultHref: '/admin' },
   { label: 'Donors & Contributions', landingHref: '/donors-contributions', defaultHref: '/donors-contributions' },
-  { label: 'Caseload Inventory', landingHref: '/caseload-inventory', defaultHref: '/caseload-inventory' },
-  { label: 'Process Recording', landingHref: '/process-recording', defaultHref: '/process-recording' },
+  { label: 'Residents', landingHref: '/caseload-inventory', defaultHref: '/caseload-inventory' },
+  { label: 'Counseling', landingHref: '/process-recording', defaultHref: '/process-recording' },
   { label: 'Home Visitation & Case Conferences', landingHref: '/home-visitation-case-conferences', defaultHref: '/home-visitation-case-conferences' },
   { label: 'Reports & Analytics', landingHref: '/reports-analytics', defaultHref: '/reports-analytics' },
 ]
 
 export const footerNavItems = [
   { label: 'Our Impact', href: '/impact-dashboard' },
-  { label: 'Caseload Inventory', href: '/caseload-inventory' },
+  { label: 'Residents', href: '/caseload-inventory' },
   { label: 'Reports & Analytics', href: '/reports-analytics' },
-  { label: 'Process Recording', href: '/process-recording' },
+  { label: 'Counseling', href: '/process-recording' },
   { label: 'Home Visitation & Case Conferences', href: '/home-visitation-case-conferences' },
   { label: 'Get Help', href: '/#get-help' },
   { label: 'Our Story', href: '/#our-story' },
