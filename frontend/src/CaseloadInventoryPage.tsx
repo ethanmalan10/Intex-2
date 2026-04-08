@@ -804,9 +804,9 @@ export default function CaseloadInventoryPage() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-5 lg:items-stretch">
-            <div className="lg:col-span-2 lg:h-full">
-              <div className="flex h-full min-h-[24rem] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+          <div className="grid gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-2">
+              <div className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
                 <div className="border-b border-stone-200 px-4 py-3">
                   <h2 className="text-sm font-semibold text-stone-800">Residents ({filteredResidents.length})</h2>
                 </div>
