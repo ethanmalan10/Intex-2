@@ -30,17 +30,30 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendPolicy", policy =>
     {
         var originsEnv = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN");
-        var origins = (originsEnv ?? string.Empty)
+        var configuredOrigins = (originsEnv ?? string.Empty)
             .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
             .Select(o => o.Trim().TrimEnd('/'))
             .Where(o => !string.IsNullOrWhiteSpace(o))
+            .ToList();
+
+        // Safe defaults for Railway production + local frontend development.
+        var defaultOrigins = new[]
+        {
+            "https://intex-2-production.up.railway.app",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:4173",
+            "http://127.0.0.1:4173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        };
+
+        var origins = configuredOrigins
+            .Concat(defaultOrigins)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        if (origins.Length > 0)
-            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
-        else
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 

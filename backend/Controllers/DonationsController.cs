@@ -3,6 +3,7 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
@@ -12,69 +13,110 @@ namespace backend.Controllers;
 public class DonationsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IWebHostEnvironment _environment;
+    private readonly ILogger<DonationsController> _logger;
 
-    public DonationsController(AppDbContext db)
+    public DonationsController(
+        AppDbContext db,
+        UserManager<ApplicationUser> userManager,
+        IWebHostEnvironment environment,
+        ILogger<DonationsController> logger)
     {
         _db = db;
+        _userManager = userManager;
+        _environment = environment;
+        _logger = logger;
     }
 
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDonationRequest request)
     {
-        if (request.Amount <= 0)
-            return BadRequest(new { message = "Donation amount must be greater than zero." });
-
-        var userEmail = User.FindFirstValue(ClaimTypes.Email);
-        if (string.IsNullOrWhiteSpace(userEmail))
-            return Unauthorized();
-
-        var supporter = await _db.Supporters.FirstOrDefaultAsync(s => s.Email == userEmail);
-        if (supporter == null)
+        try
         {
-            supporter = new Supporter
+            if (request.Amount <= 0)
+                return BadRequest(new { message = "Donation amount must be greater than zero." });
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(userEmail))
             {
-                SupporterType = "Individual",
-                DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? userEmail : request.DisplayName,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                RelationshipType = "Donor",
-                Country = "Brazil",
-                Email = userEmail,
-                Status = "active",
-                CreatedAt = DateTime.UtcNow,
-                FirstDonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-                AcquisitionChannel = "Website"
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (!string.IsNullOrWhiteSpace(userId))
+                {
+                    var identityUser = await _userManager.FindByIdAsync(userId);
+                    userEmail = identityUser?.Email;
+                }
+            }
+            if (string.IsNullOrWhiteSpace(userEmail))
+                return Unauthorized(new { message = "Authenticated user email is required for donation records." });
+
+            var normalizedEmail = userEmail.Trim().ToLowerInvariant();
+            var supporter = await _db.Supporters.FirstOrDefaultAsync(s => s.Email.ToLower() == normalizedEmail);
+            if (supporter == null)
+            {
+                supporter = new Supporter
+                {
+                    SupporterType = "Individual",
+                    DisplayName = string.IsNullOrWhiteSpace(request.DisplayName) ? userEmail : request.DisplayName,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    RelationshipType = "Donor",
+                    Country = "Brazil",
+                    Email = userEmail,
+                    Status = "active",
+                    CreatedAt = DateTime.UtcNow,
+                    FirstDonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                    AcquisitionChannel = "Website"
+                };
+                _db.Supporters.Add(supporter);
+                await _db.SaveChangesAsync();
+            }
+
+            var donation = new Donation
+            {
+                SupporterId = supporter.SupporterId,
+                DonationType = "Monetary",
+                DonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
+                IsRecurring = false,
+                CampaignName = "Website Donation",
+                ChannelSource = "Direct",
+                CurrencyCode = "USD",
+                Amount = request.Amount,
+                EstimatedValue = request.Amount,
+                ImpactUnit = "dollars",
+                Notes = request.Notes
             };
-            _db.Supporters.Add(supporter);
+
+            _db.Donations.Add(donation);
             await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                donation.DonationId,
+                donation.Amount,
+                donation.DonationDate,
+                supporter.SupporterId
+            });
         }
-
-        var donation = new Donation
+        catch (DbUpdateException ex)
         {
-            SupporterId = supporter.SupporterId,
-            DonationType = "Monetary",
-            DonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
-            IsRecurring = false,
-            CampaignName = "Website Donation",
-            ChannelSource = "Direct",
-            CurrencyCode = "USD",
-            Amount = request.Amount,
-            EstimatedValue = request.Amount,
-            ImpactUnit = "dollars",
-            Notes = request.Notes
-        };
-
-        _db.Donations.Add(donation);
-        await _db.SaveChangesAsync();
-
-        return Ok(new
+            _logger.LogError(ex, "Donation database write failed for authenticated user.");
+            if (_environment.IsDevelopment())
+            {
+                return StatusCode(500, new { message = "Donation database write failed.", detail = ex.InnerException?.Message ?? ex.Message });
+            }
+            return StatusCode(500, new { message = "Donation could not be saved right now. Please try again." });
+        }
+        catch (Exception ex)
         {
-            donation.DonationId,
-            donation.Amount,
-            donation.DonationDate,
-            supporter.SupporterId
-        });
+            _logger.LogError(ex, "Donation request failed unexpectedly.");
+            if (_environment.IsDevelopment())
+            {
+                return StatusCode(500, new { message = "Unexpected donation error.", detail = ex.Message });
+            }
+            return StatusCode(500, new { message = "Donation could not be processed right now. Please try again." });
+        }
     }
 }
 
