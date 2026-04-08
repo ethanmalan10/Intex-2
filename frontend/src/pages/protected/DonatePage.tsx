@@ -97,7 +97,7 @@ export default function DonatePage() {
         <section className="mx-auto max-w-2xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
           <div className="flex items-center justify-center gap-2 text-teal-700">
             <img src="/logo.png" alt="Esperanca Brasil logo" className="h-7 w-7 rounded-full object-cover" />
-            <p className="text-lg font-medium italic">Esperan&#231;a Brasil</p>
+            <p className="text-lg font-medium italic">BrighterPath</p>
           </div>
 
           <h1 className="mt-5 text-center text-5xl leading-tight text-stone-900" style={{ fontFamily: 'Georgia, serif' }}>
