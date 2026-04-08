@@ -171,6 +171,25 @@ public class AdminDashboardController : ControllerBase
             })
             .ToList();
         var recurrenceRate = donorWindows.Count == 0 ? 0 : Math.Round(donorWindows.Count(x => x.DonatedAgain) * 100.0 / donorWindows.Count, 1);
+        var activeSupporterById = activeSupporters.ToDictionary(s => s.SupporterId, s => string.IsNullOrWhiteSpace(s.DisplayName) ? $"Supporter {s.SupporterId}" : s.DisplayName);
+        var donorLikelihoodRows = activeSupporters.Select(s =>
+        {
+            var don = supporterDonations.Where(d => d.SupporterId == s.SupporterId).ToList();
+            var don365 = don.Where(d => d.DonationDate >= oneYearAgo).ToList();
+            var lastDonation = don.OrderByDescending(d => d.DonationDate).FirstOrDefault();
+            var recencyDays = lastDonation == null
+                ? 730
+                : (today.ToDateTime(TimeOnly.MinValue) - lastDonation.DonationDate.ToDateTime(TimeOnly.MinValue)).Days;
+            var freq365 = don365.Count;
+            var recurringShare = freq365 == 0 ? 0 : don365.Count(d => d.IsRecurring) / (double)freq365;
+            var score = (1.4 * Math.Min(freq365 / 12.0, 1.0)) + (0.9 * recurringShare) - (1.3 * Math.Min(recencyDays / 365.0, 1.0));
+            return new { s.SupporterId, Score = score };
+        }).ToList();
+        var topFiveLikelyDonorNames = donorLikelihoodRows
+            .OrderByDescending(r => r.Score)
+            .Take(5)
+            .Select(r => activeSupporterById[r.SupporterId])
+            .ToList();
 
         var readinessEligible = allResidents.Where(r => r.DateEnrolled != default).ToList();
         var readinessRows = readinessEligible.Select(r =>
@@ -182,6 +201,21 @@ public class AdminDashboardController : ControllerBase
         }).ToList();
         var readinessRate = readinessRows.Count == 0 ? 0 : Math.Round(readinessRows.Count(x => x.ready) * 100.0 / readinessRows.Count, 1);
         var medianDaysToClose = readinessRows.Where(x => x.daysToClose != null).Select(x => x.daysToClose!.Value).OrderBy(v => v).DefaultIfEmpty(0).ElementAt(readinessRows.Count(x => x.daysToClose != null) / 2);
+        var topFiveLikelyReadyRows = readinessEligible
+            .Select(r =>
+            {
+                var recentSessions = allProcess.Where(p => p.ResidentId == r.ResidentId && p.SessionDate >= today.AddDays(-90)).ToList();
+                var progressRate = recentSessions.Count == 0 ? 0 : recentSessions.Count(s => s.ProgressNoted) / (double)recentSessions.Count;
+                var concernRate = recentSessions.Count == 0 ? 0 : recentSessions.Count(s => s.ConcernsFlagged) / (double)recentSessions.Count;
+                var baseScore = 0.9 * progressRate - 0.8 * concernRate;
+                if (r.DateClosed != null) baseScore += 0.5;
+                var name = string.IsNullOrWhiteSpace(r.InternalCode) ? $"Resident {r.ResidentId}" : r.InternalCode;
+                return new { name, score = Math.Round(baseScore, 4) };
+            })
+            .OrderByDescending(x => x.score)
+            .Take(5)
+            .ToList();
+        var topFiveLikelyReadyNames = topFiveLikelyReadyRows.Select(x => x.name).ToList();
 
         var concernResidents = allProcess
             .Where(p => p.SessionDate >= today.AddDays(-90) && p.ConcernsFlagged)
@@ -194,6 +228,21 @@ public class AdminDashboardController : ControllerBase
             .Distinct()
             .ToHashSet();
         var riskEscalatedResidents = concernResidents.Union(severeIncidentResidents).Count();
+        var topFiveEscalationRows = allResidents
+            .Select(r =>
+            {
+                var recentSessions = allProcess.Where(p => p.ResidentId == r.ResidentId && p.SessionDate >= today.AddDays(-90)).ToList();
+                var concernCount = recentSessions.Count(s => s.ConcernsFlagged);
+                var severeCount = allIncidents.Count(i => i.ResidentId == r.ResidentId && (string.Equals(i.Severity, "High", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Severity, "Critical", StringComparison.OrdinalIgnoreCase)));
+                var score = (2.0 * severeCount) + concernCount;
+                var name = string.IsNullOrWhiteSpace(r.InternalCode) ? $"Resident {r.ResidentId}" : r.InternalCode;
+                return new { name, score };
+            })
+            .Where(x => x.score > 0)
+            .OrderByDescending(x => x.score)
+            .Take(5)
+            .ToList();
+        var topFiveEscalationNames = topFiveEscalationRows.Select(x => x.name).ToList();
 
         var donatedWithPost = allDonations.Where(d => d.ReferralPostId != null).ToList();
         var avgDonationFromSocial = donatedWithPost.Count == 0 ? 0m : Math.Round(donatedWithPost.Average(d => d.Amount ?? d.EstimatedValue ?? 0m), 2);
@@ -222,6 +271,77 @@ public class AdminDashboardController : ControllerBase
                 mediumRiskCount,
                 lowRiskCount,
                 topAtRisk
+            },
+            donorRecurrenceForecast = new
+            {
+                topLikelyToDonateAgain = topFiveLikelyDonorNames
+            },
+            reintegrationReadiness = new
+            {
+                topLikelyReadyResidents = topFiveLikelyReadyNames
+            },
+            residentRiskEscalation = new
+            {
+                topEscalationResidents = topFiveEscalationNames
+            },
+            pipelineVisuals = new
+            {
+                inactiveSupporterRisk = new
+                {
+                    riskBandCounts = new[]
+                    {
+                        new { label = "High", value = highRiskCount },
+                        new { label = "Medium", value = mediumRiskCount },
+                        new { label = "Low", value = lowRiskCount },
+                    }
+                },
+                counselingIntensityReadinessEffect = new
+                {
+                    readinessRateComparison = new[]
+                    {
+                        new { label = "High Intensity", value = highReadyRate },
+                        new { label = "Low Intensity", value = lowReadyRate },
+                    }
+                },
+                donorRecurrenceForecast = new
+                {
+                    topLikelyDonorScores = donorLikelihoodRows
+                        .OrderByDescending(r => r.Score)
+                        .Take(5)
+                        .Select(r => new
+                        {
+                            name = activeSupporterById[r.SupporterId],
+                            score = Math.Round(r.Score, 4)
+                        })
+                        .ToList()
+                },
+                reintegrationReadiness = new
+                {
+                    readinessOverview = new[]
+                    {
+                        new { label = "Ready <=365d", value = readinessRate },
+                        new { label = "Not Ready <=365d", value = Math.Round(100 - readinessRate, 1) },
+                    },
+                    topLikelyReadyScores = topFiveLikelyReadyRows
+                },
+                residentRiskEscalation = new
+                {
+                    escalationSignalCounts = new[]
+                    {
+                        new { label = "Concerns Flagged", value = concernResidents.Count },
+                        new { label = "Severe Incidents", value = severeIncidentResidents.Count },
+                        new { label = "Union Flagged", value = riskEscalatedResidents },
+                    },
+                    topEscalationScores = topFiveEscalationRows
+                },
+                socialContentDonationImpact = new
+                {
+                    donationImpactSummary = new[]
+                    {
+                        new { label = "Referred Donations", value = (double)donatedWithPost.Count },
+                        new { label = "Avg Referred Donation", value = (double)avgDonationFromSocial },
+                    }
+                }
             },
             pipelineResults = new[]
             {
@@ -259,7 +379,8 @@ public class AdminDashboardController : ControllerBase
                     {
                         $"Supporters with usable window: {donorWindows.Count}",
                         $"Observed donate-again rate (day 61-240): {recurrenceRate:0.0}%",
-                        $"Recent donations (30d): {donationsLast30Count}"
+                        $"Recent donations (30d): {donationsLast30Count}",
+                        $"Top 5 likely to donate again: {(topFiveLikelyDonorNames.Count == 0 ? "None" : string.Join(", ", topFiveLikelyDonorNames))}"
                     }
                 },
                 new
@@ -271,7 +392,8 @@ public class AdminDashboardController : ControllerBase
                     {
                         $"Residents evaluated: {readinessRows.Count}",
                         $"Closed within 365 days of enrollment: {readinessRate:0.0}%",
-                        $"Median days-to-close among closed cases: {medianDaysToClose}"
+                        $"Median days-to-close among closed cases: {medianDaysToClose}",
+                        $"Top 5 likely-ready residents: {(topFiveLikelyReadyNames.Count == 0 ? "None" : string.Join(", ", topFiveLikelyReadyNames))}"
                     }
                 },
                 new
@@ -283,7 +405,8 @@ public class AdminDashboardController : ControllerBase
                     {
                         $"Residents with concerns flagged in last 90d: {concernResidents.Count}",
                         $"Residents with severe incidents: {severeIncidentResidents.Count}",
-                        $"Total residents flagged by escalation signals: {riskEscalatedResidents}"
+                        $"Total residents flagged by escalation signals: {riskEscalatedResidents}",
+                        $"Top 5 residents by escalation signal: {(topFiveEscalationNames.Count == 0 ? "None" : string.Join(", ", topFiveEscalationNames))}"
                     }
                 },
                 new
