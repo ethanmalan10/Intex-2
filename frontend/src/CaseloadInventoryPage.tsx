@@ -804,15 +804,15 @@ export default function CaseloadInventoryPage() {
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-              <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
+          <div className="grid gap-6 lg:grid-cols-5 lg:items-stretch">
+            <div className="lg:col-span-2 lg:h-full">
+              <div className="flex h-full min-h-[24rem] flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
                 <div className="border-b border-stone-200 px-4 py-3">
                   <h2 className="text-sm font-semibold text-stone-800">Residents ({filteredResidents.length})</h2>
                 </div>
-                <div className="max-h-[32rem] overflow-y-auto">
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="min-w-full text-left text-sm">
+                <div className="min-h-0 flex-1 overflow-y-auto">
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="min-w-full text-left text-sm">
                     <thead>
                       <tr className="border-b border-stone-200 text-xs text-stone-500">
                         <th className="px-3 py-2">Record</th>
@@ -853,30 +853,30 @@ export default function CaseloadInventoryPage() {
                         )
                       })}
                     </tbody>
-                  </table>
-                </div>
-                <div className="md:hidden divide-y divide-stone-100">
-                  {filteredResidents.map((r) => (
-                    <button
-                      key={r.residentId}
-                      type="button"
-                      className={`w-full px-4 py-3 text-left hover:bg-stone-50 ${
-                        selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50' : ''
-                      }`}
-                      onClick={() => {
-                        setSelectedId(r.residentId)
-                        setPanelMode('view')
-                        setDraft(null)
-                        setFormError(null)
-                      }}
-                    >
-                      <p className="font-medium text-stone-900">{rowLabel(r)}</p>
-                      <p className="text-xs text-stone-500">
-                        {SAFEHOUSES[r.safehouseId]} · {r.caseStatus} · {r.caseCategory}
-                      </p>
-                    </button>
-                  ))}
-                </div>
+                    </table>
+                  </div>
+                  <div className="md:hidden divide-y divide-stone-100">
+                    {filteredResidents.map((r) => (
+                      <button
+                        key={r.residentId}
+                        type="button"
+                        className={`w-full px-4 py-3 text-left hover:bg-stone-50 ${
+                          selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50' : ''
+                        }`}
+                        onClick={() => {
+                          setSelectedId(r.residentId)
+                          setPanelMode('view')
+                          setDraft(null)
+                          setFormError(null)
+                        }}
+                      >
+                        <p className="font-medium text-stone-900">{rowLabel(r)}</p>
+                        <p className="text-xs text-stone-500">
+                          {SAFEHOUSES[r.safehouseId]} · {r.caseStatus} · {r.caseCategory}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {filteredResidents.length === 0 && (
                   <p className="px-4 py-6 text-center text-sm text-stone-500">No residents match these filters.</p>
