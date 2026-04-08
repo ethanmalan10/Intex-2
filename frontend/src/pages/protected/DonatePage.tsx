@@ -5,6 +5,16 @@ import { useAuth } from '../../context/AuthContext'
 const API = import.meta.env.VITE_API_BASE_URL
 
 const AMOUNTS = [10, 25, 50, 100, 250, 500, 750, 1000]
+const AMOUNT_DESCRIPTIONS: Record<number, string> = {
+  10: "Provides daily nutritious meals for one girl for an entire week",
+  25: "Supplies school books and materials for one child's month",
+  50: "Funds one full trauma counseling session with a licensed therapist",
+  100: "Covers one month of safe shelter and housing for one child",
+  250: "Provides three months of medical care and wellness checkups",
+  500: "Sponsors a full semester of education and holistic support",
+  750: "Equips our team to rescue and house three girls in immediate danger",
+  1000: "Funds a full month of comprehensive care for five survivors",
+}
 
 export default function DonatePage() {
   const { user } = useAuth()
@@ -130,7 +140,7 @@ export default function DonatePage() {
                 }`}
               >
                 <p className="text-4xl font-bold text-teal-700">${amount.toLocaleString()}</p>
-                <p className="mt-1 text-sm text-stone-500">Supports critical care and services.</p>
+                <p className="mt-1 text-sm text-stone-500">{AMOUNT_DESCRIPTIONS[amount]}</p>
               </button>
             ))}
           </div>
