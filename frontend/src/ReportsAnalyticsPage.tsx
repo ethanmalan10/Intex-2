@@ -32,37 +32,37 @@ const FALLBACK: ReportsData = {
   },
   pipelineResults: [
     {
-      name: 'inactive_supporter_risk',
+      name: 'Inactive Supporter Risk',
       businessProblem: 'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
       runStatus: 'Preview fallback',
       results: ['Active supporters scored: 120', 'High risk: 18, Medium risk: 41, Low risk: 61', 'Top risk score: 0.880'],
     },
     {
-      name: 'counseling-intensity-readiness-effect',
+      name: 'Counseling Intensity Readiness Effect',
       businessProblem: 'How does counseling intensity relate to readiness so case effort can be prioritized?',
       runStatus: 'Preview fallback',
       results: ['Residents evaluated: 60', 'High-intensity residents: 18', 'Readiness rate high vs low intensity: 23.0% vs 31.0%'],
     },
     {
-      name: 'donor-recurrence-forecast',
+      name: 'Donor Recurrence Forecast',
       businessProblem: 'Which donors are likely to donate again soon so outreach timing can be optimized?',
       runStatus: 'Preview fallback',
       results: ['Supporters with usable window: 98', 'Observed donate-again rate (day 61-240): 44.0%', 'Recent donations (30d): 108'],
     },
     {
-      name: 'reintegration-readiness',
+      name: 'Reintegration Readiness',
       businessProblem: 'Which residents are likely ready for reintegration to support case conference decisions?',
       runStatus: 'Preview fallback',
       results: ['Residents evaluated: 60', 'Closed within 365 days of enrollment: 27.0%', 'Median days-to-close among closed cases: 180'],
     },
     {
-      name: 'resident-risk-escalation',
+      name: 'Resident Risk Escalation',
       businessProblem: 'Which resident cases are escalating so preventive interventions happen earlier?',
       runStatus: 'Preview fallback',
       results: ['Residents with concerns flagged in last 90d: 14', 'Residents with severe incidents: 9', 'Total residents flagged by escalation signals: 19'],
     },
     {
-      name: 'social-content-donation-impact',
+      name: 'Social Content Donation Impact',
       businessProblem: 'Which social content is associated with stronger donation outcomes?',
       runStatus: 'Preview fallback',
       results: ['Donations with social referral post id: 37', 'Average donation from social referrals: 742.50', 'Top platform by referred donations: Instagram (21 referred donations)'],
@@ -71,12 +71,12 @@ const FALLBACK: ReportsData = {
 }
 
 const REQUIRED_PIPELINE_ORDER = [
-  'inactive_supporter_risk',
-  'counseling-intensity-readiness-effect',
-  'donor-recurrence-forecast',
-  'reintegration-readiness',
-  'resident-risk-escalation',
-  'social-content-donation-impact',
+  'Inactive Supporter Risk',
+  'Counseling Intensity Readiness Effect',
+  'Donor Recurrence Forecast',
+  'Reintegration Readiness',
+  'Resident Risk Escalation',
+  'Social Content Donation Impact',
 ] as const
 
 export default function ReportsAnalyticsPage() {
@@ -106,12 +106,6 @@ export default function ReportsAnalyticsPage() {
       })
   }, [apiUrl])
 
-  const topFiveHighRiskNames = (
-    data.inactiveSupporterRisk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5).length > 0
-      ? data.inactiveSupporterRisk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5)
-      : data.inactiveSupporterRisk.topAtRisk.slice(0, 5)
-  ).map((s) => s.displayName)
-
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
@@ -138,20 +132,6 @@ export default function ReportsAnalyticsPage() {
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-                {pipeline.name === 'inactive_supporter_risk' && (
-                  <div className="mt-3 text-sm text-stone-700">
-                    <p className="font-semibold">Top 5 most at-risk supporters:</p>
-                    {topFiveHighRiskNames.length === 0 ? (
-                      <p className="mt-1 text-stone-500">No high-risk supporters found.</p>
-                    ) : (
-                      <ol className="mt-1 list-decimal space-y-1 pl-5">
-                        {topFiveHighRiskNames.map((name) => (
-                          <li key={name}>{name}</li>
-                        ))}
-                      </ol>
-                    )}
-                  </div>
-                )}
               </article>
             ))}
           </div>
