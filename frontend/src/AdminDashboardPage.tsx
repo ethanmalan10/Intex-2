@@ -26,12 +26,6 @@ type AdminData = {
       riskBand: 'High' | 'Medium' | 'Low'
     }>
   }
-  pipelineResults: Array<{
-    name: string
-    businessProblem: string
-    runStatus: string
-    results: string[]
-  }>
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
@@ -56,44 +50,6 @@ const FALLBACK: AdminData = {
       { supporterId: 103, displayName: 'Sample Supporter C', recencyDays: 149, frequency365: 2, channelCount365: 1, recurringShare365: 0, riskScore: 0.74, riskBand: 'High' },
     ],
   },
-  pipelineResults: [
-    {
-      name: 'inactive_supporter_risk',
-      businessProblem: 'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
-      runStatus: 'Preview fallback',
-      results: ['Active supporters scored: 120', 'High risk: 18, Medium risk: 41, Low risk: 61', 'Top risk score: 0.880'],
-    },
-    {
-      name: 'counseling-intensity-readiness-effect',
-      businessProblem: 'How does counseling intensity relate to readiness so case effort can be prioritized?',
-      runStatus: 'Preview fallback',
-      results: ['Residents evaluated: 60', 'High-intensity residents: 18', 'Readiness rate high vs low intensity: 23.0% vs 31.0%'],
-    },
-    {
-      name: 'donor-recurrence-forecast',
-      businessProblem: 'Which donors are likely to donate again soon so outreach timing can be optimized?',
-      runStatus: 'Preview fallback',
-      results: ['Supporters with usable window: 98', 'Observed donate-again rate (day 61-240): 44.0%', 'Recent donations (30d): 108'],
-    },
-    {
-      name: 'reintegration-readiness',
-      businessProblem: 'Which residents are likely ready for reintegration to support case conference decisions?',
-      runStatus: 'Preview fallback',
-      results: ['Residents evaluated: 60', 'Closed within 365 days of enrollment: 27.0%', 'Median days-to-close among closed cases: 180'],
-    },
-    {
-      name: 'resident-risk-escalation',
-      businessProblem: 'Which resident cases are escalating so preventive interventions happen earlier?',
-      runStatus: 'Preview fallback',
-      results: ['Residents with concerns flagged in last 90d: 14', 'Residents with severe incidents: 9', 'Total residents flagged by escalation signals: 19'],
-    },
-    {
-      name: 'social-content-donation-impact',
-      businessProblem: 'Which social content is associated with stronger donation outcomes?',
-      runStatus: 'Preview fallback',
-      results: ['Donations with social referral post id: 37', 'Average donation from social referrals: 742.50', 'Top platform by referred donations: Instagram (21 referred donations)'],
-    },
-  ],
 }
 
 export default function AdminDashboardPage() {
