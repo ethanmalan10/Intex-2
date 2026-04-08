@@ -55,8 +55,13 @@ public class DonationsController : ControllerBase
             var normalizedEmailLower = normalizedEmail.ToLowerInvariant();
             var supporter = await _db.Supporters.FirstOrDefaultAsync(
                 s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
+            if (supporter != null)
+            {
+                _logger.LogInformation("Donation: existing supporter found for email {Email}. SupporterId={SupporterId}", normalizedEmail, supporter.SupporterId);
+            }
             if (supporter == null)
             {
+                _logger.LogInformation("Donation: no supporter found for email {Email}; creating new supporter.", normalizedEmail);
                 supporter = new Supporter
                 {
                     SupporterType = "Individual",
@@ -83,10 +88,17 @@ public class DonationsController : ControllerBase
                     _db.Entry(supporter).State = EntityState.Detached;
                     supporter = await _db.Supporters.FirstOrDefaultAsync(
                         s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
-                    if (supporter == null) throw;
+                    if (supporter == null)
+                    {
+                        _logger.LogError("Donation: supporter creation failed and no existing supporter could be resolved for email {Email}.", normalizedEmail);
+                        throw;
+                    }
                 }
+
+                _logger.LogInformation("Donation: created new supporter for email {Email}. SupporterId={SupporterId}", normalizedEmail, supporter.SupporterId);
             }
 
+            _logger.LogInformation("Donation: creating donation using SupporterId={SupporterId}", supporter.SupporterId);
             var donation = new Donation
             {
                 SupporterId = supporter.SupporterId,
