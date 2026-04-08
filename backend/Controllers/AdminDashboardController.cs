@@ -157,6 +157,26 @@ public class AdminDashboardController : ControllerBase
         var lowIntensity = counselingRows.Except(highIntensity).ToList();
         var highReadyRate = highIntensity.Count == 0 ? 0 : Math.Round(highIntensity.Count(x => x.Ready365) * 100.0 / highIntensity.Count, 1);
         var lowReadyRate = lowIntensity.Count == 0 ? 0 : Math.Round(lowIntensity.Count(x => x.Ready365) * 100.0 / lowIntensity.Count, 1);
+        var counselingSessionBucketReadiness = new[]
+        {
+            new { label = "0-2 sessions", min = 0, max = 2 },
+            new { label = "3-5 sessions", min = 3, max = 5 },
+            new { label = "6-10 sessions", min = 6, max = 10 },
+            new { label = "11+ sessions", min = 11, max = int.MaxValue },
+        }
+        .Select(bucket =>
+        {
+            var bucketRows = counselingRows
+                .Where(x => x.SessionCount90 >= bucket.min && x.SessionCount90 <= bucket.max)
+                .ToList();
+            var rate = bucketRows.Count == 0 ? 0 : Math.Round(bucketRows.Count(x => x.Ready365) * 100.0 / bucketRows.Count, 1);
+            return new
+            {
+                label = bucket.label,
+                value = rate
+            };
+        })
+        .ToList();
 
         var firstDonationBySupporter = allDonations
             .GroupBy(d => d.SupporterId)
@@ -326,6 +346,8 @@ public class AdminDashboardController : ControllerBase
                         new { label = "High Intensity", value = highReadyRate },
                         new { label = "Low Intensity", value = lowReadyRate },
                     }
+                    ,
+                    sessionBucketReadiness = counselingSessionBucketReadiness
                 },
                 donorRecurrenceForecast = new
                 {

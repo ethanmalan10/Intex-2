@@ -101,16 +101,18 @@ export default function SiteNav({ variant }: SiteNavProps) {
                   Admin View <span aria-hidden="true">▾</span>
                 </button>
                 {showAdminMenu ? (
-                  <div className="absolute right-0 mt-2 w-64 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
-                    {adminViewItems.map((item) => (
-                      <a
-                        key={item.label}
-                        href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                        className="block rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
-                      >
-                        {item.label}
-                      </a>
-                    ))}
+                  <div className="absolute right-0 top-full pt-2 w-64">
+                    <div className="rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                      {adminViewItems.map((item) => (
+                        <a
+                          key={item.label}
+                          href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                          className="block rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </li>
@@ -152,14 +154,16 @@ export default function SiteNav({ variant }: SiteNavProps) {
                     Welcome, {welcomeName}
                   </button>
                   {showAccountMenu ? (
-                    <div className="absolute right-0 mt-2 w-32 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
-                      <button
-                        type="button"
-                        onClick={handleLogout}
-                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
-                      >
-                        Logout
-                      </button>
+                    <div className="absolute right-0 top-full pt-2 w-32">
+                      <div className="rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                        >
+                          Logout
+                        </button>
+                      </div>
                     </div>
                   ) : null}
                 </>

@@ -37,6 +37,7 @@ type ReportsData = {
     }
     counselingIntensityReadinessEffect?: {
       readinessRateComparison: Array<{ label: string; value: number }>
+      sessionBucketReadiness?: Array<{ label: string; value: number }>
     }
     donorRecurrenceForecast?: {
       topLikelyDonorScores: Array<{ name: string; score: number }>
@@ -158,16 +159,9 @@ export default function ReportsAnalyticsPage() {
     const scores = data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores ?? []
     return [...scores].sort((a, b) => b.score - a.score).slice(0, 10)
   })()
-  const counselingReadinessGroupedData = (() => {
-    const comparison = data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison ?? []
-    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-
-    const highIntensity =
-      comparison.find((item) => normalize(item.label).includes('high'))?.value ?? 0
-    const lowIntensity =
-      comparison.find((item) => normalize(item.label).includes('low'))?.value ?? 0
-
-    return [{ group: 'Readiness Rate', highIntensity, lowIntensity }]
+  const counselingSessionBucketData = (() => {
+    const buckets = data.pipelineVisuals?.counselingIntensityReadinessEffect?.sessionBucketReadiness ?? []
+    return [...buckets]
   })()
   const inactiveSupporterRiskPieData = (() => {
     const counts = data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts ?? []
@@ -284,16 +278,15 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
+                {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.sessionBucketReadiness && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={counselingReadinessGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                      <BarChart data={counselingSessionBucketData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="group" />
-                        <YAxis />
+                        <XAxis dataKey="label" />
+                        <YAxis domain={[0, 100]} />
                         <Tooltip />
-                        <Bar dataKey="highIntensity" name="High Intensity" fill={CHART_COLORS.primary} />
-                        <Bar dataKey="lowIntensity" name="Low Intensity" fill={CHART_COLORS.secondary} />
+                        <Bar dataKey="value" name="Readiness Rate (%)" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
