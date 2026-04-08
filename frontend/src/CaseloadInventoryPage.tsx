@@ -704,7 +704,7 @@ export default function CaseloadInventoryPage() {
         <section className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-stone-900">Caseload Inventory</h1>
+              <h1 className="text-3xl font-bold text-stone-900">Resident Records</h1>
               <p className="mt-2 text-stone-600">
                 Core case management: resident profiles aligned with agency records. Search, filter, and maintain
                 demographics, case category, disability, family profile, admission, referral, assignment, and
