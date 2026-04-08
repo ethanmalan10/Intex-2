@@ -248,11 +248,16 @@ public class AdminDashboardController : ControllerBase
 
         var donatedWithPost = allDonations.Where(d => d.ReferralPostId != null).ToList();
         var avgDonationFromSocial = donatedWithPost.Count == 0 ? 0m : Math.Round(donatedWithPost.Average(d => d.Amount ?? d.EstimatedValue ?? 0m), 2);
-        var topPlatform = (from d in donatedWithPost
-                           join p in allPosts on d.ReferralPostId equals p.PostId
-                           group d by p.Platform into g
-                           orderby g.Count() descending
-                           select new { Platform = g.Key, Count = g.Count() }).FirstOrDefault();
+        var referredDonationsByPlatform = (from d in donatedWithPost
+                                           join p in allPosts on d.ReferralPostId equals p.PostId
+                                           group d by (string.IsNullOrWhiteSpace(p.Platform) ? "Unknown" : p.Platform.Trim()) into g
+                                           orderby g.Count() descending
+                                           select new
+                                           {
+                                               Platform = g.Key,
+                                               Count = g.Count()
+                                           }).ToList();
+        var topPlatform = referredDonationsByPlatform.FirstOrDefault();
         var topPlatformLabel = topPlatform == null ? "N/A" : $"{topPlatform.Platform} ({topPlatform.Count} referred donations)";
 
         return Ok(new
@@ -338,11 +343,9 @@ public class AdminDashboardController : ControllerBase
                 },
                 socialContentDonationImpact = new
                 {
-                    donationImpactSummary = new[]
-                    {
-                        new { label = "Referred Donations", value = (double)donatedWithPost.Count },
-                        new { label = "Avg Referred Donation", value = (double)avgDonationFromSocial },
-                    }
+                    donationImpactSummary = referredDonationsByPlatform
+                        .Select(x => new { label = x.Platform, value = (double)x.Count })
+                        .ToList()
                 }
             },
             pipelineResults = new[]

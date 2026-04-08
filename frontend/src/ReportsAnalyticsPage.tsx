@@ -203,6 +203,13 @@ export default function ReportsAnalyticsPage() {
       })
       .sort((a, b) => b.totalDonations - a.totalDonations)
   })()
+  const formatPipelineDisplayName = (name: string) =>
+    name
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase())
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -222,7 +229,7 @@ export default function ReportsAnalyticsPage() {
             {data.pipelineResults.map((pipeline) => (
               <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
-                <p className="mt-1 font-semibold text-teal-700">{pipeline.name}</p>
+                <p className="mt-1 font-semibold text-teal-700">{formatPipelineDisplayName(pipeline.name)}</p>
                 <p className="mt-2 text-sm text-stone-700"><strong>Business problem:</strong> {pipeline.businessProblem}</p>
                 <p className="mt-2 text-sm text-stone-600"><strong>Status:</strong> {pipeline.runStatus}</p>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
@@ -230,7 +237,7 @@ export default function ReportsAnalyticsPage() {
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-                {pipeline.name === 'inactive_supporter_risk' && (
+                {pipeline.name === 'Inactive Supporter Risk' && (
                   <div className="mt-3 text-sm text-stone-700">
                     <p className="font-semibold">Top 5 most at-risk supporters:</p>
                     {topFiveHighRiskNames.length === 0 ? (
@@ -244,7 +251,7 @@ export default function ReportsAnalyticsPage() {
                     )}
                   </div>
                 )}
-                {pipeline.name === 'resident-risk-escalation' && (
+                {pipeline.name === 'Resident Risk Escalation' && (
                   <div className="mt-3 text-sm text-stone-700">
                     <p className="font-semibold">Top 5 residents by escalation risk:</p>
                     {topFiveEscalationResidents.length === 0 ? (
