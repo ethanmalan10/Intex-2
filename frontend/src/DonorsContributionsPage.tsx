@@ -65,6 +65,10 @@ const emptyDonationForm = {
   referralPostId: '',
 }
 
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
 export default function DonorsContributionsPage() {
   const { user } = useAuth()
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
@@ -163,6 +167,19 @@ export default function DonorsContributionsPage() {
 
   async function saveSupporter() {
     if (!isAdmin) return
+    const displayName = supporterForm.displayName.trim()
+    const supporterTypeValue = supporterForm.supporterType.trim()
+    const statusValue = supporterForm.status.trim()
+    const emailValue = supporterForm.email.trim()
+    if (!displayName || !supporterTypeValue || !statusValue || !emailValue) {
+      setError('Display name, supporter type, status, and email are required.')
+      return
+    }
+    if (!isValidEmail(emailValue)) {
+      setError('Please enter a valid supporter email address.')
+      return
+    }
+
     setIsSaving(true)
     setError('')
     try {
@@ -176,6 +193,10 @@ export default function DonorsContributionsPage() {
         headers: authHeaders,
         body: JSON.stringify({
           ...supporterForm,
+          displayName,
+          supporterType: supporterTypeValue,
+          status: statusValue,
+          email: emailValue,
           firstDonationDate: supporterForm.firstDonationDate || null,
         }),
       })
@@ -194,6 +215,41 @@ export default function DonorsContributionsPage() {
 
   async function saveDonation() {
     if (!isAdmin) return
+    const supporterId = Number(donationForm.supporterId)
+    const amount = donationForm.amount ? Number(donationForm.amount) : null
+    const estimatedValue = donationForm.estimatedValue ? Number(donationForm.estimatedValue) : null
+    const referralPostId = donationForm.referralPostId ? Number(donationForm.referralPostId) : null
+    const donationTypeValue = donationForm.donationType.trim()
+
+    if (!Number.isFinite(supporterId) || supporterId <= 0) {
+      setError('Please select a valid supporter.')
+      return
+    }
+    if (!donationForm.donationDate) {
+      setError('Donation date is required.')
+      return
+    }
+    if (!donationTypeValue) {
+      setError('Donation type is required.')
+      return
+    }
+    if ((amount === null || !Number.isFinite(amount)) && (estimatedValue === null || !Number.isFinite(estimatedValue))) {
+      setError('Amount or estimated value is required.')
+      return
+    }
+    if (amount !== null && amount < 0) {
+      setError('Amount cannot be negative.')
+      return
+    }
+    if (estimatedValue !== null && estimatedValue < 0) {
+      setError('Estimated value cannot be negative.')
+      return
+    }
+    if (referralPostId !== null && (!Number.isFinite(referralPostId) || referralPostId <= 0)) {
+      setError('Referral post ID must be a positive number.')
+      return
+    }
+
     setIsSaving(true)
     setError('')
     try {
@@ -203,18 +259,18 @@ export default function DonorsContributionsPage() {
         : `${API}/api/donors-contributions/donations`
 
       const payload = {
-        supporterId: Number(donationForm.supporterId),
-        donationType: donationForm.donationType,
+        supporterId,
+        donationType: donationTypeValue,
         donationDate: donationForm.donationDate,
         isRecurring: donationForm.isRecurring,
         campaignName: donationForm.campaignName || null,
         channelSource: donationForm.channelSource || 'Direct',
         currencyCode: donationForm.currencyCode || 'USD',
-        amount: donationForm.amount ? Number(donationForm.amount) : null,
-        estimatedValue: donationForm.estimatedValue ? Number(donationForm.estimatedValue) : null,
+        amount,
+        estimatedValue,
         impactUnit: donationForm.impactUnit || null,
         notes: donationForm.notes || null,
-        referralPostId: donationForm.referralPostId ? Number(donationForm.referralPostId) : null,
+        referralPostId,
       }
 
       const res = await fetch(url, {

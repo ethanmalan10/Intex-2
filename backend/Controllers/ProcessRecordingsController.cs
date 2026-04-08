@@ -3,11 +3,12 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/process-recordings")]
 public class ProcessRecordingsController : ControllerBase
 {
@@ -42,6 +43,9 @@ public class ProcessRecordingsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ProcessRecordingCreateRequest body)
     {
+        if (!await _db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId))
+            return BadRequest(new { message = "ResidentId not found." });
+
         var entity = new ProcessRecording
         {
             ResidentId = body.ResidentId,
@@ -76,14 +80,14 @@ public class ProcessRecordingsController : ControllerBase
 }
 
 public record ProcessRecordingCreateRequest(
-    int ResidentId,
+    [property: Range(1, int.MaxValue)] int ResidentId,
     DateOnly SessionDate,
-    string SocialWorker,
-    string SessionType,
-    string EmotionalState,
-    string Summary,
-    string Interventions,
-    string FollowUpActions,
+    [property: Required] string SocialWorker,
+    [property: Required] string SessionType,
+    [property: Required] string EmotionalState,
+    [property: Required] string Summary,
+    [property: Required] string Interventions,
+    [property: Required] string FollowUpActions,
     int? SessionDurationMinutes,
     string? EmotionalStateEnd,
     bool? ProgressNoted,

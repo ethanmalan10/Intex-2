@@ -3,11 +3,12 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/home-visitations")]
 public class HomeVisitationsController : ControllerBase
 {
@@ -43,6 +44,9 @@ public class HomeVisitationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] HomeVisitationCreateRequest body)
     {
+        if (!await _db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId))
+            return BadRequest(new { message = "ResidentId not found." });
+
         var entity = new HomeVisitation
         {
             ResidentId = body.ResidentId,
@@ -75,7 +79,7 @@ public class HomeVisitationsController : ControllerBase
 }
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/case-conferences")]
 public class CaseConferencesController : ControllerBase
 {
@@ -109,14 +113,14 @@ public class CaseConferencesController : ControllerBase
 }
 
 public record HomeVisitationCreateRequest(
-    int ResidentId,
+    [property: Range(1, int.MaxValue)] int ResidentId,
     DateOnly VisitDate,
-    string SocialWorker,
-    string VisitType,
-    string Observations,
-    string FamilyCooperationLevel,
+    [property: Required] string SocialWorker,
+    [property: Required] string VisitType,
+    [property: Required] string Observations,
+    [property: Required] string FamilyCooperationLevel,
     bool SafetyConcerns,
-    string FollowUpActions,
+    [property: Required] string FollowUpActions,
     string? VisitOutcome
 );
 

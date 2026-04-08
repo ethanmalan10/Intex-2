@@ -482,6 +482,7 @@ export default function CaseloadInventoryPage() {
   const [panelMode, setPanelMode] = useState<'view' | 'edit' | 'create'>('view')
   const [draft, setDraft] = useState<ResidentRecord | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/residents`, {
@@ -598,6 +599,7 @@ export default function CaseloadInventoryPage() {
 
   const saveDraft = async (event: FormEvent) => {
     event.preventDefault()
+    if (isSaving) return
     if (!draft) return
     const err = validateDraft(draft)
     if (err) {
@@ -605,6 +607,7 @@ export default function CaseloadInventoryPage() {
       return
     }
     try {
+      setIsSaving(true)
       const method = panelMode === 'create' ? 'POST' : 'PUT'
       const endpoint =
         panelMode === 'create'
@@ -688,6 +691,8 @@ export default function CaseloadInventoryPage() {
     } catch (saveErr: unknown) {
       const msg = saveErr instanceof Error ? saveErr.message : 'Unknown error'
       setFormError(`Unable to save resident (${msg}).`)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -894,6 +899,7 @@ export default function CaseloadInventoryPage() {
                     onSubmit={saveDraft}
                     onCancel={cancelPanelForm}
                     formError={formError}
+                    isSaving={isSaving}
                     submitLabel="Create profile"
                   />
                 )}
@@ -905,6 +911,7 @@ export default function CaseloadInventoryPage() {
                     onSubmit={saveDraft}
                     onCancel={cancelPanelForm}
                     formError={formError}
+                    isSaving={isSaving}
                     submitLabel="Save changes"
                   />
                 )}
@@ -1053,6 +1060,7 @@ function ProfileForm({
   onSubmit,
   onCancel,
   formError,
+  isSaving,
   submitLabel,
 }: {
   title: string
@@ -1061,6 +1069,7 @@ function ProfileForm({
   onSubmit: (e: FormEvent) => void
   onCancel: () => void
   formError: string | null
+  isSaving: boolean
   submitLabel: string
 }) {
   return (
@@ -1278,8 +1287,8 @@ function ProfileForm({
       </fieldset>
 
       <div className="flex flex-wrap gap-2">
-        <button type="submit" className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800">
-          {submitLabel}
+        <button type="submit" disabled={isSaving} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800 disabled:opacity-60">
+          {isSaving ? 'Saving...' : submitLabel}
         </button>
         <button type="button" onClick={onCancel} className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-800">
           Cancel

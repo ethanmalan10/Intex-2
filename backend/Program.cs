@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -126,10 +128,28 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "An unexpected error occurred.",
+            Detail = app.Environment.IsDevelopment() ? feature?.Error.Message : null,
+            Instance = context.Request.Path
+        };
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(problem);
+    });
+});
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
@@ -155,10 +175,11 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    // Seed admin user
-    const string adminEmail = "admin@circlehealing.org";
-    const string adminPassword = "Admin@CircleHeal1!";
-    if (await userManager.FindByEmailAsync(adminEmail) is null)
+    // Seed bootstrap admin user if credentials are explicitly configured.
+    var adminEmail = Environment.GetEnvironmentVariable("BOOTSTRAP_ADMIN_EMAIL");
+    var adminPassword = Environment.GetEnvironmentVariable("BOOTSTRAP_ADMIN_PASSWORD");
+    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword)
+        && await userManager.FindByEmailAsync(adminEmail) is null)
     {
         var admin = new ApplicationUser
         {

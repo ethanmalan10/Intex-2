@@ -275,24 +275,24 @@ public class DonorsContributionsController : ControllerBase
 }
 
 public record SupporterUpsertRequest(
-    string SupporterType,
-    string DisplayName,
+    [property: Required] string SupporterType,
+    [property: Required] string DisplayName,
     string? OrganizationName,
     string? FirstName,
     string? LastName,
     string? RelationshipType,
     string? Region,
     string? Country,
-    string Email,
+    [property: Required, EmailAddress] string Email,
     string? Phone,
-    string Status,
+    [property: Required] string Status,
     DateOnly? FirstDonationDate,
     string? AcquisitionChannel
 );
 
 public record DonationUpsertRequest(
-    int SupporterId,
-    string DonationType,
+    [property: Range(1, int.MaxValue)] int SupporterId,
+    [property: Required] string DonationType,
     DateOnly DonationDate,
     bool IsRecurring,
     string? CampaignName,
