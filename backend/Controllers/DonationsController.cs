@@ -22,6 +22,9 @@ public class DonationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDonationRequest request)
     {
+        if (request.Amount <= 0)
+            return BadRequest(new { message = "Donation amount must be greater than zero." });
+
         var userEmail = User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrWhiteSpace(userEmail))
             return Unauthorized();

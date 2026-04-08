@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
+<<<<<<< HEAD
 import { adminViewItems, primaryNavItems } from './navConfig'
+=======
+import { useNavigate } from 'react-router-dom'
+import { primaryNavItems } from './navConfig'
+>>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
 import { useAuth } from '../../context/AuthContext'
 
 type SiteNavProps = {
@@ -9,8 +14,13 @@ type SiteNavProps = {
 export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+<<<<<<< HEAD
   const [adminOpen, setAdminOpen] = useState(false)
   const { user } = useAuth()
+=======
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+>>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
   const navItems = primaryNavItems
 
@@ -29,6 +39,13 @@ export default function SiteNav({ variant }: SiteNavProps) {
   const linkClass = isOpaque ? 'text-stone-600' : 'text-white/80'
   const burgerClass = isOpaque ? 'bg-stone-600' : 'bg-white'
   const welcomeName = user?.firstName?.trim() || user?.email?.split('@')[0] || 'User'
+  const logoutClass = isOpaque ? 'text-stone-500 hover:text-teal-600' : 'text-white/80 hover:text-white'
+
+  function handleLogout() {
+    logout()
+    setOpen(false)
+    navigate('/')
+  }
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${containerClass}`}>
@@ -86,7 +103,16 @@ export default function SiteNav({ variant }: SiteNavProps) {
           </ul>
           <div className="flex items-center gap-5">
             {user ? (
-              <span className={linkClass}>Welcome, {welcomeName}</span>
+              <div className="flex items-center gap-3">
+                <span className={linkClass}>Welcome, {welcomeName}</span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className={`text-sm transition-colors ${logoutClass}`}
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
               <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
                 Login
@@ -159,7 +185,12 @@ export default function SiteNav({ variant }: SiteNavProps) {
             </div>
           ) : null}
           {user ? (
-            <span>Welcome, {welcomeName}</span>
+            <div className="flex items-center gap-3">
+              <span>Welcome, {welcomeName}</span>
+              <button type="button" onClick={handleLogout} className="text-sm text-stone-500 hover:text-teal-700">
+                Logout
+              </button>
+            </div>
           ) : (
             <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
               Login
