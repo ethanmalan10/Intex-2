@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/admin-dashboard")]
 public class AdminDashboardController : ControllerBase
 {
@@ -89,12 +89,12 @@ public class AdminDashboardController : ControllerBase
         double SafeNormalize(double value, double min, double max)
             => max <= min ? 0.0 : (value - min) / (max - min);
 
-        var minRecency = supporterRows.Min(r => (double)r.RecencyDays);
-        var maxRecency = supporterRows.Max(r => (double)r.RecencyDays);
-        var minFreq = supporterRows.Min(r => (double)r.Frequency365);
-        var maxFreq = supporterRows.Max(r => (double)r.Frequency365);
-        var minChannels = supporterRows.Min(r => (double)r.ChannelCount365);
-        var maxChannels = supporterRows.Max(r => (double)r.ChannelCount365);
+        var minRecency = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.RecencyDays);
+        var maxRecency = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.RecencyDays);
+        var minFreq = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.Frequency365);
+        var maxFreq = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.Frequency365);
+        var minChannels = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.ChannelCount365);
+        var maxChannels = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.ChannelCount365);
 
         foreach (var row in supporterRows)
         {
