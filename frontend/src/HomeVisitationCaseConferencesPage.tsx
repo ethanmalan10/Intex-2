@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
 
 type Resident = {
   id: number
@@ -128,7 +129,7 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function HomeVisitationCaseConferencesPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [visits, setVisits] = useState<HomeVisitEntry[]>(INITIAL_VISITS)
@@ -146,8 +147,7 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
         const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
@@ -170,8 +170,7 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: HomeVisitEntry[]) => {
         setVisits(rows)
@@ -188,8 +187,7 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: CaseConference[]) => {
         setConferences(rows)
@@ -266,8 +264,7 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((created: HomeVisitEntry) => {
         setVisits((prev) => [created, ...prev].sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime()))

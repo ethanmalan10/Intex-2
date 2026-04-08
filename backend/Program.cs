@@ -1,7 +1,9 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using backend.Data;
@@ -18,8 +20,32 @@ builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownIPNetworks.Clear();
-    options.KnownProxies.Clear();
+    options.ForwardLimit = 1;
+
+    var knownProxiesEnv = Environment.GetEnvironmentVariable("KNOWN_PROXIES");
+    if (!string.IsNullOrWhiteSpace(knownProxiesEnv))
+    {
+        foreach (var ip in knownProxiesEnv.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (System.Net.IPAddress.TryParse(ip, out var parsed))
+                options.KnownProxies.Add(parsed);
+        }
+    }
+
+    var knownNetworksEnv = Environment.GetEnvironmentVariable("KNOWN_NETWORKS_CIDR");
+    if (!string.IsNullOrWhiteSpace(knownNetworksEnv))
+    {
+        foreach (var cidr in knownNetworksEnv.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = cidr.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2 &&
+                System.Net.IPAddress.TryParse(parts[0], out var prefix) &&
+                int.TryParse(parts[1], out var prefixLength))
+            {
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
+            }
+        }
+    }
 });
 builder.Services.AddHsts(options =>
 {
@@ -93,13 +119,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredUniqueChars = 1;
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
 // ── JWT ───────────────────────────────────────────────────────────────────────
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured.");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
     ?? builder.Configuration["Jwt:Issuer"]
@@ -129,10 +158,28 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 builder.Services.AddProblemDetails();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+});
 
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseRateLimiter();
 app.UseExceptionHandler(exceptionApp =>
 {
     exceptionApp.Run(async context =>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { getAuthToken } from './utils/authToken'
 
 type AdminData = {
   generatedAtUtc: string
@@ -124,7 +125,7 @@ export default function AdminDashboardPage() {
   })
   const [analytics, setAnalytics] = useState<AnalyticsData>({ donationsOverTime: [], donorsAddedOverTime: [] })
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
 
   useEffect(() => {
     fetch(apiUrl, {
@@ -132,8 +133,7 @@ export default function AdminDashboardPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((json: AdminData) => {
         setData(json)

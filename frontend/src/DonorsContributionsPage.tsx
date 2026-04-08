@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 import { useAuth } from './context/AuthContext'
+import { getAuthToken } from './utils/authToken'
 
 const API = import.meta.env.VITE_API_BASE_URL
 
@@ -72,7 +73,7 @@ function isValidEmail(value: string) {
 export default function DonorsContributionsPage() {
   const { user } = useAuth()
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
-  const token = localStorage.getItem('token')
+  const token = getAuthToken()
 
   const [tab, setTab] = useState<Tab>('supporters')
   const [isLoading, setIsLoading] = useState(true)

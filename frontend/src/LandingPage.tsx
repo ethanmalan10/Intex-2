@@ -615,8 +615,7 @@ export default function LandingPage() {
     fetch(`${API_BASE_URL}/api/landing`)
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((json: LandingApiData) => {
         setLandingData(json)
