@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
 
 /** Mirrors backend.Models.Resident — date fields as YYYY-MM-DD strings for inputs */
 export type ResidentRecord = {
@@ -466,7 +467,7 @@ function formatOptionalDate(s: string) {
 }
 
 export default function CaseloadInventoryPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
   const [residents, setResidents] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [filterOptionsSource, setFilterOptionsSource] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [nextId, setNextId] = useState(7)
@@ -490,8 +491,7 @@ export default function CaseloadInventoryPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: ResidentRecord[]) => {
         setFilterOptionsSource(rows.length > 0 ? rows : INITIAL_RESIDENTS)
@@ -514,8 +514,7 @@ export default function CaseloadInventoryPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: ResidentRecord[]) => {
         setResidents(rows)
@@ -673,8 +672,7 @@ export default function CaseloadInventoryPage() {
       })
 
       if (!res.ok) {
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       }
 
       const saved = (await res.json()) as ResidentRecord

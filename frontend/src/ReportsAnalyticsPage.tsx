@@ -13,6 +13,7 @@ import {
   Cell,
   Legend,
 } from 'recharts'
+import { getAuthToken } from './utils/authToken'
 
 type ReportsData = {
   generatedAtUtc: string
@@ -92,7 +93,7 @@ export default function ReportsAnalyticsPage() {
   const [data, setData] = useState<ReportsData>(FALLBACK)
   const [loadError, setLoadError] = useState<string | null>(null)
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
 
   useEffect(() => {
     fetch(apiUrl, {
@@ -100,8 +101,7 @@ export default function ReportsAnalyticsPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((json: ReportsData) => {
         setData({

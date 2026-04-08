@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
 
 type Resident = {
   id: number
@@ -83,7 +84,7 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function ProcessRecordingPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [entries, setEntries] = useState<ProcessRecording[]>(INITIAL_RECORDINGS)
@@ -99,8 +100,7 @@ export default function ProcessRecordingPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
         const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
@@ -123,8 +123,7 @@ export default function ProcessRecordingPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then(
         (
@@ -201,8 +200,7 @@ export default function ProcessRecordingPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((created: ProcessRecording) => {
         setEntries((prev) => [created, ...prev].sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()))

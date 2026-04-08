@@ -4,6 +4,7 @@ import {
   PieChart, Pie, Cell, Legend,
 } from 'recharts'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
 
 type Kpi = {
   label: string
@@ -127,7 +128,7 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
 }
 
 export default function ImpactDashboardPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
   const [rawData, setRawData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -139,8 +140,7 @@ export default function ImpactDashboardPage() {
     })
       .then(async (r) => {
         if (r.ok) return r.json()
-        const body = await r.text()
-        throw new Error(`HTTP ${r.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${r.status}).`)
       })
       .then((json: DashboardData) => {
         setRawData(json)
