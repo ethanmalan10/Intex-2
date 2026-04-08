@@ -112,4 +112,4 @@ public class AuthController : ControllerBase
 }
 
 public record RegisterRequest(string Email, string Password, string? FirstName, string? LastName);
-public record LoginRequest(string Email, string Password);
+public record LoginRequest(string UsernameOrEmail, string Password);

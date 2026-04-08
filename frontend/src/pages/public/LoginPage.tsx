@@ -10,24 +10,21 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
 
-  const [email, setEmail] = useState('')
+  const [usernameOrEmail, setUsernameOrEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [emailError, setEmailError] = useState('')
+  const [usernameError, setUsernameError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [formError, setFormError] = useState('')
   const [loading, setLoading] = useState(false)
 
   function validate() {
     let valid = true
-    setEmailError('')
+    setUsernameError('')
     setPasswordError('')
     setFormError('')
 
-    if (!email.trim()) {
-      setEmailError('Email is required.')
-      valid = false
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError('Enter a valid email address.')
+    if (!usernameOrEmail.trim()) {
+      setUsernameError('Username or email is required.')
       valid = false
     }
 
@@ -48,11 +45,11 @@ export default function LoginPage() {
       const res = await fetch(`${API}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ usernameOrEmail, password }),
       })
 
       if (!res.ok) {
-        setFormError('Invalid email or password.')
+        setFormError('Invalid username or password.')
         return
       }
 
@@ -111,19 +108,19 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-          {/* Email */}
+          {/* Username or Email */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-semibold" style={{ color: '#264653' }}>
-              Email address
+              Username or email
             </label>
             <input
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              type="text"
+              autoComplete="username"
+              value={usernameOrEmail}
+              onChange={e => setUsernameOrEmail(e.target.value)}
+              placeholder="username or you@example.com"
               style={{
-                border: `1.5px solid ${emailError ? '#E53E3E' : '#CBD5E0'}`,
+                border: `1.5px solid ${usernameError ? '#E53E3E' : '#CBD5E0'}`,
                 borderRadius: '8px',
                 padding: '10px 14px',
                 fontSize: '14px',
@@ -132,11 +129,11 @@ export default function LoginPage() {
                 backgroundColor: 'white',
                 transition: 'border-color 0.15s',
               }}
-              onFocus={e => { if (!emailError) e.target.style.borderColor = '#2A9D8F' }}
-              onBlur={e => { if (!emailError) e.target.style.borderColor = '#CBD5E0' }}
+              onFocus={e => { if (!usernameError) e.target.style.borderColor = '#2A9D8F' }}
+              onBlur={e => { if (!usernameError) e.target.style.borderColor = '#CBD5E0' }}
             />
-            {emailError && (
-              <p className="text-xs" style={{ color: '#E53E3E' }}>{emailError}</p>
+            {usernameError && (
+              <p className="text-xs" style={{ color: '#E53E3E' }}>{usernameError}</p>
             )}
           </div>
 
