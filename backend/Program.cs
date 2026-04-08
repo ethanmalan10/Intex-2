@@ -18,7 +18,11 @@ builder.Services.AddCors(options =>
     {
         var originsEnv = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN");
         var origins = (originsEnv ?? string.Empty)
-            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(o => o.Trim().TrimEnd('/'))
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         if (origins.Length > 0)
             policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();

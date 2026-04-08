@@ -467,6 +467,7 @@ function formatOptionalDate(s: string) {
 
 export default function CaseloadInventoryPage() {
   const [residents, setResidents] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
+  const [filterOptionsSource, setFilterOptionsSource] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [nextId, setNextId] = useState(7)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -480,6 +481,21 @@ export default function CaseloadInventoryPage() {
   const [panelMode, setPanelMode] = useState<'view' | 'edit' | 'create'>('view')
   const [draft, setDraft] = useState<ResidentRecord | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/residents`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: ResidentRecord[]) => {
+        setFilterOptionsSource(rows.length > 0 ? rows : INITIAL_RESIDENTS)
+      })
+      .catch(() => {
+        setFilterOptionsSource(INITIAL_RESIDENTS)
+      })
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams()
@@ -510,12 +526,12 @@ export default function CaseloadInventoryPage() {
   }, [searchQuery, filterStatus, filterSafehouse, filterCategory, panelMode, selectedId])
 
   const distinctStatuses = useMemo(
-    () => [...new Set(residents.map((r) => r.caseStatus))].sort(),
-    [residents],
+    () => [...new Set(filterOptionsSource.map((r) => r.caseStatus))].sort(),
+    [filterOptionsSource],
   )
   const distinctCategories = useMemo(
-    () => [...new Set(residents.map((r) => r.caseCategory))].filter(Boolean).sort(),
-    [residents],
+    () => [...new Set(filterOptionsSource.map((r) => r.caseCategory))].filter(Boolean).sort(),
+    [filterOptionsSource],
   )
 
   const filteredResidents = useMemo(() => {
