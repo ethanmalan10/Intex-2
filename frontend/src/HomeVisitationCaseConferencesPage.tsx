@@ -128,6 +128,7 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function HomeVisitationCaseConferencesPage() {
+  const token = localStorage.getItem('token') ?? ''
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [visits, setVisits] = useState<HomeVisitEntry[]>(INITIAL_VISITS)
@@ -137,7 +138,9 @@ export default function HomeVisitationCaseConferencesPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/residents`)
+    fetch(`${API_BASE_URL}/api/residents`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -159,7 +162,9 @@ export default function HomeVisitationCaseConferencesPage() {
   }, [])
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/home-visitations?residentId=${selectedResidentId}`)
+    fetch(`${API_BASE_URL}/api/home-visitations?residentId=${selectedResidentId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -168,7 +173,9 @@ export default function HomeVisitationCaseConferencesPage() {
       .then((rows: HomeVisitEntry[]) => setVisits(rows))
       .catch(() => setVisits(INITIAL_VISITS))
 
-    fetch(`${API_BASE_URL}/api/case-conferences?residentId=${selectedResidentId}`)
+    fetch(`${API_BASE_URL}/api/case-conferences?residentId=${selectedResidentId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -219,7 +226,10 @@ export default function HomeVisitationCaseConferencesPage() {
 
     fetch(`${API_BASE_URL}/api/home-visitations`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         residentId: selectedResidentId,
         visitDate: formState.visitDate,

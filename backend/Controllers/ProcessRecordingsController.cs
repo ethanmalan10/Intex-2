@@ -1,11 +1,13 @@
 using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin,donor,staff")]
 [Route("api/process-recordings")]
 public class ProcessRecordingsController : ControllerBase
 {

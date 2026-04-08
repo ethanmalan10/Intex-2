@@ -1,11 +1,13 @@
 using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin,donor,staff")]
 [Route("api/home-visitations")]
 public class HomeVisitationsController : ControllerBase
 {
@@ -73,6 +75,7 @@ public class HomeVisitationsController : ControllerBase
 }
 
 [ApiController]
+[Authorize(Roles = "Admin,donor,staff")]
 [Route("api/case-conferences")]
 public class CaseConferencesController : ControllerBase
 {

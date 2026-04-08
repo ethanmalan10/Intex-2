@@ -119,12 +119,15 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
 }
 
 export default function ImpactDashboardPage() {
+  const token = localStorage.getItem('token') ?? ''
   const [rawData, setRawData] = useState<DashboardData>(FALLBACK_DATA)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
     const endpoint = `${API_BASE_URL}/api/impact-dashboard`
-    fetch(endpoint)
+    fetch(endpoint, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (r) => {
         if (r.ok) return r.json()
         const body = await r.text()

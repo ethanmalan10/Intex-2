@@ -466,6 +466,7 @@ function formatOptionalDate(s: string) {
 }
 
 export default function CaseloadInventoryPage() {
+  const token = localStorage.getItem('token') ?? ''
   const [residents, setResidents] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [filterOptionsSource, setFilterOptionsSource] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [nextId, setNextId] = useState(7)
@@ -483,7 +484,9 @@ export default function CaseloadInventoryPage() {
   const [formError, setFormError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/residents`)
+    fetch(`${API_BASE_URL}/api/residents`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -505,7 +508,9 @@ export default function CaseloadInventoryPage() {
     if (filterCategory) params.set('caseCategory', filterCategory)
 
     const endpoint = `${API_BASE_URL}/api/residents${params.toString() ? `?${params}` : ''}`
-    fetch(endpoint)
+    fetch(endpoint, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -657,7 +662,10 @@ export default function CaseloadInventoryPage() {
 
       const res = await fetch(endpoint, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(payload),
       })
 

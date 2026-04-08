@@ -83,9 +83,12 @@ export default function ReportsAnalyticsPage() {
   const [data, setData] = useState<ReportsData>(FALLBACK)
   const [loadError, setLoadError] = useState<string | null>(null)
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
+  const token = localStorage.getItem('token') ?? ''
 
   useEffect(() => {
-    fetch(apiUrl)
+    fetch(apiUrl, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()

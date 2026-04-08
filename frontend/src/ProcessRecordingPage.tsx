@@ -83,6 +83,7 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function ProcessRecordingPage() {
+  const token = localStorage.getItem('token') ?? ''
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [entries, setEntries] = useState<ProcessRecording[]>(INITIAL_RECORDINGS)
@@ -91,7 +92,9 @@ export default function ProcessRecordingPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/residents`)
+    fetch(`${API_BASE_URL}/api/residents`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -113,7 +116,9 @@ export default function ProcessRecordingPage() {
   }, [])
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/process-recordings?residentId=${selectedResidentId}`)
+    fetch(`${API_BASE_URL}/api/process-recordings?residentId=${selectedResidentId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
       .then(async (res) => {
         if (res.ok) return res.json()
         const body = await res.text()
@@ -168,7 +173,10 @@ export default function ProcessRecordingPage() {
 
     fetch(`${API_BASE_URL}/api/process-recordings`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({
         residentId: selectedResidentId,
         sessionDate: formState.sessionDate,

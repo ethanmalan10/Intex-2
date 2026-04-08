@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,donor,staff")]
 [Route("api/admin-dashboard")]
 public class AdminDashboardController : ControllerBase
 {
