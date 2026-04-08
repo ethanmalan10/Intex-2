@@ -203,6 +203,13 @@ export default function ReportsAnalyticsPage() {
       })
       .sort((a, b) => b.totalDonations - a.totalDonations)
   })()
+  const formatPipelineDisplayName = (name: string) =>
+    name
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase())
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -222,7 +229,7 @@ export default function ReportsAnalyticsPage() {
             {data.pipelineResults.map((pipeline) => (
               <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
-                <p className="mt-1 font-semibold text-teal-700">{pipeline.name}</p>
+                <p className="mt-1 font-semibold text-teal-700">{formatPipelineDisplayName(pipeline.name)}</p>
                 <p className="mt-2 text-sm text-stone-700"><strong>Business problem:</strong> {pipeline.businessProblem}</p>
                 <p className="mt-2 text-sm text-stone-600"><strong>Status:</strong> {pipeline.runStatus}</p>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
@@ -258,7 +265,7 @@ export default function ReportsAnalyticsPage() {
                     )}
                   </div>
                 )}
-                {pipeline.name === 'Inactive Supporter Risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
+                {pipeline.name === 'inactive_supporter_risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -280,7 +287,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'Counseling Intensity Readiness Effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
+                {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={counselingReadinessGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
@@ -294,7 +301,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'Donor Recurrence Forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
+                {pipeline.name === 'donor-recurrence-forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={donorTopTenChartData} layout="vertical" margin={{ top: 8, right: 16, left: 24, bottom: 8 }}>
@@ -307,7 +314,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'Reintegration Readiness' && (
+                {pipeline.name === 'reintegration-readiness' && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -353,7 +360,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'Resident Risk Escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
+                {pipeline.name === 'resident-risk-escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
@@ -392,7 +399,7 @@ export default function ReportsAnalyticsPage() {
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'Social Content Donation Impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
+                {pipeline.name === 'social-content-donation-impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
