@@ -208,7 +208,7 @@ export default function ProcessRecordingPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-6xl px-6 py-10">
-          <h1 className="text-3xl font-bold text-stone-900">Process Recording</h1>
+          <h1 className="text-3xl font-bold text-stone-900">Counseling Notes</h1>
           <p className="mt-2 text-stone-600">
             Document counseling sessions and review each resident&apos;s healing journey over time.
           </p>
@@ -217,7 +217,7 @@ export default function ProcessRecordingPage() {
 
         <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5">
           <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-stone-900">New Entry</h2>
+            <h2 className="text-lg font-semibold text-stone-900">New Counseling Entry</h2>
             <p className="mt-1 text-sm text-stone-600">Create a dated session record for the selected resident.</p>
 
             <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
@@ -312,7 +312,7 @@ export default function ProcessRecordingPage() {
                 type="submit"
                 className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800"
               >
-                Save Process Recording
+                Save Counseling Entry
               </button>
             </form>
           </article>
@@ -325,7 +325,7 @@ export default function ProcessRecordingPage() {
 
             {residentEntries.length === 0 ? (
               <div className="mt-5 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-                No process recordings yet for this resident.
+                No counseling notes yet for this resident.
               </div>
             ) : (
               <div className="mt-5 space-y-4">
