@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
+<<<<<<< HEAD
+import { adminViewItems, primaryNavItems } from './navConfig'
+=======
 import { useNavigate } from 'react-router-dom'
 import { primaryNavItems } from './navConfig'
+>>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
 import { useAuth } from '../../context/AuthContext'
 
 type SiteNavProps = {
@@ -10,10 +14,15 @@ type SiteNavProps = {
 export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+<<<<<<< HEAD
+  const [adminOpen, setAdminOpen] = useState(false)
+  const { user } = useAuth()
+=======
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+>>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
-  const navItems = primaryNavItems.filter((item) => item.label !== 'Admin Dashboard' || isAdmin)
+  const navItems = primaryNavItems
 
   useEffect(() => {
     if (variant !== 'landing') return
@@ -46,27 +55,53 @@ export default function SiteNav({ variant }: SiteNavProps) {
           <span>BrighterPath</span>
         </a>
 
-        <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {navItems.map((item) => (
-            <li key={item.label}>
-              {item.label === 'Get Help' ? (
-                <a
-                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                  className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium ml-auto">
+          <ul className="flex items-center gap-8">
+            {navItems.map((item) => (
+              <li key={item.label}>
+                {item.label === 'Get Help' ? (
+                  <a
+                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                    className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
+                  >
+                    {item.label}
+                  </a>
+                ) : (
+                  <a
+                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                    className={`transition-colors hover:text-teal-400 ${linkClass}`}
+                  >
+                    {item.label}
+                  </a>
+                )}
+              </li>
+            ))}
+            {isAdmin ? (
+              <li className="relative">
+                <button
+                  type="button"
+                  className={`transition-colors hover:text-teal-400 ${linkClass} flex items-center gap-1`}
+                  onClick={() => setAdminOpen((v) => !v)}
                 >
-                  {item.label}
-                </a>
-              ) : (
-                <a
-                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                  className={`transition-colors hover:text-teal-400 ${linkClass}`}
-                >
-                  {item.label}
-                </a>
-              )}
-            </li>
-          ))}
-          <li>
+                  Admin View <span aria-hidden="true">▾</span>
+                </button>
+                {adminOpen ? (
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                    {adminViewItems.map((item) => (
+                      <a
+                        key={item.label}
+                        href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                        className="block rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </li>
+            ) : null}
+          </ul>
+          <div className="flex items-center gap-5">
             {user ? (
               <div className="flex items-center gap-3">
                 <span className={linkClass}>Welcome, {welcomeName}</span>
@@ -83,16 +118,14 @@ export default function SiteNav({ variant }: SiteNavProps) {
                 Login
               </a>
             )}
-          </li>
-          <li>
             <a
               href="/donate"
               className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
             >
               Donate
             </a>
-          </li>
-        </ul>
+          </div>
+        </div>
 
         <button
           className="md:hidden flex flex-col gap-1.5 p-1"
@@ -134,6 +167,23 @@ export default function SiteNav({ variant }: SiteNavProps) {
               </a>
             )
           ))}
+          {isAdmin ? (
+            <div className="rounded-lg border border-stone-200 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Admin View</p>
+              <div className="mt-2 flex flex-col gap-2">
+                {adminViewItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                    onClick={() => setOpen(false)}
+                    className="hover:text-teal-700"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {user ? (
             <div className="flex items-center gap-3">
               <span>Welcome, {welcomeName}</span>

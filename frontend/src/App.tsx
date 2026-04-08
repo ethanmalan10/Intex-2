@@ -13,6 +13,7 @@ import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
 import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
 import DonatePage from './pages/protected/DonatePage'
+import DonorsContributionsPage from './DonorsContributionsPage'
 
 function PublicLandingWrapper() {
   return (
@@ -39,10 +40,11 @@ export default function App() {
           {/* Protected admin routes */}
           <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/*" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
-          <Route path="/process-recording" element={<ProtectedRoute><ProcessRecordingPage /></ProtectedRoute>} />
-          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
-          <Route path="/caseload-inventory" element={<ProtectedRoute><CaseloadInventoryPage /></ProtectedRoute>} />
-          <Route path="/reports-analytics" element={<ProtectedRoute><ReportsAnalyticsPage /></ProtectedRoute>} />
+          <Route path="/donors-contributions" element={<ProtectedRoute requiredRole="Admin"><DonorsContributionsPage /></ProtectedRoute>} />
+          <Route path="/process-recording" element={<ProtectedRoute requiredRole="Admin"><ProcessRecordingPage /></ProtectedRoute>} />
+          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute requiredRole="Admin"><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
+          <Route path="/caseload-inventory" element={<ProtectedRoute requiredRole="Admin"><CaseloadInventoryPage /></ProtectedRoute>} />
+          <Route path="/reports-analytics" element={<ProtectedRoute requiredRole="Admin"><ReportsAnalyticsPage /></ProtectedRoute>} />
 
           {/* Legacy redirects */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
