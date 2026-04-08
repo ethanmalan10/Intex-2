@@ -22,6 +22,6 @@ export const footerNavItems = [
   { label: 'Home Visitation & Case Conferences', href: '/home-visitation-case-conferences' },
   { label: 'Get Help', href: '/#get-help' },
   { label: 'Our Story', href: '/#our-story' },
-  { label: 'Donate', href: '/#donate' },
+  { label: 'Donate', href: '/donate' },
   { label: 'Privacy Notice', href: '/privacy-notice' },
 ]

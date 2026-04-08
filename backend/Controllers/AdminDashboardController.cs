@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/admin-dashboard")]
 public class AdminDashboardController : ControllerBase
 {

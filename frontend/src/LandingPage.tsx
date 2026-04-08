@@ -178,7 +178,7 @@ function Hero() {
             who are survivors of sexual abuse and trafficking in Brazil.
           </p>
           <div className="flex flex-wrap gap-4">
-            <a href="#donate"
+            <a href="/donate"
               className="px-8 py-3.5 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-400 transition-colors shadow-lg shadow-teal-900/40">
               Donate Now
             </a>
@@ -432,7 +432,7 @@ function MeetAna() {
                 <p className="italic text-stone-700 text-xl leading-snug">"I finally felt like someone believed in me."</p>
               </blockquote>
               <div className="pt-2 flex flex-wrap gap-4">
-                <a href="#donate"
+                <a href="/donate"
                   className="px-7 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm">
                   Donate in Ana's Honor
                 </a>
@@ -540,7 +540,7 @@ function DonateCTA() {
               </button>
             ))}
           </div>
-          <a href="#"
+          <a href="/donate"
             className="inline-block px-10 py-4 rounded-full bg-white text-teal-700 font-bold text-lg hover:bg-teal-50 transition-colors shadow-xl shadow-teal-900/30">
             Donate Securely
           </a>
