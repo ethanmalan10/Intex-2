@@ -41,7 +41,7 @@ type DashboardData = {
   progressIndicators: ProgressPoint[]
 }
 
-const DONUT_COLORS = ['#0f766e', '#14b8a6', '#f59e0b', '#6366f1', '#ef4444']
+const DONUT_COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#bfdbfe']
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK_DATA: DashboardData = {
@@ -120,7 +120,8 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
 
 export default function ImpactDashboardPage() {
   const token = localStorage.getItem('token') ?? ''
-  const [rawData, setRawData] = useState<DashboardData>(FALLBACK_DATA)
+  const [rawData, setRawData] = useState<DashboardData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -135,16 +136,18 @@ export default function ImpactDashboardPage() {
       })
       .then((json: DashboardData) => {
         setRawData(json)
+        setIsLoading(false)
         setLoadError(null)
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : 'Unknown error'
         setLoadError(`Live API unavailable (${msg}). Showing fallback data.`)
         setRawData(FALLBACK_DATA)
+        setIsLoading(false)
       })
   }, [])
 
-  const data = useMemo(() => sanitizeDashboardData(rawData), [rawData])
+  const data = useMemo(() => sanitizeDashboardData(rawData ?? FALLBACK_DATA), [rawData])
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -154,14 +157,16 @@ export default function ImpactDashboardPage() {
         <p className="mt-3 max-w-3xl text-stone-600">
           Public, aggregated metrics showing outcomes, progress, and resource use. No resident- or donor-identifiable records are displayed.
         </p>
-        <p className="mt-2 text-sm text-stone-500">Last updated: {data.updatedAt}</p>
+        <p className="mt-2 text-sm text-stone-500">Last updated: {isLoading && !rawData ? 'Loading...' : data.updatedAt}</p>
         {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-10" aria-labelledby="kpi-heading">
         <h2 id="kpi-heading" className="mb-4 text-xl font-semibold text-stone-900">Key Impact Metrics</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data.kpis.map((kpi) => <KpiCard key={kpi.label} kpi={kpi} />)}
+          {isLoading && !rawData
+            ? Array.from({ length: 6 }).map((_, i) => <KpiCard key={`loading-${i}`} kpi={{ label: 'Loading...', value: 0, whyItMatters: 'Fetching live data.' }} />)
+            : data.kpis.map((kpi) => <KpiCard key={kpi.label} kpi={kpi} />)}
         </div>
       </section>
 
