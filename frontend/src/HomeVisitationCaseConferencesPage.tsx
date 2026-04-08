@@ -402,7 +402,7 @@ export default function HomeVisitationCaseConferencesPage() {
                     No visit records available for this resident.
                   </div>
                 ) : (
-                  <div className="h-full space-y-3 overflow-y-auto pr-1">
+                  <div className="h-full space-y-3 overflow-y-auto pr-1 max-h-[36rem] lg:max-h-[44rem]">
                     {residentVisits.map((visit) => (
                       <div key={visit.id} className="rounded-xl border border-stone-200 p-4">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -457,7 +457,7 @@ export default function HomeVisitationCaseConferencesPage() {
                   {conferenceHistory.length === 0 ? (
                     <p className="mt-2 text-sm text-stone-600">No conference history yet.</p>
                   ) : (
-                    <ul className="mt-2 max-h-[32rem] space-y-2 overflow-y-auto pr-1 text-sm">
+                    <ul className="mt-2 max-h-[36rem] lg:max-h-[44rem] space-y-2 overflow-y-auto pr-1 text-sm">
                       {conferenceHistory.map((conference) => (
                         <li key={conference.id} className="rounded-lg bg-stone-100 p-2">
                           <p className="font-medium text-stone-800">

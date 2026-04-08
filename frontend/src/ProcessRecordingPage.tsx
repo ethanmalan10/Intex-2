@@ -329,7 +329,7 @@ export default function ProcessRecordingPage() {
                   No counseling notes yet for this resident.
                 </div>
               ) : (
-                <div className="h-full space-y-4 overflow-y-auto pr-1">
+                <div className="h-full space-y-4 overflow-y-auto pr-1 max-h-[36rem] lg:max-h-[44rem]">
                   {residentEntries.map((entry) => (
                     <div key={entry.id} className="rounded-xl border border-stone-200 p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">

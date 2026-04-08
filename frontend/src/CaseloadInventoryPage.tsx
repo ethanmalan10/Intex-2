@@ -810,7 +810,7 @@ export default function CaseloadInventoryPage() {
                 <div className="border-b border-stone-200 px-4 py-3">
                   <h2 className="text-sm font-semibold text-stone-800">Residents ({filteredResidents.length})</h2>
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto">
+                <div className="min-h-0 flex-1 overflow-y-auto max-h-[36rem] lg:max-h-[44rem]">
                   <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
                     <thead>
