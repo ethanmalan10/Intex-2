@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react'
-<<<<<<< HEAD
 import { adminViewItems, primaryNavItems } from './navConfig'
-=======
 import { useNavigate } from 'react-router-dom'
-import { primaryNavItems } from './navConfig'
->>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
 import { useAuth } from '../../context/AuthContext'
 
 type SiteNavProps = {
@@ -14,13 +10,9 @@ type SiteNavProps = {
 export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-<<<<<<< HEAD
   const [adminOpen, setAdminOpen] = useState(false)
-  const { user } = useAuth()
-=======
   const { user, logout } = useAuth()
   const navigate = useNavigate()
->>>>>>> e1d06583a4af1d324ffb8bab844f6747a5438beb
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
   const navItems = primaryNavItems
 
