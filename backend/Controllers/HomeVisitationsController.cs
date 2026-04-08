@@ -91,24 +91,46 @@ public class CaseConferencesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] int residentId)
+    public async Task<IActionResult> Get()
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
-        var rows = await _db.InterventionPlans
-            .Where(p => p.ResidentId == residentId && p.CaseConferenceDate != null)
-            .OrderByDescending(p => p.CaseConferenceDate)
+        var rows = await _db.CaseConferences
+            .OrderByDescending(c => c.ConferenceDate)
             .Select(p => new CaseConferenceDto(
-                p.PlanId,
-                p.ResidentId,
-                p.CaseConferenceDate!.Value,
-                p.PlanCategory,
-                p.CaseConferenceDate >= today ? "Upcoming" : "Completed",
-                p.PlanDescription
+                p.ConferenceId,
+                p.ConferenceDate,
+                p.Topic,
+                p.ConferenceDate >= today ? "Upcoming" : "Completed",
+                p.Notes
             ))
             .ToListAsync();
 
         return Ok(rows);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] CaseConferenceCreateRequest body)
+    {
+        var entity = new CaseConference
+        {
+            ConferenceDate = body.ConferenceDate,
+            Topic = body.Topic.Trim(),
+            Notes = string.IsNullOrWhiteSpace(body.Notes) ? null : body.Notes.Trim()
+        };
+
+        _db.CaseConferences.Add(entity);
+        await _db.SaveChangesAsync();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        return Ok(new CaseConferenceDto(
+            entity.ConferenceId,
+            entity.ConferenceDate,
+            entity.Topic,
+            entity.ConferenceDate >= today ? "Upcoming" : "Completed",
+            entity.Notes
+        ));
     }
 }
 
@@ -138,9 +160,14 @@ public record HomeVisitationDto(
 
 public record CaseConferenceDto(
     int Id,
-    int ResidentId,
     DateOnly ConferenceDate,
     string Topic,
     string Status,
+    string? Notes
+);
+
+public record CaseConferenceCreateRequest(
+    DateOnly ConferenceDate,
+    [property: Required] string Topic,
     string? Notes
 );

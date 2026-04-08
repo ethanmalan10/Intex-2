@@ -21,6 +21,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EducationRecord> EducationRecords => Set<EducationRecord>();
     public DbSet<HealthWellbeingRecord> HealthWellbeingRecords => Set<HealthWellbeingRecord>();
     public DbSet<InterventionPlan> InterventionPlans => Set<InterventionPlan>();
+    public DbSet<CaseConference> CaseConferences => Set<CaseConference>();
     public DbSet<IncidentReport> IncidentReports => Set<IncidentReport>();
     public DbSet<SocialMediaPost> SocialMediaPosts => Set<SocialMediaPost>();
     public DbSet<SafehouseMonthlyMetric> SafehouseMonthlyMetrics => Set<SafehouseMonthlyMetric>();
