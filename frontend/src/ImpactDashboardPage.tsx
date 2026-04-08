@@ -42,6 +42,7 @@ type DashboardData = {
 }
 
 const DONUT_COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#ccfbf1']
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK_DATA: DashboardData = {
   updatedAt: '2026-04-07',
@@ -119,12 +120,25 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
 
 export default function ImpactDashboardPage() {
   const [rawData, setRawData] = useState<DashboardData>(FALLBACK_DATA)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/impact-dashboard.json')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('fallback'))))
-      .then((json: DashboardData) => setRawData(json))
-      .catch(() => setRawData(FALLBACK_DATA))
+    const endpoint = `${API_BASE_URL}/api/impact-dashboard`
+    fetch(endpoint)
+      .then(async (r) => {
+        if (r.ok) return r.json()
+        const body = await r.text()
+        throw new Error(`HTTP ${r.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((json: DashboardData) => {
+        setRawData(json)
+        setLoadError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLoadError(`Live API unavailable (${msg}). Showing fallback data.`)
+        setRawData(FALLBACK_DATA)
+      })
   }, [])
 
   const data = useMemo(() => sanitizeDashboardData(rawData), [rawData])
@@ -138,6 +152,7 @@ export default function ImpactDashboardPage() {
           Public, aggregated metrics showing outcomes, progress, and resource use. No resident- or donor-identifiable records are displayed.
         </p>
         <p className="mt-2 text-sm text-stone-500">Last updated: {data.updatedAt}</p>
+        {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-10" aria-labelledby="kpi-heading">
