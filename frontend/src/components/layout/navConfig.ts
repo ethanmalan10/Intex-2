@@ -7,6 +7,7 @@ export type NavItem = {
 export const primaryNavItems: NavItem[] = [
   { label: 'Our Impact', landingHref: '/impact-dashboard', defaultHref: '/impact-dashboard' },
   { label: 'Admin Dashboard', landingHref: '/admin-dashboard', defaultHref: '/admin-dashboard' },
+  { label: 'Caseload Inventory', landingHref: '/caseload-inventory', defaultHref: '/caseload-inventory' },
   { label: 'Reports & Analytics', landingHref: '/reports-analytics', defaultHref: '/reports-analytics' },
   { label: 'Process Recording', landingHref: '/process-recording', defaultHref: '/process-recording' },
   {
@@ -19,6 +20,7 @@ export const primaryNavItems: NavItem[] = [
 
 export const footerNavItems = [
   { label: 'Our Impact', href: '/impact-dashboard' },
+  { label: 'Caseload Inventory', href: '/caseload-inventory' },
   { label: 'Reports & Analytics', href: '/reports-analytics' },
   { label: 'Process Recording', href: '/process-recording' },
   { label: 'Home Visitation & Case Conferences', href: '/home-visitation-case-conferences' },
