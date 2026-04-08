@@ -87,7 +87,8 @@ const FALLBACK: AdminData = {
 }
 
 export default function AdminDashboardPage() {
-  const [data, setData] = useState<AdminData>(FALLBACK)
+  const [data, setData] = useState<AdminData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [users, setUsers] = useState<UserRow[]>([])
   const [usersError, setUsersError] = useState<string | null>(null)
@@ -114,12 +115,14 @@ export default function AdminDashboardPage() {
       })
       .then((json: AdminData) => {
         setData(json)
+        setIsLoading(false)
         setLoadError(null)
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : 'Unknown error'
         setLoadError(`Live API unavailable (${msg}). Showing fallback preview data from mock values.`)
         setData(FALLBACK)
+        setIsLoading(false)
       })
   }, [apiUrl, token])
 
@@ -222,7 +225,7 @@ export default function AdminDashboardPage() {
     fetchUsers()
   }
 
-  const cc = data.commandCenter
+  const cc = data?.commandCenter
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -232,18 +235,32 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-stone-600">
             Daily operations overview: resident capacity, donation flow, upcoming conferences, and inactive-supporter pipeline risk.
           </p>
-          <p className="mt-2 text-sm text-stone-500">Updated: {new Date(data.generatedAtUtc).toLocaleString()}</p>
+          <p className="mt-2 text-sm text-stone-500">
+            Updated: {data ? new Date(data.generatedAtUtc).toLocaleString() : 'Loading...'}
+          </p>
           <p className="mt-1 text-xs text-stone-400">API source: <code>{apiUrl}</code></p>
           {loadError && <p className="mt-2 text-sm text-amber-700">{loadError}</p>}
         </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <Kpi title="Active Residents" value={cc.activeResidents.toLocaleString()} />
-          <Kpi title="Donations (30d)" value={cc.donationsLast30Count.toLocaleString()} />
-          <Kpi title="Donation Amount (30d)" value={`$${cc.donationsLast30Amount.toLocaleString()}`} />
-          <Kpi title="Case Conferences (14d)" value={cc.upcomingCaseConferences14d.toLocaleString()} />
-          <Kpi title="Progress Noted Rate (30d)" value={`${cc.progressNotedRate30d}%`} />
+          {isLoading || !cc ? (
+            <>
+              <Kpi title="Active Residents" value="Loading..." />
+              <Kpi title="Donations (30d)" value="Loading..." />
+              <Kpi title="Donation Amount (30d)" value="Loading..." />
+              <Kpi title="Case Conferences (14d)" value="Loading..." />
+              <Kpi title="Progress Noted Rate (30d)" value="Loading..." />
+            </>
+          ) : (
+            <>
+              <Kpi title="Active Residents" value={cc.activeResidents.toLocaleString()} />
+              <Kpi title="Donations (30d)" value={cc.donationsLast30Count.toLocaleString()} />
+              <Kpi title="Donation Amount (30d)" value={`$${cc.donationsLast30Amount.toLocaleString()}`} />
+              <Kpi title="Case Conferences (14d)" value={cc.upcomingCaseConferences14d.toLocaleString()} />
+              <Kpi title="Progress Noted Rate (30d)" value={`${cc.progressNotedRate30d}%`} />
+            </>
+          )}
         </div>
       </section>
 
