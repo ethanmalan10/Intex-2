@@ -315,7 +315,6 @@ export default function AdminDashboardPage() {
           <p className="mt-2 text-sm text-stone-500">
             Updated: {data ? new Date(data.generatedAtUtc).toLocaleString() : 'Loading...'}
           </p>
-          <p className="mt-1 text-xs text-stone-400">API source: <code>{apiUrl}</code></p>
           {loadError && <p className="mt-2 text-sm text-amber-700">{loadError}</p>}
         </section>
 

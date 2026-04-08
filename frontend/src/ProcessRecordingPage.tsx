@@ -215,8 +215,8 @@ export default function ProcessRecordingPage() {
           {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
         </section>
 
-        <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5">
-          <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
+        <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5 lg:items-stretch">
+          <article className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
             <h2 className="text-lg font-semibold text-stone-900">New Counseling Entry</h2>
             <p className="mt-1 text-sm text-stone-600">Create a dated session record for the selected resident.</p>
 
@@ -317,42 +317,44 @@ export default function ProcessRecordingPage() {
             </form>
           </article>
 
-          <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-3">
+          <article className="flex h-full min-h-[24rem] flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-3">
             <h2 className="text-lg font-semibold text-stone-900">
               {selectedResident?.name ?? 'Resident'} History
             </h2>
             <p className="mt-1 text-sm text-stone-600">Displayed in chronological order (most recent first).</p>
 
-            {residentEntries.length === 0 ? (
-              <div className="mt-5 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-                No counseling notes yet for this resident.
-              </div>
-            ) : (
-              <div className="mt-5 max-h-[32rem] space-y-4 overflow-y-auto pr-1">
-                {residentEntries.map((entry) => (
-                  <div key={entry.id} className="rounded-xl border border-stone-200 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold text-stone-900">
-                        {new Date(entry.sessionDate).toLocaleDateString()} - {entry.sessionType} Session
+            <div className="mt-5 min-h-0 flex-1">
+              {residentEntries.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+                  No counseling notes yet for this resident.
+                </div>
+              ) : (
+                <div className="h-full space-y-4 overflow-y-auto pr-1 max-h-[36rem] lg:max-h-[44rem]">
+                  {residentEntries.map((entry) => (
+                    <div key={entry.id} className="rounded-xl border border-stone-200 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold text-stone-900">
+                          {new Date(entry.sessionDate).toLocaleDateString()} - {entry.sessionType} Session
+                        </p>
+                        <p className="text-xs text-stone-500">Social Worker: {entry.socialWorker}</p>
+                      </div>
+                      <p className="mt-3 text-sm">
+                        <span className="font-semibold text-stone-700">Emotional State:</span> {entry.emotionalState}
                       </p>
-                      <p className="text-xs text-stone-500">Social Worker: {entry.socialWorker}</p>
+                      <p className="mt-2 text-sm">
+                        <span className="font-semibold text-stone-700">Narrative Summary:</span> {entry.summary}
+                      </p>
+                      <p className="mt-2 text-sm">
+                        <span className="font-semibold text-stone-700">Interventions Applied:</span> {entry.interventions}
+                      </p>
+                      <p className="mt-2 text-sm">
+                        <span className="font-semibold text-stone-700">Follow-Up Actions:</span> {entry.followUpActions}
+                      </p>
                     </div>
-                    <p className="mt-3 text-sm">
-                      <span className="font-semibold text-stone-700">Emotional State:</span> {entry.emotionalState}
-                    </p>
-                    <p className="mt-2 text-sm">
-                      <span className="font-semibold text-stone-700">Narrative Summary:</span> {entry.summary}
-                    </p>
-                    <p className="mt-2 text-sm">
-                      <span className="font-semibold text-stone-700">Interventions Applied:</span> {entry.interventions}
-                    </p>
-                    <p className="mt-2 text-sm">
-                      <span className="font-semibold text-stone-700">Follow-Up Actions:</span> {entry.followUpActions}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </article>
         </section>
       </div>
