@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { primaryNavItems } from './navConfig'
+import { useAuth } from '../../context/AuthContext'
 
 type SiteNavProps = {
   variant: 'landing' | 'default'
@@ -8,6 +9,9 @@ type SiteNavProps = {
 export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { user } = useAuth()
+  const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
+  const navItems = primaryNavItems.filter((item) => item.label !== 'Admin Dashboard' || isAdmin)
 
   useEffect(() => {
     if (variant !== 'landing') return
@@ -33,7 +37,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
         </a>
 
         <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {primaryNavItems.map((item) => (
+          {navItems.map((item) => (
             <li key={item.label}>
               {item.label === 'Get Help' ? (
                 <a
@@ -59,7 +63,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
           </li>
           <li>
             <a
-              href={variant === 'landing' ? '#donate' : '/#donate'}
+              href="/donate"
               className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
             >
               Donate
@@ -86,7 +90,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
 
       {open && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 pb-5 pt-3 flex flex-col gap-4 text-stone-600 text-sm font-medium">
-          {primaryNavItems.map((item) => (
+          {navItems.map((item) => (
             item.label === 'Get Help' ? (
               <a
                 key={item.label}
@@ -111,7 +115,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
             Login
           </a>
           <a
-            href={variant === 'landing' ? '#donate' : '/#donate'}
+            href="/donate"
             onClick={() => setOpen(false)}
             className="self-start px-5 py-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition-colors"
           >

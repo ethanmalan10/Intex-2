@@ -9,6 +9,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
+  const returnUrlParam = searchParams.get('returnUrl')
+  const returnUrl = returnUrlParam && returnUrlParam.startsWith('/') ? returnUrlParam : '/admin'
 
   const [usernameOrEmail, setUsernameOrEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,7 +57,7 @@ export default function LoginPage() {
 
       const data = await res.json()
       await login(data.token)
-      navigate('/admin')
+      navigate(returnUrl)
     } catch {
       setFormError('Something went wrong. Please try again.')
     } finally {

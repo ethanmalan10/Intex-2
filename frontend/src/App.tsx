@@ -12,6 +12,7 @@ import ReportsAnalyticsPage from './ReportsAnalyticsPage'
 import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
 import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
+import DonatePage from './pages/protected/DonatePage'
 
 function PublicLandingWrapper() {
   return (
@@ -33,10 +34,11 @@ export default function App() {
           <Route path="/privacy-notice" element={<PrivacyNoticePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/donate" element={<ProtectedRoute><DonatePage /></ProtectedRoute>} />
 
           {/* Protected admin routes */}
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
-          <Route path="/admin/*" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/process-recording" element={<ProtectedRoute><ProcessRecordingPage /></ProtectedRoute>} />
           <Route path="/home-visitation-case-conferences" element={<ProtectedRoute><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
           <Route path="/caseload-inventory" element={<ProtectedRoute><CaseloadInventoryPage /></ProtectedRoute>} />
