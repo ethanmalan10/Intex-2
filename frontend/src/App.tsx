@@ -10,6 +10,7 @@ import ProcessRecordingPage from './ProcessRecordingPage'
 import CaseloadInventoryPage from './CaseloadInventoryPage'
 import ReportsAnalyticsPage from './ReportsAnalyticsPage'
 import LoginPage from './pages/public/LoginPage'
+import RegisterPage from './pages/public/RegisterPage'
 import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
 
 function PublicLandingWrapper() {
@@ -31,6 +32,7 @@ export default function App() {
           <Route path="/impact-dashboard" element={<ImpactDashboardPage />} />
           <Route path="/privacy-notice" element={<PrivacyNoticePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected admin routes */}
           <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />

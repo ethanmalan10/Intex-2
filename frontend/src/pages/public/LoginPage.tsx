@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 const API = import.meta.env.VITE_API_BASE_URL
@@ -7,6 +7,8 @@ const API = import.meta.env.VITE_API_BASE_URL
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const justRegistered = searchParams.get('registered') === '1'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -87,6 +89,16 @@ export default function LoginPage() {
           <p className="text-2xl font-bold" style={{ color: '#264653' }}>BrighterPath</p>
           <p className="text-sm text-stone-400 mt-1">Sign in to your account</p>
         </div>
+
+        {/* Registration success */}
+        {justRegistered && (
+          <div
+            className="mb-5 px-4 py-3 rounded-lg text-sm font-medium"
+            style={{ backgroundColor: '#C6F6D5', color: '#276749' }}
+          >
+            Account created! Sign in below.
+          </div>
+        )}
 
         {/* Form error */}
         {formError && (
@@ -194,6 +206,13 @@ export default function LoginPage() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
+
+        <p className="text-center text-sm text-stone-400 mt-4">
+          Don't have an account?{' '}
+          <a href="/register" style={{ color: '#2A9D8F' }} className="font-medium hover:underline">
+            Create one
+          </a>
+        </p>
       </div>
 
       <style>{`
