@@ -7,8 +7,10 @@ import PrivacyNoticePage from './PrivacyNoticePage'
 import ImpactDashboardPage from './ImpactDashboardPage'
 import AdminDashboardPage from './AdminDashboardPage'
 import ProcessRecordingPage from './ProcessRecordingPage'
+import CaseloadInventoryPage from './CaseloadInventoryPage'
 import ReportsAnalyticsPage from './ReportsAnalyticsPage'
 import LoginPage from './pages/public/LoginPage'
+import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
 
 function PublicLandingWrapper() {
   return (
@@ -34,6 +36,8 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/*" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/process-recording" element={<ProtectedRoute><ProcessRecordingPage /></ProtectedRoute>} />
+          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
+          <Route path="/caseload-inventory" element={<ProtectedRoute><CaseloadInventoryPage /></ProtectedRoute>} />
           <Route path="/reports-analytics" element={<ProtectedRoute><ReportsAnalyticsPage /></ProtectedRoute>} />
 
           {/* Legacy redirects */}
