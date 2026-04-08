@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts'
 
 type ReportsData = {
   generatedAtUtc: string
@@ -8,6 +9,35 @@ type ReportsData = {
       displayName: string
       riskBand: 'High' | 'Medium' | 'Low'
     }>
+  }
+  donorRecurrenceForecast: {
+    topLikelyToDonateAgain: string[]
+  }
+  reintegrationReadiness: {
+    topLikelyReadyResidents: string[]
+  }
+  residentRiskEscalation: {
+    topEscalationResidents: string[]
+  }
+  pipelineVisuals?: {
+    inactiveSupporterRisk?: {
+      riskBandCounts: Array<{ label: string; value: number }>
+    }
+    counselingIntensityReadinessEffect?: {
+      readinessRateComparison: Array<{ label: string; value: number }>
+    }
+    donorRecurrenceForecast?: {
+      topLikelyDonorScores: Array<{ name: string; score: number }>
+    }
+    reintegrationReadiness?: {
+      readinessOverview: Array<{ label: string; value: number }>
+    }
+    residentRiskEscalation?: {
+      escalationSignalCounts: Array<{ label: string; value: number }>
+    }
+    socialContentDonationImpact?: {
+      donationImpactSummary: Array<{ label: string; value: number }>
+    }
   }
   pipelineResults: Array<{
     name: string
@@ -22,62 +52,20 @@ const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.
 const FALLBACK: ReportsData = {
   generatedAtUtc: new Date().toISOString(),
   inactiveSupporterRisk: {
-    topAtRisk: [
-      { displayName: 'Sample Supporter A', riskBand: 'High' },
-      { displayName: 'Sample Supporter B', riskBand: 'High' },
-      { displayName: 'Sample Supporter C', riskBand: 'High' },
-      { displayName: 'Sample Supporter D', riskBand: 'Medium' },
-      { displayName: 'Sample Supporter E', riskBand: 'Medium' },
-    ],
+    topAtRisk: [],
   },
-  pipelineResults: [
-    {
-      name: 'Inactive Supporter Risk',
-      businessProblem: 'Which active supporters are at risk of going silent so staff can intervene before donor lapse?',
-      runStatus: 'Preview fallback',
-      results: ['Active supporters scored: 120', 'High risk: 18, Medium risk: 41, Low risk: 61', 'Top risk score: 0.880'],
-    },
-    {
-      name: 'Counseling Intensity Readiness Effect',
-      businessProblem: 'How does counseling intensity relate to readiness so case effort can be prioritized?',
-      runStatus: 'Preview fallback',
-      results: ['Residents evaluated: 60', 'High-intensity residents: 18', 'Readiness rate high vs low intensity: 23.0% vs 31.0%'],
-    },
-    {
-      name: 'Donor Recurrence Forecast',
-      businessProblem: 'Which donors are likely to donate again soon so outreach timing can be optimized?',
-      runStatus: 'Preview fallback',
-      results: ['Supporters with usable window: 98', 'Observed donate-again rate (day 61-240): 44.0%', 'Recent donations (30d): 108'],
-    },
-    {
-      name: 'Reintegration Readiness',
-      businessProblem: 'Which residents are likely ready for reintegration to support case conference decisions?',
-      runStatus: 'Preview fallback',
-      results: ['Residents evaluated: 60', 'Closed within 365 days of enrollment: 27.0%', 'Median days-to-close among closed cases: 180'],
-    },
-    {
-      name: 'Resident Risk Escalation',
-      businessProblem: 'Which resident cases are escalating so preventive interventions happen earlier?',
-      runStatus: 'Preview fallback',
-      results: ['Residents with concerns flagged in last 90d: 14', 'Residents with severe incidents: 9', 'Total residents flagged by escalation signals: 19'],
-    },
-    {
-      name: 'Social Content Donation Impact',
-      businessProblem: 'Which social content is associated with stronger donation outcomes?',
-      runStatus: 'Preview fallback',
-      results: ['Donations with social referral post id: 37', 'Average donation from social referrals: 742.50', 'Top platform by referred donations: Instagram (21 referred donations)'],
-    },
-  ],
+  donorRecurrenceForecast: {
+    topLikelyToDonateAgain: [],
+  },
+  reintegrationReadiness: {
+    topLikelyReadyResidents: [],
+  },
+  residentRiskEscalation: {
+    topEscalationResidents: [],
+  },
+  pipelineVisuals: {},
+  pipelineResults: [],
 }
-
-const REQUIRED_PIPELINE_ORDER = [
-  'Inactive Supporter Risk',
-  'Counseling Intensity Readiness Effect',
-  'Donor Recurrence Forecast',
-  'Reintegration Readiness',
-  'Resident Risk Escalation',
-  'Social Content Donation Impact',
-] as const
 
 export default function ReportsAnalyticsPage() {
   const [data, setData] = useState<ReportsData>(FALLBACK)
@@ -92,11 +80,15 @@ export default function ReportsAnalyticsPage() {
         throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
       })
       .then((json: ReportsData) => {
-        const mergedPipelineResults = REQUIRED_PIPELINE_ORDER.map((name) => {
-          return json.pipelineResults.find((p) => p.name === name)
-            ?? FALLBACK.pipelineResults.find((p) => p.name === name)!
+        setData({
+          ...FALLBACK,
+          ...json,
+          inactiveSupporterRisk: json.inactiveSupporterRisk ?? FALLBACK.inactiveSupporterRisk,
+          donorRecurrenceForecast: json.donorRecurrenceForecast ?? FALLBACK.donorRecurrenceForecast,
+          reintegrationReadiness: json.reintegrationReadiness ?? FALLBACK.reintegrationReadiness,
+          residentRiskEscalation: json.residentRiskEscalation ?? FALLBACK.residentRiskEscalation,
+          pipelineResults: json.pipelineResults ?? [],
         })
-        setData({ ...json, pipelineResults: mergedPipelineResults })
         setLoadError(null)
       })
       .catch((err: unknown) => {
@@ -111,6 +103,9 @@ export default function ReportsAnalyticsPage() {
       ? data.inactiveSupporterRisk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5)
       : data.inactiveSupporterRisk.topAtRisk.slice(0, 5)
   ).map((s) => s.displayName)
+  const topFiveLikelyDonors = data.donorRecurrenceForecast.topLikelyToDonateAgain.slice(0, 5)
+  const topFiveLikelyReadyResidents = data.reintegrationReadiness.topLikelyReadyResidents.slice(0, 5)
+  const topFiveEscalationResidents = data.residentRiskEscalation.topEscalationResidents.slice(0, 5)
 
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
@@ -138,7 +133,7 @@ export default function ReportsAnalyticsPage() {
                     <li key={line}>{line}</li>
                   ))}
                 </ul>
-                {pipeline.name === 'Inactive Supporter Risk' && (
+                {pipeline.name === 'inactive_supporter_risk' && (
                   <div className="mt-3 text-sm text-stone-700">
                     <p className="font-semibold">Top 5 most at-risk supporters:</p>
                     {topFiveHighRiskNames.length === 0 ? (
@@ -152,8 +147,133 @@ export default function ReportsAnalyticsPage() {
                     )}
                   </div>
                 )}
+                {pipeline.name === 'donor-recurrence-forecast' && (
+                  <div className="mt-3 text-sm text-stone-700">
+                    <p className="font-semibold">Top 5 most likely to donate again:</p>
+                    {topFiveLikelyDonors.length === 0 ? (
+                      <p className="mt-1 text-stone-500">No likely-repeat donors found.</p>
+                    ) : (
+                      <ol className="mt-1 list-decimal space-y-1 pl-5">
+                        {topFiveLikelyDonors.map((name) => (
+                          <li key={name}>{name}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
+                {pipeline.name === 'reintegration-readiness' && (
+                  <div className="mt-3 text-sm text-stone-700">
+                    <p className="font-semibold">Top 5 most likely ready residents:</p>
+                    {topFiveLikelyReadyResidents.length === 0 ? (
+                      <p className="mt-1 text-stone-500">No likely-ready residents found.</p>
+                    ) : (
+                      <ol className="mt-1 list-decimal space-y-1 pl-5">
+                        {topFiveLikelyReadyResidents.map((name) => (
+                          <li key={name}>{name}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
+                {pipeline.name === 'resident-risk-escalation' && (
+                  <div className="mt-3 text-sm text-stone-700">
+                    <p className="font-semibold">Top 5 residents by escalation risk:</p>
+                    {topFiveEscalationResidents.length === 0 ? (
+                      <p className="mt-1 text-stone-500">No escalation-risk residents found.</p>
+                    ) : (
+                      <ol className="mt-1 list-decimal space-y-1 pl-5">
+                        {topFiveEscalationResidents.map((name) => (
+                          <li key={name}>{name}</li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
+                {pipeline.name === 'inactive_supporter_risk' && data.pipelineVisuals?.inactiveSupporterRisk?.riskBandCounts && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.inactiveSupporterRisk.riskBandCounts}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#0f766e" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.counselingIntensityReadinessEffect.readinessRateComparison}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#2563eb" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'donor-recurrence-forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.donorRecurrenceForecast.topLikelyDonorScores}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" hide />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="score" fill="#7c3aed" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'reintegration-readiness' && data.pipelineVisuals?.reintegrationReadiness?.readinessOverview && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.reintegrationReadiness.readinessOverview}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#059669" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'resident-risk-escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.residentRiskEscalation.escalationSignalCounts}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#dc2626" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'social-content-donation-impact' && data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={data.pipelineVisuals.socialContentDonationImpact.donationImpactSummary}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="value" fill="#ea580c" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
               </article>
             ))}
+            {data.pipelineResults.length === 0 && (
+              <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <p className="text-sm text-stone-600">No pipeline results available yet. Add or refresh source data, then reload this page.</p>
+              </article>
+            )}
           </div>
         </section>
       </div>
