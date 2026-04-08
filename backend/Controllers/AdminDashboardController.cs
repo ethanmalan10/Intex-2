@@ -184,8 +184,10 @@ public class AdminDashboardController : ControllerBase
                 : (today.ToDateTime(TimeOnly.MinValue) - lastDonation.DonationDate.ToDateTime(TimeOnly.MinValue)).Days;
             var freq365 = don365.Count;
             var recurringShare = freq365 == 0 ? 0 : don365.Count(d => d.IsRecurring) / (double)freq365;
-            var score = (1.4 * Math.Min(freq365 / 12.0, 1.0)) + (0.9 * recurringShare) - (1.3 * Math.Min(recencyDays / 365.0, 1.0));
-            return new { s.SupporterId, Score = score };
+            var rawScore = (1.4 * Math.Min(freq365 / 12.0, 1.0)) + (0.9 * recurringShare) - (1.3 * Math.Min(recencyDays / 365.0, 1.0));
+            // Convert weighted index to 0-1 likelihood for consistent percent display in UI.
+            var likelihood = 1.0 / (1.0 + Math.Exp(-rawScore));
+            return new { s.SupporterId, Score = likelihood };
         }).ToList();
         var topFiveLikelyDonorNames = donorLikelihoodRows
             .OrderByDescending(r => r.Score)
