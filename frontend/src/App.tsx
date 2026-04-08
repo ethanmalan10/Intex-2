@@ -40,7 +40,7 @@ export default function App() {
           {/* Protected admin routes */}
           <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/*" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
-          <Route path="/donors-contributions" element={<ProtectedRoute requiredRole="Admin"><DonorsContributionsPage /></ProtectedRoute>} />
+          <Route path="/donors-contributions" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><DonorsContributionsPage /></ProtectedRoute>} />
           <Route path="/process-recording" element={<ProtectedRoute requiredRole="Admin"><ProcessRecordingPage /></ProtectedRoute>} />
           <Route path="/home-visitation-case-conferences" element={<ProtectedRoute requiredRole="Admin"><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
           <Route path="/caseload-inventory" element={<ProtectedRoute requiredRole="Admin"><CaseloadInventoryPage /></ProtectedRoute>} />
