@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 
 /** Mirrors backend.Models.Resident — date fields as YYYY-MM-DD strings for inputs */
@@ -59,6 +59,8 @@ export const SAFEHOUSES: Record<number, string> = {
   3: 'Cebu Safehouse',
   4: 'General Santos Safehouse',
 }
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const SUBCAT_FIELDS: { key: keyof Pick<
   ResidentRecord,
@@ -466,6 +468,7 @@ function formatOptionalDate(s: string) {
 export default function CaseloadInventoryPage() {
   const [residents, setResidents] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [nextId, setNextId] = useState(7)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterSafehouse, setFilterSafehouse] = useState<number | ''>('')
@@ -478,6 +481,34 @@ export default function CaseloadInventoryPage() {
   const [draft, setDraft] = useState<ResidentRecord | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
 
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (searchQuery.trim()) params.set('search', searchQuery.trim())
+    if (filterStatus) params.set('status', filterStatus)
+    if (filterSafehouse !== '') params.set('safehouseId', String(filterSafehouse))
+    if (filterCategory) params.set('caseCategory', filterCategory)
+
+    const endpoint = `${API_BASE_URL}/api/residents${params.toString() ? `?${params}` : ''}`
+    fetch(endpoint)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: ResidentRecord[]) => {
+        setResidents(rows)
+        setLoadError(null)
+        if (rows.length > 0 && !rows.some((r) => r.residentId === selectedId) && panelMode !== 'create') {
+          setSelectedId(rows[0].residentId)
+        }
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLoadError(`Live API unavailable (${msg}). Showing local fallback records.`)
+        setResidents(INITIAL_RESIDENTS)
+      })
+  }, [searchQuery, filterStatus, filterSafehouse, filterCategory, panelMode, selectedId])
+
   const distinctStatuses = useMemo(
     () => [...new Set(residents.map((r) => r.caseStatus))].sort(),
     [residents],
@@ -488,36 +519,15 @@ export default function CaseloadInventoryPage() {
   )
 
   const filteredResidents = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase()
     return residents
       .filter((r) => {
-        if (filterStatus && r.caseStatus !== filterStatus) return false
-        if (filterSafehouse !== '' && r.safehouseId !== filterSafehouse) return false
-        if (filterCategory && r.caseCategory !== filterCategory) return false
         if (filterTraffickedOnly && !r.subCatTrafficked) return false
         if (filterPhysicalAbuseOnly && !r.subCatPhysicalAbuse) return false
-        if (!q) return true
-        const hay = [
-          r.caseControlNo,
-          r.internalCode,
-          r.assignedSocialWorker,
-          r.referralSource,
-          r.caseCategory,
-          r.placeOfBirth,
-          r.referringAgencyPerson,
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase()
-        return hay.includes(q)
+        return true
       })
       .sort((a, b) => (a.dateOfAdmission < b.dateOfAdmission ? 1 : a.dateOfAdmission > b.dateOfAdmission ? -1 : 0))
   }, [
     residents,
-    searchQuery,
-    filterStatus,
-    filterSafehouse,
-    filterCategory,
     filterTraffickedOnly,
     filterPhysicalAbuseOnly,
   ])
@@ -565,7 +575,7 @@ export default function CaseloadInventoryPage() {
     return null
   }
 
-  const saveDraft = (event: FormEvent) => {
+  const saveDraft = async (event: FormEvent) => {
     event.preventDefault()
     if (!draft) return
     const err = validateDraft(draft)
@@ -573,18 +583,88 @@ export default function CaseloadInventoryPage() {
       setFormError(err)
       return
     }
-    if (panelMode === 'create') {
-      setResidents((prev) => [draft, ...prev])
-      setNextId((n) => n + 1)
-      setSelectedId(draft.residentId)
+    try {
+      const method = panelMode === 'create' ? 'POST' : 'PUT'
+      const endpoint =
+        panelMode === 'create'
+          ? `${API_BASE_URL}/api/residents`
+          : `${API_BASE_URL}/api/residents/${draft.residentId}`
+
+      const payload = {
+        caseControlNo: draft.caseControlNo,
+        internalCode: draft.internalCode,
+        safehouseId: draft.safehouseId,
+        caseStatus: draft.caseStatus,
+        sex: draft.sex,
+        dateOfBirth: draft.dateOfBirth,
+        birthStatus: draft.birthStatus || null,
+        placeOfBirth: draft.placeOfBirth || null,
+        religion: draft.religion || null,
+        caseCategory: draft.caseCategory,
+        subCatOrphaned: draft.subCatOrphaned,
+        subCatTrafficked: draft.subCatTrafficked,
+        subCatChildLabor: draft.subCatChildLabor,
+        subCatPhysicalAbuse: draft.subCatPhysicalAbuse,
+        subCatSexualAbuse: draft.subCatSexualAbuse,
+        subCatOsaec: draft.subCatOsaec,
+        subCatCicl: draft.subCatCicl,
+        subCatAtRisk: draft.subCatAtRisk,
+        subCatStreetChild: draft.subCatStreetChild,
+        subCatChildWithHiv: draft.subCatChildWithHiv,
+        isPwd: draft.isPwd,
+        pwdType: draft.pwdType || null,
+        hasSpecialNeeds: draft.hasSpecialNeeds,
+        specialNeedsDiagnosis: draft.specialNeedsDiagnosis || null,
+        familyIs4ps: draft.familyIs4ps,
+        familySoloParent: draft.familySoloParent,
+        familyIndigenous: draft.familyIndigenous,
+        familyParentPwd: draft.familyParentPwd,
+        familyInformalSettler: draft.familyInformalSettler,
+        dateOfAdmission: draft.dateOfAdmission,
+        ageUponAdmission: draft.ageUponAdmission || null,
+        presentAge: draft.presentAge || null,
+        lengthOfStay: draft.lengthOfStay || null,
+        referralSource: draft.referralSource || null,
+        referringAgencyPerson: draft.referringAgencyPerson || null,
+        dateColbRegistered: draft.dateColbRegistered || null,
+        dateColbObtained: draft.dateColbObtained || null,
+        assignedSocialWorker: draft.assignedSocialWorker || null,
+        initialCaseAssessment: draft.initialCaseAssessment || null,
+        dateCaseStudyPrepared: draft.dateCaseStudyPrepared || null,
+        reintegrationType: draft.reintegrationType || null,
+        reintegrationStatus: draft.reintegrationStatus || null,
+        initialRiskLevel: draft.initialRiskLevel,
+        currentRiskLevel: draft.currentRiskLevel,
+        dateEnrolled: draft.dateEnrolled,
+        dateClosed: draft.dateClosed || null,
+      }
+
+      const res = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      }
+
+      const saved = (await res.json()) as ResidentRecord
+      if (panelMode === 'create') {
+        setResidents((prev) => [saved, ...prev])
+        setNextId((n) => n + 1)
+      } else {
+        setResidents((prev) => prev.map((r) => (r.residentId === saved.residentId ? saved : r)))
+      }
+      setSelectedId(saved.residentId)
       setPanelMode('view')
       setDraft(null)
-    } else {
-      setResidents((prev) => prev.map((r) => (r.residentId === draft.residentId ? draft : r)))
-      setPanelMode('view')
-      setDraft(null)
+      setFormError(null)
+    } catch (saveErr: unknown) {
+      const msg = saveErr instanceof Error ? saveErr.message : 'Unknown error'
+      setFormError(`Unable to save resident (${msg}).`)
     }
-    setFormError(null)
   }
 
   const activeDraft = panelMode === 'create' || panelMode === 'edit' ? draft : null
@@ -606,6 +686,7 @@ export default function CaseloadInventoryPage() {
                 demographics, case category, disability, family profile, admission, referral, assignment, and
                 reintegration.
               </p>
+              {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
             </div>
             <button
               type="button"

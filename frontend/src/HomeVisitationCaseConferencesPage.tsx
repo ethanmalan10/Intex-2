@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 
 type Resident = {
@@ -35,6 +35,8 @@ type CaseConference = {
   status: 'Upcoming' | 'Completed'
   notes: string
 }
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 type FormState = {
   visitDate: string
@@ -126,12 +128,57 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function HomeVisitationCaseConferencesPage() {
+  const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [visits, setVisits] = useState<HomeVisitEntry[]>(INITIAL_VISITS)
+  const [conferences, setConferences] = useState<CaseConference[]>(INITIAL_CONFERENCES)
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM)
   const [formError, setFormError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  const selectedResident = RESIDENTS.find((resident) => resident.id === selectedResidentId)
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/residents`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
+        const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
+        if (mapped.length > 0) {
+          setResidents(mapped)
+          setSelectedResidentId((prev) => (mapped.some((x) => x.id === prev) ? prev : mapped[0].id))
+        }
+        setLoadError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLoadError(`Resident API unavailable (${msg}). Showing fallback data.`)
+        setResidents(RESIDENTS)
+      })
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/home-visitations?residentId=${selectedResidentId}`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: HomeVisitEntry[]) => setVisits(rows))
+      .catch(() => setVisits(INITIAL_VISITS))
+
+    fetch(`${API_BASE_URL}/api/case-conferences?residentId=${selectedResidentId}`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: CaseConference[]) => setConferences(rows))
+      .catch(() => setConferences(INITIAL_CONFERENCES))
+  }, [selectedResidentId])
+
+  const selectedResident = residents.find((resident) => resident.id === selectedResidentId)
 
   const residentVisits = useMemo(
     () =>
@@ -142,8 +189,8 @@ export default function HomeVisitationCaseConferencesPage() {
   )
 
   const residentConferences = useMemo(
-    () => INITIAL_CONFERENCES.filter((conference) => conference.residentId === selectedResidentId),
-    [selectedResidentId],
+    () => conferences.filter((conference) => conference.residentId === selectedResidentId),
+    [conferences, selectedResidentId],
   )
 
   const upcomingConferences = useMemo(
@@ -170,21 +217,34 @@ export default function HomeVisitationCaseConferencesPage() {
       return
     }
 
-    const newVisit: HomeVisitEntry = {
-      id: Date.now(),
-      residentId: selectedResidentId,
-      visitDate: formState.visitDate,
-      socialWorker: formState.socialWorker.trim(),
-      visitType: formState.visitType,
-      observations: formState.observations.trim(),
-      familyCooperationLevel: formState.familyCooperationLevel,
-      safetyConcerns: formState.safetyConcerns,
-      followUpActions: formState.followUpActions.trim(),
-    }
-
-    setVisits((prev) => [newVisit, ...prev])
-    setFormState(EMPTY_FORM)
-    setFormError(null)
+    fetch(`${API_BASE_URL}/api/home-visitations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        residentId: selectedResidentId,
+        visitDate: formState.visitDate,
+        socialWorker: formState.socialWorker.trim(),
+        visitType: formState.visitType,
+        observations: formState.observations.trim(),
+        familyCooperationLevel: formState.familyCooperationLevel,
+        safetyConcerns: formState.safetyConcerns,
+        followUpActions: formState.followUpActions.trim(),
+      }),
+    })
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((created: HomeVisitEntry) => {
+        setVisits((prev) => [created, ...prev].sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime()))
+        setFormState(EMPTY_FORM)
+        setFormError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setFormError(`Unable to save visit (${msg}).`)
+      })
   }
 
   return (
@@ -195,6 +255,7 @@ export default function HomeVisitationCaseConferencesPage() {
           <p className="mt-2 text-stone-600">
             Log field visits and track upcoming and historical case conferences for each resident.
           </p>
+          {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
         </section>
 
         <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5">
@@ -210,7 +271,7 @@ export default function HomeVisitationCaseConferencesPage() {
                   value={selectedResidentId}
                   onChange={(event) => setSelectedResidentId(Number(event.target.value))}
                 >
-                  {RESIDENTS.map((resident) => (
+                  {residents.map((resident) => (
                     <option key={resident.id} value={resident.id}>
                       {resident.name}
                     </option>
