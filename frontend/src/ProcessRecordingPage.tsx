@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 
 type Resident = {
@@ -17,6 +17,8 @@ type ProcessRecording = {
   interventions: string
   followUpActions: string
 }
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 type FormState = {
   sessionDate: string
@@ -81,12 +83,65 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function ProcessRecordingPage() {
+  const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [entries, setEntries] = useState<ProcessRecording[]>(INITIAL_RECORDINGS)
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM)
   const [formError, setFormError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
-  const selectedResident = RESIDENTS.find((r) => r.id === selectedResidentId)
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/residents`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
+        const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
+        if (mapped.length > 0) {
+          setResidents(mapped)
+          setSelectedResidentId((prev) => (mapped.some((x) => x.id === prev) ? prev : mapped[0].id))
+        }
+        setLoadError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLoadError(`Resident API unavailable (${msg}). Showing local fallback data.`)
+        setResidents(RESIDENTS)
+      })
+  }, [])
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/process-recordings?residentId=${selectedResidentId}`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then(
+        (
+          rows: Array<{
+            id: number
+            residentId: number
+            sessionDate: string
+            socialWorker: string
+            sessionType: 'Individual' | 'Group'
+            emotionalState: string
+            summary: string
+            interventions: string
+            followUpActions: string
+          }>,
+        ) => {
+          setEntries(rows)
+        },
+      )
+      .catch(() => {
+        setEntries(INITIAL_RECORDINGS)
+      })
+  }, [selectedResidentId])
+
+  const selectedResident = residents.find((r) => r.id === selectedResidentId)
 
   const residentEntries = useMemo(
     () =>
@@ -111,21 +166,34 @@ export default function ProcessRecordingPage() {
       return
     }
 
-    const newEntry: ProcessRecording = {
-      id: Date.now(),
-      residentId: selectedResidentId,
-      sessionDate: formState.sessionDate,
-      socialWorker: formState.socialWorker.trim(),
-      sessionType: formState.sessionType,
-      emotionalState: formState.emotionalState.trim(),
-      summary: formState.summary.trim(),
-      interventions: formState.interventions.trim(),
-      followUpActions: formState.followUpActions.trim(),
-    }
-
-    setEntries((prev) => [newEntry, ...prev])
-    setFormState(EMPTY_FORM)
-    setFormError(null)
+    fetch(`${API_BASE_URL}/api/process-recordings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        residentId: selectedResidentId,
+        sessionDate: formState.sessionDate,
+        socialWorker: formState.socialWorker.trim(),
+        sessionType: formState.sessionType,
+        emotionalState: formState.emotionalState.trim(),
+        summary: formState.summary.trim(),
+        interventions: formState.interventions.trim(),
+        followUpActions: formState.followUpActions.trim(),
+      }),
+    })
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        const body = await res.text()
+        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+      })
+      .then((created: ProcessRecording) => {
+        setEntries((prev) => [created, ...prev].sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()))
+        setFormState(EMPTY_FORM)
+        setFormError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setFormError(`Unable to save recording (${msg}).`)
+      })
   }
 
   return (
@@ -136,6 +204,7 @@ export default function ProcessRecordingPage() {
           <p className="mt-2 text-stone-600">
             Document counseling sessions and review each resident&apos;s healing journey over time.
           </p>
+          {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
         </section>
 
         <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5">
@@ -151,7 +220,7 @@ export default function ProcessRecordingPage() {
                   value={selectedResidentId}
                   onChange={(event) => setSelectedResidentId(Number(event.target.value))}
                 >
-                  {RESIDENTS.map((resident) => (
+                  {residents.map((resident) => (
                     <option key={resident.id} value={resident.id}>
                       {resident.name}
                     </option>
