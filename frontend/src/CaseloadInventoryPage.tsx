@@ -810,6 +810,7 @@ export default function CaseloadInventoryPage() {
                 <div className="border-b border-stone-200 px-4 py-3">
                   <h2 className="text-sm font-semibold text-stone-800">Residents ({filteredResidents.length})</h2>
                 </div>
+                <div className="max-h-[32rem] overflow-y-auto">
                 <div className="hidden md:block overflow-x-auto">
                   <table className="min-w-full text-left text-sm">
                     <thead>
@@ -875,6 +876,7 @@ export default function CaseloadInventoryPage() {
                       </p>
                     </button>
                   ))}
+                </div>
                 </div>
                 {filteredResidents.length === 0 && (
                   <p className="px-4 py-6 text-center text-sm text-stone-500">No residents match these filters.</p>

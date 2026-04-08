@@ -328,7 +328,7 @@ export default function ProcessRecordingPage() {
                 No counseling notes yet for this resident.
               </div>
             ) : (
-              <div className="mt-5 space-y-4">
+              <div className="mt-5 max-h-[32rem] space-y-4 overflow-y-auto pr-1">
                 {residentEntries.map((entry) => (
                   <div key={entry.id} className="rounded-xl border border-stone-200 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
