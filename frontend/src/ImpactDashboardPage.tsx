@@ -41,7 +41,7 @@ type DashboardData = {
   progressIndicators: ProgressPoint[]
 }
 
-const DONUT_COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#ccfbf1']
+const DONUT_COLORS = ['#0f766e', '#14b8a6', '#f59e0b', '#6366f1', '#ef4444']
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK_DATA: DashboardData = {
