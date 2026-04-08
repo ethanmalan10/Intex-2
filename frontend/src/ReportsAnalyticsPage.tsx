@@ -126,7 +126,7 @@ export default function ReportsAnalyticsPage() {
       : data.inactiveSupporterRisk.topAtRisk.slice(0, 5)
   ).map((s) => s.displayName)
   const topFiveEscalationResidents = data.residentRiskEscalation.topEscalationResidents.slice(0, 5)
-  const residentEscalationGroupedData = (() => {
+  const residentEscalationCategoryData = (() => {
     const counts = data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts ?? []
     const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
     const normCounts = counts.map((item) => ({ ...item, normalizedLabel: normalize(item.label) }))
@@ -143,7 +143,11 @@ export default function ReportsAnalyticsPage() {
     )?.value
     const totalFlagged = explicitTotalFlagged ?? Math.max(concernsFlagged + severeIncidents, concernsFlagged, severeIncidents)
 
-    return [{ group: 'Escalation Categories', concernsFlagged, severeIncidents, totalFlagged }]
+    return [
+      { category: 'Concerns Flagged', value: concernsFlagged },
+      { category: 'Severe Incidents', value: severeIncidents },
+      { category: 'Total Flagged', value: totalFlagged },
+    ]
   })()
   const reintegrationDonutDataFromVisuals = (() => {
     const overview = data.pipelineVisuals?.reintegrationReadiness?.readinessOverview ?? []
@@ -188,10 +192,10 @@ export default function ReportsAnalyticsPage() {
     const low = counts.find((item) => normalize(item.label).includes('low'))?.value ?? 0
 
     return [
-      { label: 'High', value: high, color: CHART_COLORS.primary },
-      { label: 'Medium', value: medium, color: CHART_COLORS.secondary },
-      { label: 'Low', value: low, color: CHART_COLORS.tertiary },
-    ]
+      { label: 'High', value: high, color: CHART_COLORS.primary, order: 1 },
+      { label: 'Medium', value: medium, color: CHART_COLORS.secondary, order: 2 },
+      { label: 'Low', value: low, color: CHART_COLORS.tertiary, order: 3 },
+    ].sort((a, b) => a.order - b.order)
   })()
   const socialPlatformDonationsData = (() => {
     const summary = data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary ?? []
@@ -372,7 +376,9 @@ export default function ReportsAnalyticsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={(() => {
-                          const base = residentEscalationGroupedData[0]
+                          const baseValues = Object.fromEntries(
+                            residentEscalationCategoryData.map((item) => [item.category, item.value])
+                          ) as Record<string, number>
                           const parseNumberFromResult = (matcher: RegExp) => {
                             const line = pipeline.results.find((entry) => matcher.test(entry.toLowerCase()))
                             if (!line) return null
@@ -387,25 +393,27 @@ export default function ReportsAnalyticsPage() {
                           const severeFromResults = parseNumberFromResult(/severe/)
                           const totalFromResults = parseNumberFromResult(/total|overall|residents?\s+flagged/)
 
-                          const concernsFlagged = concernsFromResults ?? base.concernsFlagged
-                          const severeIncidents = severeFromResults ?? base.severeIncidents
+                          const concernsFlagged = concernsFromResults ?? baseValues['Concerns Flagged'] ?? 0
+                          const severeIncidents = severeFromResults ?? baseValues['Severe Incidents'] ?? 0
                           const totalFlagged =
                             totalFromResults ??
-                            (base.totalFlagged > 0
-                              ? base.totalFlagged
+                            ((baseValues['Total Flagged'] ?? 0) > 0
+                              ? (baseValues['Total Flagged'] ?? 0)
                               : Math.max(concernsFlagged + severeIncidents, concernsFlagged, severeIncidents))
 
-                          return [{ group: 'Escalation Categories', concernsFlagged, severeIncidents, totalFlagged }]
+                          return [
+                            { category: 'Concerns Flagged', value: concernsFlagged },
+                            { category: 'Severe Incidents', value: severeIncidents },
+                            { category: 'Total Flagged', value: totalFlagged },
+                          ]
                         })()}
                         margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="group" />
+                        <XAxis dataKey="category" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="concernsFlagged" name="Concerns Flagged" fill={CHART_COLORS.secondary} />
-                        <Bar dataKey="severeIncidents" name="Severe Incidents" fill={CHART_COLORS.tertiary} />
-                        <Bar dataKey="totalFlagged" name="Total Flagged" fill={CHART_COLORS.primary} />
+                        <Bar dataKey="value" name="Residents" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
