@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { adminViewItems, primaryNavItems } from './navConfig'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
@@ -11,8 +11,13 @@ export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [adminOpen, setAdminOpen] = useState(false)
+  const [adminHoverOpen, setAdminHoverOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const [accountHoverOpen, setAccountHoverOpen] = useState(false)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const adminDropdownRef = useRef<HTMLLIElement | null>(null)
+  const accountDropdownRef = useRef<HTMLLIElement | null>(null)
   const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
   const navItems = primaryNavItems
 
@@ -31,13 +36,32 @@ export default function SiteNav({ variant }: SiteNavProps) {
   const linkClass = isOpaque ? 'text-stone-600' : 'text-white/80'
   const burgerClass = isOpaque ? 'bg-stone-600' : 'bg-white'
   const welcomeName = user?.firstName?.trim() || user?.email?.split('@')[0] || 'User'
-  const logoutClass = isOpaque ? 'text-stone-500 hover:text-teal-600' : 'text-white/80 hover:text-white'
+  const ourImpactItem = navItems.find((item) => item.label === 'Our Impact')
+  const getHelpItem = navItems.find((item) => item.label === 'Get Help')
+  const showAdminMenu = adminOpen || adminHoverOpen
+  const showAccountMenu = accountOpen || accountHoverOpen
 
   function handleLogout() {
     logout()
     setOpen(false)
+    setAccountOpen(false)
     navigate('/')
   }
+
+  useEffect(() => {
+    const onDocumentMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node
+      const inAdmin = !!adminDropdownRef.current?.contains(target)
+      const inAccount = !!accountDropdownRef.current?.contains(target)
+      if (!inAdmin && !inAccount) {
+        setAdminOpen(false)
+        setAccountOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', onDocumentMouseDown)
+    return () => document.removeEventListener('mousedown', onDocumentMouseDown)
+  }, [])
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${containerClass}`}>
@@ -49,35 +73,34 @@ export default function SiteNav({ variant }: SiteNavProps) {
 
         <div className="hidden md:flex items-center gap-8 text-sm font-medium ml-auto">
           <ul className="flex items-center gap-8">
-            {navItems.map((item) => (
-              <li key={item.label}>
-                {item.label === 'Get Help' ? (
-                  <a
-                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                    className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <a
-                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                    className={`transition-colors hover:text-teal-400 ${linkClass}`}
-                  >
-                    {item.label}
-                  </a>
-                )}
+            {ourImpactItem ? (
+              <li>
+                <a
+                  href={variant === 'landing' ? ourImpactItem.landingHref : ourImpactItem.defaultHref}
+                  className={`transition-colors hover:text-teal-400 ${linkClass}`}
+                >
+                  {ourImpactItem.label}
+                </a>
               </li>
-            ))}
+            ) : null}
             {isAdmin ? (
-              <li className="relative">
+              <li
+                className="relative"
+                ref={adminDropdownRef}
+                onMouseEnter={() => setAdminHoverOpen(true)}
+                onMouseLeave={() => setAdminHoverOpen(false)}
+              >
                 <button
                   type="button"
                   className={`transition-colors hover:text-teal-400 ${linkClass} flex items-center gap-1`}
-                  onClick={() => setAdminOpen((v) => !v)}
+                  onClick={() => {
+                    setAdminOpen((v) => !v)
+                    setAccountOpen(false)
+                  }}
                 >
                   Admin View <span aria-hidden="true">▾</span>
                 </button>
-                {adminOpen ? (
+                {showAdminMenu ? (
                   <div className="absolute right-0 mt-2 w-64 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
                     {adminViewItems.map((item) => (
                       <a
@@ -92,31 +115,61 @@ export default function SiteNav({ variant }: SiteNavProps) {
                 ) : null}
               </li>
             ) : null}
-          </ul>
-          <div className="flex items-center gap-5">
-            {user ? (
-              <div className="flex items-center gap-3">
-                <span className={linkClass}>Welcome, {welcomeName}</span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className={`text-sm transition-colors ${logoutClass}`}
+            {getHelpItem ? (
+              <li>
+                <a
+                  href={variant === 'landing' ? getHelpItem.landingHref : getHelpItem.defaultHref}
+                  className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
                 >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
-                Login
+                  {getHelpItem.label}
+                </a>
+              </li>
+            ) : null}
+            <li>
+              <a
+                href="/donate"
+                className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
+              >
+                Donate
               </a>
-            )}
-            <a
-              href="/donate"
-              className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
+            </li>
+            <li
+              className="relative"
+              ref={accountDropdownRef}
+              onMouseEnter={() => setAccountHoverOpen(true)}
+              onMouseLeave={() => setAccountHoverOpen(false)}
             >
-              Donate
-            </a>
-          </div>
+              {user ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountOpen((v) => !v)
+                      setAdminOpen(false)
+                    }}
+                    className={`transition-colors hover:text-teal-400 ${linkClass}`}
+                  >
+                    Welcome, {welcomeName}
+                  </button>
+                  {showAccountMenu ? (
+                    <div className="absolute right-0 mt-2 w-32 rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
+                  Login
+                </a>
+              )}
+            </li>
+          </ul>
         </div>
 
         <button
