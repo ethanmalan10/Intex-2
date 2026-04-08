@@ -1,17 +1,30 @@
 import { useState } from 'react'
 import PublicLayout from '../../components/layout/PublicLayout'
+import { useAuth } from '../../context/AuthContext'
 
 const API = import.meta.env.VITE_API_BASE_URL
 
 const AMOUNTS = [50, 150, 500]
 
 export default function DonatePage() {
+  const { user } = useAuth()
   const [status, setStatus] = useState<string>('')
-  const token = localStorage.getItem('token')
+  const [statusType, setStatusType] = useState<'success' | 'error' | 'pending' | ''>('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   async function donate(amount: number) {
+    const token = localStorage.getItem('token')
     if (!token) return
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setStatusType('error')
+      setStatus('Donation failed. Please enter a valid amount.')
+      return
+    }
+    if (isSubmitting) return
+
+    setStatusType('pending')
     setStatus('Processing donation...')
+    setIsSubmitting(true)
     try {
       const res = await fetch(`${API}/api/donations`, {
         method: 'POST',
@@ -19,15 +32,26 @@ export default function DonatePage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ amount, notes: 'Website donation flow' }),
+        body: JSON.stringify({
+          amount,
+          notes: 'Website donation flow',
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          displayName: user?.firstName?.trim() || user?.email,
+        }),
       })
       if (!res.ok) {
+        setStatusType('error')
         setStatus('Donation failed. Please try again.')
         return
       }
-      setStatus(`Thank you! Donation of $${amount} recorded successfully.`)
+      setStatusType('success')
+      setStatus(`Thank you for your donation. Your $${amount} gift was recorded successfully.`)
     } catch {
+      setStatusType('error')
       setStatus('Donation failed. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -42,13 +66,18 @@ export default function DonatePage() {
               <button
                 key={amount}
                 onClick={() => donate(amount)}
-                className="px-8 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors"
+                disabled={isSubmitting}
+                className="px-8 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
               >
                 ${amount}
               </button>
             ))}
           </div>
-          {status && <p className="mt-6 text-sm text-stone-600">{status}</p>}
+          {status && (
+            <p className={`mt-6 text-sm ${statusType === 'error' ? 'text-rose-700' : statusType === 'success' ? 'text-teal-700' : 'text-stone-600'}`}>
+              {status}
+            </p>
+          )}
         </section>
       </div>
     </PublicLayout>

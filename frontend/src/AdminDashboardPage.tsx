@@ -341,6 +341,38 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-6xl px-6 pb-8">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-stone-800">Donations Over Time</h3>
+            <div className="mt-3 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.donationsOverTime}>
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip formatter={(v) => `$${Number(v ?? 0).toLocaleString()}`} />
+                  <Bar dataKey="totalAmount" fill="#0f766e" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+
+          <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+            <h3 className="text-sm font-semibold text-stone-800">Donors Added Over Time</h3>
+            <div className="mt-3 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analytics.donorsAddedOverTime}>
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Tooltip />
+                  <Bar dataKey="donorCount" fill="#2A9D8F" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-6xl px-6 pb-16">
         <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -433,36 +465,6 @@ export default function AdminDashboardPage() {
 
           {actionStatus && <p className="mt-3 text-sm text-teal-700">{actionStatus}</p>}
           {usersError && <p className="mt-3 text-sm text-amber-700">{usersError}</p>}
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-stone-800">Donations Over Time</h3>
-              <div className="mt-3 h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.donationsOverTime}>
-                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip formatter={(v) => `$${Number(v ?? 0).toLocaleString()}`} />
-                    <Bar dataKey="totalAmount" fill="#0f766e" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </article>
-
-            <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-              <h3 className="text-sm font-semibold text-stone-800">Donors Added Over Time</h3>
-              <div className="mt-3 h-56">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.donorsAddedOverTime}>
-                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip />
-                    <Bar dataKey="donorCount" fill="#2A9D8F" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </article>
-          </div>
 
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
