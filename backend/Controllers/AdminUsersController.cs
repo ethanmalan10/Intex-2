@@ -206,18 +206,19 @@ public class AdminUsersController : ControllerBase
         }
 
         // Keep donor reporting consistent by creating a linked Supporter row for donor users.
-        if (role == "donor" && !await _db.Supporters.AnyAsync(s => s.Email == email))
+        var emailLower = email.ToLowerInvariant();
+        if (role == "donor" && !await _db.Supporters.AnyAsync(s => s.Email != null && s.Email.Trim().ToLower() == emailLower))
         {
             _db.Supporters.Add(new Supporter
             {
-                SupporterType = "Individual",
+                SupporterType = "MonetaryDonor",
                 DisplayName = fullName,
                 FirstName = firstName,
                 LastName = string.IsNullOrWhiteSpace(lastName) ? null : lastName,
                 RelationshipType = "Donor",
                 Country = "Brazil",
                 Email = email,
-                Status = "active",
+                Status = "Active",
                 CreatedAt = DateTime.UtcNow,
                 AcquisitionChannel = "AdminCreated"
             });

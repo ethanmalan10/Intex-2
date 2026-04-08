@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace backend.Controllers;
 
@@ -53,8 +54,13 @@ public class DonationsController : ControllerBase
 
             var normalizedEmail = userEmail.Trim();
             var normalizedEmailLower = normalizedEmail.ToLowerInvariant();
-            var supporter = await _db.Supporters.FirstOrDefaultAsync(
-                s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
+            var supporter = await _db.Supporters.AsNoTracking().FirstOrDefaultAsync(
+                s => s.Email != null && s.Email.Trim() == normalizedEmail);
+            if (supporter == null)
+            {
+                supporter = await _db.Supporters.AsNoTracking().FirstOrDefaultAsync(
+                    s => s.Email != null && EF.Functions.ILike(s.Email.Trim(), normalizedEmail));
+            }
             if (supporter != null)
             {
                 _logger.LogInformation("Donation: existing supporter found for email {Email}. SupporterId={SupporterId}", normalizedEmail, supporter.SupporterId);
@@ -81,12 +87,20 @@ public class DonationsController : ControllerBase
                 {
                     await _db.SaveChangesAsync();
                 }
-                catch (DbUpdateException)
+                catch (DbUpdateException ex) when (IsSupporterPrimaryKeyConflict(ex))
                 {
-                    // If another matching supporter already exists (or the insert conflicts),
-                    // reuse the persisted record instead of failing donation creation.
+                    _logger.LogWarning(ex, "Donation: supporter insert hit PK conflict; resyncing supporter id sequence.");
                     _db.Entry(supporter).State = EntityState.Detached;
-                    supporter = await _db.Supporters.FirstOrDefaultAsync(
+                    await SyncSupporterSequenceAsync();
+                    _db.Supporters.Add(supporter);
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateException ex)
+                {
+                    // If another matching supporter already exists, reuse it instead of failing.
+                    _logger.LogWarning(ex, "Donation: supporter insert failed; attempting existing supporter recovery.");
+                    _db.Entry(supporter).State = EntityState.Detached;
+                    supporter = await _db.Supporters.AsNoTracking().FirstOrDefaultAsync(
                         s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
                     if (supporter == null)
                     {
@@ -143,6 +157,20 @@ public class DonationsController : ControllerBase
             }
             return StatusCode(500, new { message = "Donation could not be processed right now. Please try again." });
         }
+    }
+
+    private static bool IsSupporterPrimaryKeyConflict(DbUpdateException ex)
+    {
+        return ex.InnerException is PostgresException pg
+            && pg.SqlState == PostgresErrorCodes.UniqueViolation
+            && string.Equals(pg.ConstraintName, "PK_Supporters", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task SyncSupporterSequenceAsync()
+    {
+        // Keep PostgreSQL identity sequence aligned with current max supporter_id.
+        await _db.Database.ExecuteSqlRawAsync(
+            "SELECT setval(pg_get_serial_sequence('\"Supporters\"','SupporterId'), COALESCE((SELECT MAX(\"SupporterId\") FROM \"Supporters\"), 1));");
     }
 }
 
