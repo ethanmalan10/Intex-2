@@ -4,13 +4,14 @@ import { useAuth } from '../../context/AuthContext'
 
 const API = import.meta.env.VITE_API_BASE_URL
 
-const AMOUNTS = [50, 150, 500]
+const AMOUNTS = [10, 25, 50, 100, 250, 500, 750, 1000]
 
 export default function DonatePage() {
   const { user } = useAuth()
   const [status, setStatus] = useState<string>('')
   const [statusType, setStatusType] = useState<'success' | 'error' | 'pending' | ''>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(AMOUNTS[0])
   const [customAmount, setCustomAmount] = useState('')
   const [customError, setCustomError] = useState('')
   const [pendingAmount, setPendingAmount] = useState<number | null>(null)
@@ -77,48 +78,103 @@ export default function DonatePage() {
     openConfirm(parsed)
   }
 
+  function submitSelectedDonation() {
+    if (customAmount.trim()) {
+      submitCustomAmount()
+      return
+    }
+    if (!selectedAmount) {
+      setCustomError('Select an amount or enter a custom amount.')
+      return
+    }
+    setCustomError('')
+    openConfirm(selectedAmount)
+  }
+
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
-      <div className="min-h-screen bg-stone-50 text-stone-800">
-        <section className="mx-auto max-w-4xl px-6 py-12 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold text-stone-800">Donate Securely</h1>
-          <p className="mt-3 text-stone-500">Choose an amount to record your donation.</p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
+      <div className="min-h-screen bg-stone-100 text-stone-800 py-10 px-4">
+        <section className="mx-auto max-w-2xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
+          <div className="flex items-center justify-center gap-2 text-teal-700">
+            <img src="/logo.png" alt="Esperanca Brasil logo" className="h-7 w-7 rounded-full object-cover" />
+            <p className="text-lg font-medium italic">Esperan&#231;a Brasil</p>
+          </div>
+
+          <h1 className="mt-5 text-center text-5xl leading-tight text-stone-900" style={{ fontFamily: 'Georgia, serif' }}>
+            Give Hope
+            <br />
+            <span className="italic">to a Girl</span>
+          </h1>
+          <p className="mt-4 text-center text-stone-500 text-lg">
+            Your gift directly supports girl survivors of abuse in Brazil
+            <br className="hidden sm:block" /> - providing meals, shelter, counseling, and safety.
+          </p>
+
+          <div className="mt-7 border-t border-stone-200" />
+
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {AMOUNTS.map((amount) => (
               <button
                 key={amount}
-                onClick={() => openConfirm(amount)}
+                type="button"
+                onClick={() => {
+                  setSelectedAmount(amount)
+                  setCustomAmount('')
+                  setCustomError('')
+                }}
                 disabled={isSubmitting}
-                className="px-8 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+                className={`rounded-2xl border p-4 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-70 ${
+                  selectedAmount === amount && !customAmount.trim()
+                    ? 'border-teal-600 bg-teal-50'
+                    : 'border-stone-300 bg-white hover:border-teal-400'
+                }`}
               >
-                ${amount}
+                <p className="text-4xl font-bold text-teal-700">${amount.toLocaleString()}</p>
+                <p className="mt-1 text-sm text-stone-500">Supports critical care and services.</p>
               </button>
             ))}
           </div>
-          <div className="mt-6 flex flex-col items-center gap-3">
-            <div className="flex w-full max-w-xs items-center gap-2">
+
+          <div className="mt-4 rounded-xl border border-stone-300 bg-white p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-left">
+                <p className="text-base font-semibold text-teal-800">Custom Amount</p>
+                <p className="text-xs text-stone-500">Every dollar makes a real difference in a child's life.</p>
+              </div>
               <input
                 type="number"
                 min="0.01"
                 step="0.01"
                 value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
-                placeholder="Custom amount"
-                className="w-full rounded-full border border-stone-300 bg-white px-4 py-2 text-sm text-stone-700 focus:border-teal-500 focus:outline-none"
+                onChange={(e) => {
+                  setCustomAmount(e.target.value)
+                  setCustomError('')
+                  setSelectedAmount(null)
+                }}
+                placeholder="$ 0.00"
+                className="w-32 rounded-lg border border-stone-300 bg-stone-50 px-3 py-2 text-sm text-stone-700 focus:border-teal-500 focus:outline-none"
               />
-              <button
-                type="button"
-                onClick={submitCustomAmount}
-                disabled={isSubmitting}
-                className="rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-700 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                Donate
-              </button>
             </div>
-            {customError && <p className="text-xs text-rose-700">{customError}</p>}
           </div>
+
+          <button
+            type="button"
+            onClick={submitSelectedDonation}
+            disabled={isSubmitting}
+            className="mt-4 w-full rounded-xl bg-teal-700 px-5 py-3 text-base font-semibold text-white hover:bg-teal-800 transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Donate Securely
+          </button>
+
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-stone-400">
+            <span>256-bit encrypted</span>
+            <span>501(c)(3) nonprofit</span>
+            <span>100% to the cause</span>
+          </div>
+
+          {customError && <p className="mt-3 text-center text-xs text-rose-700">{customError}</p>}
           {status && (
-            <p className={`mt-6 text-sm ${statusType === 'error' ? 'text-rose-700' : statusType === 'success' ? 'text-teal-700' : 'text-stone-600'}`}>
+            <p className={`mt-4 text-center text-sm ${statusType === 'error' ? 'text-rose-700' : statusType === 'success' ? 'text-teal-700' : 'text-stone-600'}`}>
               {status}
             </p>
           )}
