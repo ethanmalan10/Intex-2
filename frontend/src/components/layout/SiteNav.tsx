@@ -53,6 +53,11 @@ export default function SiteNav({ variant }: SiteNavProps) {
             </li>
           ))}
           <li>
+            <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
+              Login
+            </a>
+          </li>
+          <li>
             <a
               href={variant === 'landing' ? '#donate' : '/#donate'}
               className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
@@ -102,6 +107,9 @@ export default function SiteNav({ variant }: SiteNavProps) {
               </a>
             )
           ))}
+          <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
+            Login
+          </a>
           <a
             href={variant === 'landing' ? '#donate' : '/#donate'}
             onClick={() => setOpen(false)}
