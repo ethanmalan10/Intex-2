@@ -41,7 +41,11 @@ type DashboardData = {
   progressIndicators: ProgressPoint[]
 }
 
-const DONUT_COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#bfdbfe']
+const DONUT_COLORS = ['#0f766e', '#14b8a6', '#5eead4', '#99f6e4', '#bfdbfe', '#7dd3c7']
+const ALLOCATION_COLOR_BY_NAME: Record<string, string> = {
+  outreach: '#2a9d8f',
+  transport: '#0f766e',
+}
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK_DATA: DashboardData = {
@@ -104,6 +108,10 @@ function sanitizeDashboardData(data: DashboardData): DashboardData {
     progressIndicators: safeProgress,
     allocation: data.allocation.filter((a) => a.value > 0),
   }
+}
+
+function getAllocationColor(name: string, index: number) {
+  return ALLOCATION_COLOR_BY_NAME[name.trim().toLowerCase()] ?? DONUT_COLORS[index % DONUT_COLORS.length]
 }
 
 function KpiCard({ kpi }: { kpi: Kpi }) {
@@ -191,7 +199,7 @@ export default function ImpactDashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={data.allocation} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95}>
-                  {data.allocation.map((_, i) => <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />)}
+                  {data.allocation.map((slice, i) => <Cell key={i} fill={getAllocationColor(slice.name, i)} />)}
                 </Pie>
                 <Tooltip formatter={(value) => `${value}%`} />
                 <Legend />
