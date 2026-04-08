@@ -27,6 +27,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
   const brandClass = isOpaque ? 'text-teal-700' : 'text-white'
   const linkClass = isOpaque ? 'text-stone-600' : 'text-white/80'
   const burgerClass = isOpaque ? 'bg-stone-600' : 'bg-white'
+  const welcomeName = user?.firstName?.trim() || user?.email?.split('@')[0] || 'User'
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${containerClass}`}>
@@ -57,9 +58,13 @@ export default function SiteNav({ variant }: SiteNavProps) {
             </li>
           ))}
           <li>
-            <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
-              Login
-            </a>
+            {user ? (
+              <span className={linkClass}>Welcome, {welcomeName}</span>
+            ) : (
+              <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
+                Login
+              </a>
+            )}
           </li>
           <li>
             <a
@@ -111,9 +116,13 @@ export default function SiteNav({ variant }: SiteNavProps) {
               </a>
             )
           ))}
-          <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
-            Login
-          </a>
+          {user ? (
+            <span>Welcome, {welcomeName}</span>
+          ) : (
+            <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
+              Login
+            </a>
+          )}
           <a
             href="/donate"
             onClick={() => setOpen(false)}

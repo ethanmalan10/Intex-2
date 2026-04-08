@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 type AdminData = {
   generatedAtUtc: string
@@ -62,6 +63,18 @@ type UserDetail = {
   }>
 }
 
+type AnalyticsData = {
+  donationsOverTime: Array<{
+    period: string
+    totalAmount: number
+    donationCount: number
+  }>
+  donorsAddedOverTime: Array<{
+    period: string
+    donorCount: number
+  }>
+}
+
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK: AdminData = {
@@ -101,6 +114,15 @@ export default function AdminDashboardPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState({ email: '', firstName: '', lastName: '', role: 'donor' })
   const [actionStatus, setActionStatus] = useState('')
+  const [showCreateUser, setShowCreateUser] = useState(false)
+  const [createUserError, setCreateUserError] = useState('')
+  const [createUserForm, setCreateUserForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'donor',
+  })
+  const [analytics, setAnalytics] = useState<AnalyticsData>({ donationsOverTime: [], donorsAddedOverTime: [] })
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
   const token = localStorage.getItem('token') ?? ''
 
@@ -153,6 +175,18 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchUsers()
   }, [sort, roleFilter, donationFilter, token])
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/admin/users/analytics`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text())
+        return res.json()
+      })
+      .then((payload: AnalyticsData) => setAnalytics(payload))
+      .catch(() => setAnalytics({ donationsOverTime: [], donorsAddedOverTime: [] }))
+  }, [token])
 
   useEffect(() => {
     const t = setTimeout(() => fetchUsers(), 300)
@@ -225,6 +259,49 @@ export default function AdminDashboardPage() {
     fetchUsers()
   }
 
+  async function createUser() {
+    setCreateUserError('')
+    const fullName = createUserForm.fullName.trim()
+    const email = createUserForm.email.trim()
+    const password = createUserForm.password
+    const role = createUserForm.role
+
+    if (!fullName || !email || !password || !role) {
+      setCreateUserError('All fields are required.')
+      return
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setCreateUserError('Enter a valid email address.')
+      return
+    }
+    // Matches current project minimum password length rule.
+    if (password.length < 8) {
+      setCreateUserError('Password must be at least 8 characters.')
+      return
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ fullName, email, password, role }),
+    })
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null)
+      const message = payload?.message || 'Failed to create user.'
+      setCreateUserError(message)
+      return
+    }
+
+    setShowCreateUser(false)
+    setCreateUserForm({ fullName: '', email: '', password: '', role: 'donor' })
+    setActionStatus('User created.')
+    fetchUsers()
+  }
+
   const cc = data?.commandCenter
 
   return (
@@ -266,8 +343,65 @@ export default function AdminDashboardPage() {
 
       <section className="mx-auto max-w-6xl px-6 pb-16">
         <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-stone-900">User Management</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-xl font-semibold text-stone-900">User Management</h2>
+            <button
+              onClick={() => setShowCreateUser(true)}
+              className="rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700"
+            >
+              Create User
+            </button>
+          </div>
           <p className="mt-1 text-sm text-stone-600">View users, roles, donations, and manage accounts.</p>
+
+          {showCreateUser && (
+            <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
+              <p className="text-sm font-semibold text-stone-700">Create User</p>
+              <div className="mt-2 grid gap-2 md:grid-cols-4">
+                <input
+                  value={createUserForm.fullName}
+                  onChange={(e) => setCreateUserForm({ ...createUserForm, fullName: e.target.value })}
+                  placeholder="Full name"
+                  className="rounded border border-stone-300 px-2 py-1 text-sm"
+                />
+                <input
+                  value={createUserForm.email}
+                  onChange={(e) => setCreateUserForm({ ...createUserForm, email: e.target.value })}
+                  placeholder="Email"
+                  className="rounded border border-stone-300 px-2 py-1 text-sm"
+                />
+                <input
+                  type="password"
+                  value={createUserForm.password}
+                  onChange={(e) => setCreateUserForm({ ...createUserForm, password: e.target.value })}
+                  placeholder="Password"
+                  className="rounded border border-stone-300 px-2 py-1 text-sm"
+                />
+                <select
+                  value={createUserForm.role}
+                  onChange={(e) => setCreateUserForm({ ...createUserForm, role: e.target.value })}
+                  className="rounded border border-stone-300 px-2 py-1 text-sm"
+                >
+                  <option value="admin">admin</option>
+                  <option value="staff">staff</option>
+                  <option value="donor">donor</option>
+                </select>
+              </div>
+              {createUserError && <p className="mt-2 text-xs text-rose-700">{createUserError}</p>}
+              <div className="mt-2 flex gap-2">
+                <button onClick={createUser} className="rounded bg-teal-600 px-3 py-1 text-xs font-semibold text-white">Create</button>
+                <button
+                  onClick={() => {
+                    setShowCreateUser(false)
+                    setCreateUserError('')
+                  }}
+                  className="rounded border border-stone-300 px-3 py-1 text-xs"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="mt-4 grid gap-3 md:grid-cols-4">
             <input
@@ -299,6 +433,36 @@ export default function AdminDashboardPage() {
 
           {actionStatus && <p className="mt-3 text-sm text-teal-700">{actionStatus}</p>}
           {usersError && <p className="mt-3 text-sm text-amber-700">{usersError}</p>}
+
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-stone-800">Donations Over Time</h3>
+              <div className="mt-3 h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analytics.donationsOverTime}>
+                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip formatter={(v) => `$${Number(v ?? 0).toLocaleString()}`} />
+                    <Bar dataKey="totalAmount" fill="#0f766e" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+
+            <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+              <h3 className="text-sm font-semibold text-stone-800">Donors Added Over Time</h3>
+              <div className="mt-3 h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analytics.donorsAddedOverTime}>
+                    <XAxis dataKey="period" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip />
+                    <Bar dataKey="donorCount" fill="#2A9D8F" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+          </div>
 
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">

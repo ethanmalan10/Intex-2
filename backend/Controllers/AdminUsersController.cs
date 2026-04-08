@@ -148,9 +148,133 @@ public class AdminUsersController : ControllerBase
         if (!result.Succeeded) return BadRequest(result.Errors);
         return Ok(new { message = "User deleted." });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.FullName) ||
+            string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Password) ||
+            string.IsNullOrWhiteSpace(request.Role))
+        {
+            return BadRequest(new { message = "Full name, email, password, and role are required." });
+        }
+
+        var email = request.Email.Trim();
+        var role = request.Role.Trim().ToLowerInvariant();
+        if (role is not ("admin" or "staff" or "donor"))
+        {
+            return BadRequest(new { message = "Role must be admin, staff, or donor." });
+        }
+
+        if (await _userManager.FindByEmailAsync(email) is not null)
+        {
+            return Conflict(new { message = "A user with this email already exists." });
+        }
+
+        var fullName = request.FullName.Trim();
+        var split = fullName.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        var firstName = split.Length > 0 ? split[0] : fullName;
+        var lastName = split.Length > 1 ? split[1] : string.Empty;
+
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName
+        };
+
+        var createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new
+            {
+                message = "Failed to create user.",
+                errors = createResult.Errors.Select(e => e.Description)
+            });
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+        {
+            return BadRequest(new
+            {
+                message = "User created but role assignment failed.",
+                errors = roleResult.Errors.Select(e => e.Description)
+            });
+        }
+
+        // Keep donor reporting consistent by creating a linked Supporter row for donor users.
+        if (role == "donor" && !await _db.Supporters.AnyAsync(s => s.Email == email))
+        {
+            _db.Supporters.Add(new Supporter
+            {
+                SupporterType = "Individual",
+                DisplayName = fullName,
+                FirstName = firstName,
+                LastName = string.IsNullOrWhiteSpace(lastName) ? null : lastName,
+                RelationshipType = "Donor",
+                Country = "Brazil",
+                Email = email,
+                Status = "active",
+                CreatedAt = DateTime.UtcNow,
+                AcquisitionChannel = "AdminCreated"
+            });
+            await _db.SaveChangesAsync();
+        }
+
+        return Ok(new { message = "User created successfully." });
+    }
+
+    [HttpGet("analytics")]
+    public async Task<IActionResult> GetAnalytics()
+    {
+        var donations = await _db.Donations.ToListAsync();
+        var donationsOverTime = donations
+            .GroupBy(d => new { d.DonationDate.Year, d.DonationDate.Month })
+            .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+            .Select(g => new TimePoint(
+                $"{g.Key.Year}-{g.Key.Month:D2}",
+                g.Sum(x => x.Amount ?? x.EstimatedValue ?? 0m),
+                g.Count()))
+            .ToList();
+
+        var users = await _userManager.Users.ToListAsync();
+        var supporterByEmail = await _db.Supporters.ToDictionaryAsync(s => s.Email, s => s);
+        var donorUsers = new List<ApplicationUser>();
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any(r => string.Equals(r, "donor", StringComparison.OrdinalIgnoreCase)))
+            {
+                donorUsers.Add(user);
+            }
+        }
+
+        var donorsAddedOverTime = donorUsers
+            .Select(u =>
+            {
+                supporterByEmail.TryGetValue(u.Email ?? string.Empty, out var supporter);
+                return supporter?.CreatedAt;
+            })
+            .Where(d => d.HasValue)
+            .Select(d => d!.Value)
+            .GroupBy(d => new { d.Year, d.Month })
+            .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+            .Select(g => new DonorPoint($"{g.Key.Year}-{g.Key.Month:D2}", g.Count()))
+            .ToList();
+
+        return Ok(new
+        {
+            donationsOverTime,
+            donorsAddedOverTime
+        });
+    }
 }
 
 public record UpdateUserRequest(string Email, string? FirstName, string? LastName, string? Role);
+public record CreateUserRequest(string FullName, string Email, string Password, string Role);
 public record AdminUserRow(
     string Id,
     string Email,
@@ -163,3 +287,5 @@ public record AdminUserRow(
     int? SupporterId,
     string? SupporterStatus
 );
+public record TimePoint(string Period, decimal TotalAmount, int DonationCount);
+public record DonorPoint(string Period, int DonorCount);
