@@ -344,7 +344,7 @@ export default function AdminDashboardPage() {
       <section className="mx-auto max-w-6xl px-6 pb-8">
         <div className="grid gap-4 lg:grid-cols-2">
           <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-stone-800">Donations Over Time</h3>
+            <p className="text-sm font-semibold text-stone-800">Donations Over Time</p>
             <div className="mt-3 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.donationsOverTime}>
@@ -358,7 +358,7 @@ export default function AdminDashboardPage() {
           </article>
 
           <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <h3 className="text-sm font-semibold text-stone-800">Donors Added Over Time</h3>
+            <p className="text-sm font-semibold text-stone-800">Donors Added Over Time</p>
             <div className="mt-3 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.donorsAddedOverTime}>
@@ -450,13 +450,15 @@ export default function AdminDashboardPage() {
                 </label>
               ))}
             </div>
-            <select value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+            <label htmlFor="user-sort" className="sr-only">Sort users</label>
+            <select id="user-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
               <option value="newest">Newest to oldest</option>
               <option value="oldest">Oldest to newest</option>
               <option value="donation-high">Donation high to low</option>
               <option value="donation-low">Donation low to high</option>
             </select>
-            <select value={donationFilter} onChange={(e) => setDonationFilter(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+            <label htmlFor="user-donation-filter" className="sr-only">Filter users by donation activity</label>
+            <select id="user-donation-filter" value={donationFilter} onChange={(e) => setDonationFilter(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
               <option value="all">All users</option>
               <option value="with">With donations</option>
               <option value="without">No donations</option>
