@@ -12,9 +12,6 @@ import {
   Pie,
   Cell,
   Legend,
-  RadialBarChart,
-  RadialBar,
-  PolarAngleAxis,
 } from 'recharts'
 
 type ReportsData = {
@@ -118,23 +115,27 @@ export default function ReportsAnalyticsPage() {
       ? data.inactiveSupporterRisk.topAtRisk.filter((s) => s.riskBand === 'High').slice(0, 5)
       : data.inactiveSupporterRisk.topAtRisk.slice(0, 5)
   ).map((s) => s.displayName)
-  const topFiveLikelyDonors = data.donorRecurrenceForecast.topLikelyToDonateAgain.slice(0, 5)
-  const topFiveLikelyReadyResidents = data.reintegrationReadiness.topLikelyReadyResidents.slice(0, 5)
   const topFiveEscalationResidents = data.residentRiskEscalation.topEscalationResidents.slice(0, 5)
   const residentEscalationGroupedData = (() => {
     const counts = data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts ?? []
     const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+    const normCounts = counts.map((item) => ({ ...item, normalizedLabel: normalize(item.label) }))
 
     const concernsFlagged =
-      counts.find((item) => normalize(item.label).includes('concern'))?.value ?? 0
+      normCounts.find((item) => item.normalizedLabel.includes('concern'))?.value ?? 0
     const severeIncidents =
-      counts.find((item) => normalize(item.label).includes('severe'))?.value ?? 0
-    const totalFlagged =
-      counts.find((item) => normalize(item.label).includes('total'))?.value ?? 0
+      normCounts.find((item) => item.normalizedLabel.includes('severe'))?.value ?? 0
+    const explicitTotalFlagged = normCounts.find(
+      (item) =>
+        item.normalizedLabel.includes('total') ||
+        (item.normalizedLabel.includes('resident') && item.normalizedLabel.includes('flagged')) ||
+        item.normalizedLabel.includes('overall')
+    )?.value
+    const totalFlagged = explicitTotalFlagged ?? Math.max(concernsFlagged + severeIncidents, concernsFlagged, severeIncidents)
 
     return [{ group: 'Escalation Categories', concernsFlagged, severeIncidents, totalFlagged }]
   })()
-  const reintegrationDonutData = (() => {
+  const reintegrationDonutDataFromVisuals = (() => {
     const overview = data.pipelineVisuals?.reintegrationReadiness?.readinessOverview ?? []
     const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
@@ -153,13 +154,9 @@ export default function ReportsAnalyticsPage() {
       { label: 'Remaining', value: remaining },
     ]
   })()
-  const donorRecurrenceGaugeData = (() => {
+  const donorTopTenChartData = (() => {
     const scores = data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores ?? []
-    const averageScore =
-      scores.length > 0 ? scores.reduce((sum, item) => sum + item.score, 0) / scores.length : 0
-    const recurrenceRate = Math.max(0, Math.min(100, averageScore * 100))
-
-    return [{ name: 'Recurrence Rate', value: recurrenceRate }]
+    return [...scores].sort((a, b) => b.score - a.score).slice(0, 10)
   })()
   const counselingReadinessGroupedData = (() => {
     const comparison = data.pipelineVisuals?.counselingIntensityReadinessEffect?.readinessRateComparison ?? []
@@ -185,6 +182,23 @@ export default function ReportsAnalyticsPage() {
       { label: 'Medium', value: medium, color: '#f59e0b' },
       { label: 'Low', value: low, color: '#16a34a' },
     ]
+  })()
+  const socialPlatformDonationsData = (() => {
+    const summary = data.pipelineVisuals?.socialContentDonationImpact?.donationImpactSummary ?? []
+
+    return summary
+      .map((item) => {
+        const cleaned = item.label
+          .replace(/referred/gi, '')
+          .replace(/donations?/gi, '')
+          .replace(/impact/gi, '')
+          .replace(/[:\-]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+        const platform = cleaned.length > 0 ? cleaned : item.label
+        return { platform, totalDonations: item.value }
+      })
+      .sort((a, b) => b.totalDonations - a.totalDonations)
   })()
 
   return (
@@ -221,34 +235,6 @@ export default function ReportsAnalyticsPage() {
                     ) : (
                       <ol className="mt-1 list-decimal space-y-1 pl-5">
                         {topFiveHighRiskNames.map((name) => (
-                          <li key={name}>{name}</li>
-                        ))}
-                      </ol>
-                    )}
-                  </div>
-                )}
-                {pipeline.name === 'donor-recurrence-forecast' && (
-                  <div className="mt-3 text-sm text-stone-700">
-                    <p className="font-semibold">Top 5 most likely to donate again:</p>
-                    {topFiveLikelyDonors.length === 0 ? (
-                      <p className="mt-1 text-stone-500">No likely-repeat donors found.</p>
-                    ) : (
-                      <ol className="mt-1 list-decimal space-y-1 pl-5">
-                        {topFiveLikelyDonors.map((name) => (
-                          <li key={name}>{name}</li>
-                        ))}
-                      </ol>
-                    )}
-                  </div>
-                )}
-                {pipeline.name === 'reintegration-readiness' && (
-                  <div className="mt-3 text-sm text-stone-700">
-                    <p className="font-semibold">Top 5 most likely ready residents:</p>
-                    {topFiveLikelyReadyResidents.length === 0 ? (
-                      <p className="mt-1 text-stone-500">No likely-ready residents found.</p>
-                    ) : (
-                      <ol className="mt-1 list-decimal space-y-1 pl-5">
-                        {topFiveLikelyReadyResidents.map((name) => (
                           <li key={name}>{name}</li>
                         ))}
                       </ol>
@@ -308,36 +294,37 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'donor-recurrence-forecast' && data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <RadialBarChart
-                        data={donorRecurrenceGaugeData}
-                        cx="50%"
-                        cy="75%"
-                        innerRadius="65%"
-                        outerRadius="100%"
-                        startAngle={180}
-                        endAngle={0}
-                      >
-                        <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
-                        <RadialBar dataKey="value" cornerRadius={12} fill="#7c3aed" background />
-                        <Tooltip formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Recurrence Rate']} />
-                        <text x="50%" y="72%" textAnchor="middle" className="fill-stone-700 text-sm">
-                          Recurrence Rate
-                        </text>
-                        <text x="50%" y="84%" textAnchor="middle" className="fill-stone-900 text-xl font-semibold">
-                          {donorRecurrenceGaugeData[0].value.toFixed(1)}%
-                        </text>
-                      </RadialBarChart>
+                      <BarChart data={donorTopTenChartData} layout="vertical" margin={{ top: 8, right: 16, left: 24, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 1]} />
+                        <YAxis type="category" dataKey="name" width={110} />
+                        <Tooltip formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Likelihood Score']} />
+                        <Bar dataKey="score" fill="#7c3aed" />
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 )}
-                {pipeline.name === 'reintegration-readiness' && data.pipelineVisuals?.reintegrationReadiness?.readinessOverview && (
+                {pipeline.name === 'reintegration-readiness' && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip />
                         <Legend />
                         <Pie
-                          data={reintegrationDonutData}
+                          data={(() => {
+                            const hasVisualValues = reintegrationDonutDataFromVisuals.some((d) => d.value > 0)
+                            if (hasVisualValues) return reintegrationDonutDataFromVisuals
+
+                            const percentLine = pipeline.results.find((line) => /closed\s+within\s+365/i.test(line))
+                            const percentMatch = percentLine?.match(/(\d+(?:\.\d+)?)\s*%/)
+                            const closedPct = percentMatch ? Number(percentMatch[1]) : 0
+                            const closedPctSafe = Number.isFinite(closedPct) ? Math.max(0, Math.min(100, closedPct)) : 0
+
+                            return [
+                              { label: 'Closed within 365 days', value: closedPctSafe },
+                              { label: 'Remaining', value: Math.max(100 - closedPctSafe, 0) },
+                            ]
+                          })()}
                           dataKey="value"
                           nameKey="label"
                           cx="50%"
@@ -346,9 +333,18 @@ export default function ReportsAnalyticsPage() {
                           outerRadius={82}
                           paddingAngle={2}
                         >
-                          {reintegrationDonutData.map((entry) => (
-                            <Cell key={entry.label} fill={entry.label.includes('Closed') ? '#059669' : '#94a3b8'} />
-                          ))}
+                          {(() => {
+                            const hasVisualValues = reintegrationDonutDataFromVisuals.some((d) => d.value > 0)
+                            const pieData = hasVisualValues
+                              ? reintegrationDonutDataFromVisuals
+                              : [
+                                  { label: 'Closed within 365 days', value: 0 },
+                                  { label: 'Remaining', value: 100 },
+                                ]
+                            return pieData.map((entry) => (
+                              <Cell key={entry.label} fill={entry.label.includes('Closed') ? '#059669' : '#94a3b8'} />
+                            ))
+                          })()}
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
@@ -357,7 +353,31 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'resident-risk-escalation' && data.pipelineVisuals?.residentRiskEscalation?.escalationSignalCounts && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={residentEscalationGroupedData} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+                      <BarChart
+                        data={(() => {
+                          const base = residentEscalationGroupedData[0]
+                          const parseNumberFromResult = (matcher: RegExp) => {
+                            const line = pipeline.results.find((entry) => matcher.test(entry.toLowerCase()))
+                            const match = line?.match(/(\d+(?:\.\d+)?)/)
+                            return match ? Number(match[1]) : null
+                          }
+
+                          const concernsFromResults = parseNumberFromResult(/concern/)
+                          const severeFromResults = parseNumberFromResult(/severe/)
+                          const totalFromResults = parseNumberFromResult(/total|overall|residents?\s+flagged/)
+
+                          const concernsFlagged = concernsFromResults ?? base.concernsFlagged
+                          const severeIncidents = severeFromResults ?? base.severeIncidents
+                          const totalFlagged =
+                            totalFromResults ??
+                            (base.totalFlagged > 0
+                              ? base.totalFlagged
+                              : Math.max(concernsFlagged + severeIncidents, concernsFlagged, severeIncidents))
+
+                          return [{ group: 'Escalation Categories', concernsFlagged, severeIncidents, totalFlagged }]
+                        })()}
+                        margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+                      >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="group" />
                         <YAxis />
@@ -373,15 +393,15 @@ export default function ReportsAnalyticsPage() {
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={data.pipelineVisuals.socialContentDonationImpact.donationImpactSummary}
+                        data={socialPlatformDonationsData}
                         layout="vertical"
                         margin={{ top: 8, right: 16, left: 24, bottom: 8 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis type="number" />
-                        <YAxis type="category" dataKey="label" width={110} />
+                        <YAxis type="category" dataKey="platform" width={130} />
                         <Tooltip />
-                        <Bar dataKey="value" fill="#ea580c" />
+                        <Bar dataKey="totalDonations" name="Total Donations" fill="#ea580c" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
