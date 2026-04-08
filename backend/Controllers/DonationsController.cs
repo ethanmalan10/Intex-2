@@ -51,8 +51,10 @@ public class DonationsController : ControllerBase
             if (string.IsNullOrWhiteSpace(userEmail))
                 return Unauthorized(new { message = "Authenticated user email is required for donation records." });
 
-            var normalizedEmail = userEmail.Trim().ToLowerInvariant();
-            var supporter = await _db.Supporters.FirstOrDefaultAsync(s => s.Email.ToLower() == normalizedEmail);
+            var normalizedEmail = userEmail.Trim();
+            var normalizedEmailLower = normalizedEmail.ToLowerInvariant();
+            var supporter = await _db.Supporters.FirstOrDefaultAsync(
+                s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
             if (supporter == null)
             {
                 supporter = new Supporter
@@ -63,14 +65,26 @@ public class DonationsController : ControllerBase
                     LastName = request.LastName,
                     RelationshipType = "Donor",
                     Country = "Brazil",
-                    Email = userEmail,
+                    Email = normalizedEmail,
                     Status = "active",
                     CreatedAt = DateTime.UtcNow,
                     FirstDonationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date),
                     AcquisitionChannel = "Website"
                 };
                 _db.Supporters.Add(supporter);
-                await _db.SaveChangesAsync();
+                try
+                {
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    // If another matching supporter already exists (or the insert conflicts),
+                    // reuse the persisted record instead of failing donation creation.
+                    _db.Entry(supporter).State = EntityState.Detached;
+                    supporter = await _db.Supporters.FirstOrDefaultAsync(
+                        s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmailLower);
+                    if (supporter == null) throw;
+                }
             }
 
             var donation = new Donation
