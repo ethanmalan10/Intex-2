@@ -95,7 +95,7 @@ public class CaseConferencesController : ControllerBase
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
-        var rows = await _db.CaseConferences
+        var standaloneRows = await _db.CaseConferences
             .Where(c => c.ResidentId == residentId)
             .OrderByDescending(c => c.ConferenceDate)
             .Select(p => new CaseConferenceDto(
@@ -107,6 +107,24 @@ public class CaseConferencesController : ControllerBase
                 p.Notes
             ))
             .ToListAsync();
+
+        var legacyRows = await _db.InterventionPlans
+            .Where(p => p.ResidentId == residentId && p.CaseConferenceDate != null)
+            .OrderByDescending(p => p.CaseConferenceDate)
+            .Select(p => new CaseConferenceDto(
+                -p.PlanId,
+                p.ResidentId,
+                p.CaseConferenceDate!.Value,
+                p.PlanCategory,
+                p.CaseConferenceDate >= today ? "Upcoming" : "Completed",
+                p.PlanDescription
+            ))
+            .ToListAsync();
+
+        var rows = standaloneRows
+            .Concat(legacyRows)
+            .OrderByDescending(x => x.ConferenceDate)
+            .ToList();
 
         return Ok(rows);
     }
