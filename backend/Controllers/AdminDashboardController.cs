@@ -362,7 +362,7 @@ public class AdminDashboardController : ControllerBase
                         $"Active supporters scored: {activeSupporters.Count}",
                         $"High risk: {highRiskCount}, Medium risk: {mediumRiskCount}, Low risk: {lowRiskCount}",
                         $"Top risk score: {(topAtRisk.FirstOrDefault()?.RiskScore ?? 0):0.000}",
-                        $"Top 5 high-risk supporters: {(topFiveHighRiskNames.Count == 0 ? "None" : string.Join(", ", topFiveHighRiskNames))}"
+                        $"Most at-risk supporters: {(topFiveHighRiskNames.Count == 0 ? "None" : string.Join(", ", topFiveHighRiskNames))}"
                     }
                 },
                 new
