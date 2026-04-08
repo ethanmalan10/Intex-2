@@ -31,6 +31,7 @@ type HomeVisitEntry = {
 
 type CaseConference = {
   id: number
+  residentId: number | null
   conferenceDate: string
   topic: string
   status: 'Upcoming' | 'Completed'
@@ -50,6 +51,7 @@ type FormState = {
 }
 
 type ConferenceFormState = {
+  attachToSelectedResident: boolean
   conferenceDate: string
   topic: string
   notes: string
@@ -100,6 +102,7 @@ const INITIAL_VISITS: HomeVisitEntry[] = [
 const INITIAL_CONFERENCES: CaseConference[] = [
   {
     id: 1,
+    residentId: 201,
     conferenceDate: '2026-04-12',
     topic: 'Reintegration readiness checkpoint',
     status: 'Upcoming',
@@ -107,6 +110,7 @@ const INITIAL_CONFERENCES: CaseConference[] = [
   },
   {
     id: 2,
+    residentId: 201,
     conferenceDate: '2026-03-10',
     topic: 'Initial multidisciplinary intake',
     status: 'Completed',
@@ -114,6 +118,7 @@ const INITIAL_CONFERENCES: CaseConference[] = [
   },
   {
     id: 3,
+    residentId: 202,
     conferenceDate: '2026-04-09',
     topic: 'Safety escalation review',
     status: 'Upcoming',
@@ -132,6 +137,7 @@ const EMPTY_FORM: FormState = {
 }
 
 const EMPTY_CONFERENCE_FORM: ConferenceFormState = {
+  attachToSelectedResident: true,
   conferenceDate: '',
   topic: '',
   notes: '',
@@ -197,7 +203,7 @@ export default function HomeVisitationCaseConferencesPage() {
         setVisits(INITIAL_VISITS)
       })
 
-    fetch(`${API_BASE_URL}/api/case-conferences`, {
+    fetch(`${API_BASE_URL}/api/case-conferences?residentId=${selectedResidentId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {
@@ -229,20 +235,25 @@ export default function HomeVisitationCaseConferencesPage() {
     [visits, selectedResidentId],
   )
 
+  const residentConferences = useMemo(
+    () => conferences.filter((conference) => conference.residentId === selectedResidentId),
+    [conferences, selectedResidentId],
+  )
+
   const upcomingConferences = useMemo(
     () =>
-      conferences
+      residentConferences
         .filter((conference) => conference.status === 'Upcoming')
         .sort((a, b) => new Date(a.conferenceDate).getTime() - new Date(b.conferenceDate).getTime()),
-    [conferences],
+    [residentConferences],
   )
 
   const conferenceHistory = useMemo(
     () =>
-      conferences
+      residentConferences
         .filter((conference) => conference.status === 'Completed')
         .sort((a, b) => new Date(b.conferenceDate).getTime() - new Date(a.conferenceDate).getTime()),
-    [conferences],
+    [residentConferences],
   )
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -313,6 +324,7 @@ export default function HomeVisitationCaseConferencesPage() {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
+        residentId: conferenceFormState.attachToSelectedResident ? selectedResidentId : null,
         conferenceDate: conferenceFormState.conferenceDate,
         topic: conferenceFormState.topic.trim(),
         notes: conferenceFormState.notes.trim(),
@@ -323,7 +335,7 @@ export default function HomeVisitationCaseConferencesPage() {
         throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((created: CaseConference) => {
-        setConferences((prev) => [created, ...prev])
+        setConferences((prev) => (created.residentId === selectedResidentId ? [created, ...prev] : prev))
         setConferencesError(null)
         setConferenceFormState(EMPTY_CONFERENCE_FORM)
         setConferenceFormError(null)
@@ -595,6 +607,17 @@ export default function HomeVisitationCaseConferencesPage() {
               </div>
 
               <form className="mt-4 space-y-4" onSubmit={onConferenceSubmit}>
+                <label className="flex items-center gap-2 text-sm text-stone-700">
+                  <input
+                    type="checkbox"
+                    checked={conferenceFormState.attachToSelectedResident}
+                    onChange={(event) =>
+                      setConferenceFormState((prev) => ({ ...prev, attachToSelectedResident: event.target.checked }))
+                    }
+                  />
+                  Attach to currently selected resident ({selectedResident?.name ?? 'Resident'})
+                </label>
+
                 <label className="block text-sm">
                   <span className="mb-1 block font-medium text-stone-700">Conference Date</span>
                   <input

@@ -91,14 +91,16 @@ public class CaseConferencesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> Get([FromQuery] int residentId)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
         var rows = await _db.CaseConferences
+            .Where(c => c.ResidentId == residentId)
             .OrderByDescending(c => c.ConferenceDate)
             .Select(p => new CaseConferenceDto(
                 p.ConferenceId,
+                p.ResidentId,
                 p.ConferenceDate,
                 p.Topic,
                 p.ConferenceDate >= today ? "Upcoming" : "Completed",
@@ -113,8 +115,12 @@ public class CaseConferencesController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromBody] CaseConferenceCreateRequest body)
     {
+        if (body.ResidentId is not null && !await _db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId.Value))
+            return BadRequest(new { message = "ResidentId not found." });
+
         var entity = new CaseConference
         {
+            ResidentId = body.ResidentId,
             ConferenceDate = body.ConferenceDate,
             Topic = body.Topic.Trim(),
             Notes = string.IsNullOrWhiteSpace(body.Notes) ? null : body.Notes.Trim()
@@ -126,6 +132,7 @@ public class CaseConferencesController : ControllerBase
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
         return Ok(new CaseConferenceDto(
             entity.ConferenceId,
+            entity.ResidentId,
             entity.ConferenceDate,
             entity.Topic,
             entity.ConferenceDate >= today ? "Upcoming" : "Completed",
@@ -160,6 +167,7 @@ public record HomeVisitationDto(
 
 public record CaseConferenceDto(
     int Id,
+    int? ResidentId,
     DateOnly ConferenceDate,
     string Topic,
     string Status,
@@ -167,6 +175,7 @@ public record CaseConferenceDto(
 );
 
 public record CaseConferenceCreateRequest(
+    int? ResidentId,
     DateOnly ConferenceDate,
     [property: Required] string Topic,
     string? Notes
