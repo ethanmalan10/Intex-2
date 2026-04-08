@@ -60,6 +60,13 @@ type ReportsData = {
 }
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+const CHART_COLORS = {
+  primary: '#0f766e',
+  secondary: '#14b8a6',
+  tertiary: '#5eead4',
+  quaternary: '#2dd4bf',
+  muted: '#94a3b8',
+}
 
 const FALLBACK: ReportsData = {
   generatedAtUtc: new Date().toISOString(),
@@ -178,9 +185,9 @@ export default function ReportsAnalyticsPage() {
     const low = counts.find((item) => normalize(item.label).includes('low'))?.value ?? 0
 
     return [
-      { label: 'High', value: high, color: '#dc2626' },
-      { label: 'Medium', value: medium, color: '#f59e0b' },
-      { label: 'Low', value: low, color: '#16a34a' },
+      { label: 'High', value: high, color: CHART_COLORS.primary },
+      { label: 'Medium', value: medium, color: CHART_COLORS.secondary },
+      { label: 'Low', value: low, color: CHART_COLORS.tertiary },
     ]
   })()
   const socialPlatformDonationsData = (() => {
@@ -292,8 +299,8 @@ export default function ReportsAnalyticsPage() {
                         <XAxis dataKey="group" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="highIntensity" name="High Intensity" fill="#2563eb" />
-                        <Bar dataKey="lowIntensity" name="Low Intensity" fill="#0ea5e9" />
+                        <Bar dataKey="highIntensity" name="High Intensity" fill={CHART_COLORS.primary} />
+                        <Bar dataKey="lowIntensity" name="Low Intensity" fill={CHART_COLORS.secondary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -306,7 +313,7 @@ export default function ReportsAnalyticsPage() {
                         <XAxis type="number" domain={[0, 1]} />
                         <YAxis type="category" dataKey="name" width={110} />
                         <Tooltip formatter={(value) => [`${(Number(value) * 100).toFixed(1)}%`, 'Likelihood Score']} />
-                        <Bar dataKey="score" fill="#7c3aed" />
+                        <Bar dataKey="score" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -349,7 +356,7 @@ export default function ReportsAnalyticsPage() {
                                   { label: 'Remaining', value: 100 },
                                 ]
                             return pieData.map((entry) => (
-                              <Cell key={entry.label} fill={entry.label.includes('Closed') ? '#059669' : '#94a3b8'} />
+                              <Cell key={entry.label} fill={entry.label.includes('Closed') ? CHART_COLORS.primary : CHART_COLORS.muted} />
                             ))
                           })()}
                         </Pie>
@@ -365,8 +372,12 @@ export default function ReportsAnalyticsPage() {
                           const base = residentEscalationGroupedData[0]
                           const parseNumberFromResult = (matcher: RegExp) => {
                             const line = pipeline.results.find((entry) => matcher.test(entry.toLowerCase()))
-                            const match = line?.match(/(\d+(?:\.\d+)?)/)
-                            return match ? Number(match[1]) : null
+                            if (!line) return null
+                            const afterColon = line.split(':').pop()?.match(/(\d+(?:\.\d+)?)/)
+                            if (afterColon) return Number(afterColon[1])
+                            const allMatches = [...line.matchAll(/(\d+(?:\.\d+)?)/g)]
+                            if (allMatches.length === 0) return null
+                            return Number(allMatches[allMatches.length - 1][1])
                           }
 
                           const concernsFromResults = parseNumberFromResult(/concern/)
@@ -389,9 +400,9 @@ export default function ReportsAnalyticsPage() {
                         <XAxis dataKey="group" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="concernsFlagged" name="Concerns Flagged" fill="#f59e0b" />
-                        <Bar dataKey="severeIncidents" name="Severe Incidents" fill="#dc2626" />
-                        <Bar dataKey="totalFlagged" name="Total Flagged" fill="#7c3aed" />
+                        <Bar dataKey="concernsFlagged" name="Concerns Flagged" fill={CHART_COLORS.secondary} />
+                        <Bar dataKey="severeIncidents" name="Severe Incidents" fill={CHART_COLORS.tertiary} />
+                        <Bar dataKey="totalFlagged" name="Total Flagged" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -408,7 +419,7 @@ export default function ReportsAnalyticsPage() {
                         <XAxis type="number" />
                         <YAxis type="category" dataKey="platform" width={130} />
                         <Tooltip />
-                        <Bar dataKey="totalDonations" name="Total Donations" fill="#ea580c" />
+                        <Bar dataKey="totalDonations" name="Total Donations" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
