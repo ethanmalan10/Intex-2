@@ -268,8 +268,8 @@ export default function HomeVisitationCaseConferencesPage() {
           {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
         </section>
 
-        <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5">
-          <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
+        <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5 lg:items-stretch">
+          <article className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
             <h2 className="text-lg font-semibold text-stone-900">New Home/Field Visit</h2>
             <p className="mt-1 text-sm text-stone-600">Record visit details for the selected resident.</p>
 
@@ -390,43 +390,45 @@ export default function HomeVisitationCaseConferencesPage() {
           </article>
 
           <div className="space-y-6 lg:col-span-3">
-            <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+            <article className="flex min-h-[24rem] flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
               <h2 className="text-lg font-semibold text-stone-900">
                 {selectedResident?.name ?? 'Resident'} Visitation History
               </h2>
               <p className="mt-1 text-sm text-stone-600">Most recent visits appear first.</p>
 
-              {residentVisits.length === 0 ? (
-                <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
-                  No visit records available for this resident.
-                </div>
-              ) : (
-                <div className="mt-4 max-h-[32rem] space-y-3 overflow-y-auto pr-1">
-                  {residentVisits.map((visit) => (
-                    <div key={visit.id} className="rounded-xl border border-stone-200 p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold text-stone-900">
-                          {new Date(visit.visitDate).toLocaleDateString()} - {visit.visitType}
+              <div className="mt-4 min-h-0 flex-1">
+                {residentVisits.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 text-sm text-stone-600">
+                    No visit records available for this resident.
+                  </div>
+                ) : (
+                  <div className="h-full space-y-3 overflow-y-auto pr-1">
+                    {residentVisits.map((visit) => (
+                      <div key={visit.id} className="rounded-xl border border-stone-200 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-stone-900">
+                            {new Date(visit.visitDate).toLocaleDateString()} - {visit.visitType}
+                          </p>
+                          <p className="text-xs text-stone-500">Social Worker: {visit.socialWorker}</p>
+                        </div>
+                        <p className="mt-2 text-sm">
+                          <span className="font-semibold text-stone-700">Family Cooperation:</span> {visit.familyCooperationLevel}
                         </p>
-                        <p className="text-xs text-stone-500">Social Worker: {visit.socialWorker}</p>
+                        <p className="mt-2 text-sm">
+                          <span className="font-semibold text-stone-700">Safety Concerns:</span>{' '}
+                          {visit.safetyConcerns ? 'Yes' : 'No'}
+                        </p>
+                        <p className="mt-2 text-sm">
+                          <span className="font-semibold text-stone-700">Observations:</span> {visit.observations}
+                        </p>
+                        <p className="mt-2 text-sm">
+                          <span className="font-semibold text-stone-700">Follow-Up Actions:</span> {visit.followUpActions}
+                        </p>
                       </div>
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold text-stone-700">Family Cooperation:</span> {visit.familyCooperationLevel}
-                      </p>
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold text-stone-700">Safety Concerns:</span>{' '}
-                        {visit.safetyConcerns ? 'Yes' : 'No'}
-                      </p>
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold text-stone-700">Observations:</span> {visit.observations}
-                      </p>
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold text-stone-700">Follow-Up Actions:</span> {visit.followUpActions}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </article>
 
             <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
