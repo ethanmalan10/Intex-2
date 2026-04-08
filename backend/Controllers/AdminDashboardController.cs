@@ -220,6 +220,21 @@ public class AdminDashboardController : ControllerBase
             .Take(5)
             .ToList();
         var topFiveLikelyReadyNames = topFiveLikelyReadyRows.Select(x => x.name).ToList();
+        var readinessByReintegrationType = readinessEligible
+            .GroupBy(r => string.IsNullOrWhiteSpace(r.ReintegrationType) ? "Unknown" : r.ReintegrationType.Trim())
+            .Select(g =>
+            {
+                var residents = g.ToList();
+                var readyCount = residents.Count(r => r.DateClosed != null && r.DateClosed <= r.DateEnrolled.AddDays(365));
+                var rate = residents.Count == 0 ? 0 : Math.Round(readyCount * 100.0 / residents.Count, 1);
+                return new
+                {
+                    label = g.Key,
+                    value = rate
+                };
+            })
+            .OrderByDescending(x => x.value)
+            .ToList();
 
         var concernResidents = allProcess
             .Where(p => p.SessionDate >= today.AddDays(-90) && p.ConcernsFlagged)
@@ -331,6 +346,7 @@ public class AdminDashboardController : ControllerBase
                         new { label = "Ready <=365d", value = readinessRate },
                         new { label = "Not Ready <=365d", value = Math.Round(100 - readinessRate, 1) },
                     },
+                    readinessByReintegrationType = readinessByReintegrationType,
                     topLikelyReadyScores = topFiveLikelyReadyRows
                 },
                 residentRiskEscalation = new

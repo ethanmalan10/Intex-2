@@ -43,6 +43,7 @@ type ReportsData = {
     }
     reintegrationReadiness?: {
       readinessOverview: Array<{ label: string; value: number }>
+      readinessByReintegrationType?: Array<{ label: string; value: number }>
     }
     residentRiskEscalation?: {
       escalationSignalCounts: Array<{ label: string; value: number }>
@@ -149,24 +150,9 @@ export default function ReportsAnalyticsPage() {
       { category: 'Total Flagged', value: totalFlagged },
     ]
   })()
-  const reintegrationDonutDataFromVisuals = (() => {
-    const overview = data.pipelineVisuals?.reintegrationReadiness?.readinessOverview ?? []
-    const normalize = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-
-    const closedWithin365 =
-      overview.find((item) => normalize(item.label).includes('closed') && normalize(item.label).includes('365'))?.value ?? 0
-    const explicitRemaining =
-      overview.find((item) => normalize(item.label).includes('remaining'))?.value
-    const total =
-      overview.find((item) => normalize(item.label).includes('total'))?.value
-
-    const remaining =
-      explicitRemaining ?? (typeof total === 'number' ? Math.max(total - closedWithin365, 0) : 0)
-
-    return [
-      { label: 'Closed within 365 days', value: closedWithin365 },
-      { label: 'Remaining', value: remaining },
-    ]
+  const reintegrationByTypeData = (() => {
+    const byType = data.pipelineVisuals?.reintegrationReadiness?.readinessByReintegrationType ?? []
+    return [...byType].sort((a, b) => b.value - a.value)
   })()
   const donorTopTenChartData = (() => {
     const scores = data.pipelineVisuals?.donorRecurrenceForecast?.topLikelyDonorScores ?? []
@@ -328,46 +314,13 @@ export default function ReportsAnalyticsPage() {
                 {pipeline.name === 'reintegration-readiness' && (
                   <div className="mt-4 h-56">
                     <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
+                      <BarChart data={reintegrationByTypeData} layout="vertical" margin={{ top: 8, right: 16, left: 24, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 100]} />
+                        <YAxis type="category" dataKey="label" width={140} />
                         <Tooltip />
-                        <Legend />
-                        <Pie
-                          data={(() => {
-                            const hasVisualValues = reintegrationDonutDataFromVisuals.some((d) => d.value > 0)
-                            if (hasVisualValues) return reintegrationDonutDataFromVisuals
-
-                            const percentLine = pipeline.results.find((line) => /closed\s+within\s+365/i.test(line))
-                            const percentMatch = percentLine?.match(/(\d+(?:\.\d+)?)\s*%/)
-                            const closedPct = percentMatch ? Number(percentMatch[1]) : 0
-                            const closedPctSafe = Number.isFinite(closedPct) ? Math.max(0, Math.min(100, closedPct)) : 0
-
-                            return [
-                              { label: 'Closed within 365 days', value: closedPctSafe },
-                              { label: 'Remaining', value: Math.max(100 - closedPctSafe, 0) },
-                            ]
-                          })()}
-                          dataKey="value"
-                          nameKey="label"
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={52}
-                          outerRadius={82}
-                          paddingAngle={2}
-                        >
-                          {(() => {
-                            const hasVisualValues = reintegrationDonutDataFromVisuals.some((d) => d.value > 0)
-                            const pieData = hasVisualValues
-                              ? reintegrationDonutDataFromVisuals
-                              : [
-                                  { label: 'Closed within 365 days', value: 0 },
-                                  { label: 'Remaining', value: 100 },
-                                ]
-                            return pieData.map((entry) => (
-                              <Cell key={entry.label} fill={entry.label.includes('Closed') ? CHART_COLORS.primary : CHART_COLORS.muted} />
-                            ))
-                          })()}
-                        </Pie>
-                      </PieChart>
+                        <Bar dataKey="value" name="Readiness Rate (%)" fill={CHART_COLORS.primary} />
+                      </BarChart>
                     </ResponsiveContainer>
                   </div>
                 )}
