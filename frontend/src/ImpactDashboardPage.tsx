@@ -118,12 +118,11 @@ function getAllocationColor(name: string, index: number) {
 
 function KpiCard({ kpi }: { kpi: Kpi }) {
   return (
-    <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm" aria-label={kpi.label}>
+    <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm" aria-label={kpi.label}>
       <p className="text-lg font-medium text-stone-500">{kpi.label}</p>
-      <p className="mt-2 text-4xl font-bold text-teal-700 tabular-nums">
+      <p className="mt-3 text-4xl font-bold text-teal-700 tabular-nums">
         {kpi.prefix}{kpi.value.toLocaleString()}{kpi.suffix}
       </p>
-      <p className="mt-2 text-sm text-stone-500">{kpi.whyItMatters}</p>
     </article>
   )
 }
@@ -184,7 +183,7 @@ export default function ImpactDashboardPage() {
         <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm" aria-labelledby="trend-heading">
           <h3 id="trend-heading" className="text-2xl font-semibold text-stone-900">Monthly Reintegrations</h3>
           <p className="mt-1 text-lg text-stone-500">Tracks monthly successful transitions to stable environments.</p>
-          <div className="mt-4 h-64">
+          <div className="mt-6 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.monthlyReintegrations}>
                 <XAxis dataKey="month" tick={{ fontSize: 16 }} />
@@ -194,12 +193,11 @@ export default function ImpactDashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-sm text-stone-500">Why it matters: this trend indicates program throughput and reintegration consistency over time.</p>
         </article>
 
         <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm" aria-labelledby="allocation-heading">
           <h3 id="allocation-heading" className="text-2xl font-semibold text-stone-900">Resource Allocation</h3>
-          <div className="mt-4 h-64">
+          <div className="mt-6 h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={data.allocation} dataKey="value" nameKey="name" innerRadius={55} outerRadius={95}>
@@ -210,7 +208,6 @@ export default function ImpactDashboardPage() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-sm text-stone-500">Why it matters: donors can see that funds are balanced across direct care and operations.</p>
         </article>
       </section>
 
@@ -221,10 +218,9 @@ export default function ImpactDashboardPage() {
             <article key={p.area} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
               <h3 className="text-xl font-semibold text-stone-800">{p.area}</h3>
               <p className="mt-2 text-3xl font-bold text-teal-700">{p.value}%</p>
-              <div className="mt-2 h-2 w-full rounded-full bg-stone-200">
+              <div className="mt-4 h-2 w-full rounded-full bg-stone-200">
                 <div className="h-2 rounded-full bg-teal-600" style={{ width: `${p.value}%` }} />
               </div>
-              <p className="mt-2 text-sm text-stone-500">{p.description}</p>
             </article>
           ))}
         </div>
