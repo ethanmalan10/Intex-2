@@ -109,7 +109,7 @@ export default function DonatePage() {
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-100 text-stone-800 py-10 px-4">
-        <section className="mx-auto w-full max-w-[90vw] xl:max-w-[1500px] rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
+        <section className="mx-auto w-full max-w-6xl rounded-2xl border border-stone-200 bg-white p-6 sm:p-8 shadow-sm">
           <div className="flex items-center justify-center gap-2 text-teal-700">
             <img src="/logo.png" alt="Esperanca Brasil logo" className="h-7 w-7 rounded-full object-cover" />
             <p className="text-lg font-medium italic">BrighterPath</p>
