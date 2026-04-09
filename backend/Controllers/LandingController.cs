@@ -75,6 +75,7 @@ public class LandingController : ControllerBase
                 new { name = "Outreach", value = 15 },
             }
             : allocationRaw
+                .OrderByDescending(x => x.amount)
                 .Select(x => new { x.name, value = (int)Math.Round((x.amount / totalAlloc) * 100, MidpointRounding.AwayFromZero) })
                 .Where(x => x.value > 0)
                 .ToArray();

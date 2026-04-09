@@ -337,7 +337,9 @@ function ImpactDashboard({
   hasError: boolean
 }) {
   const monthlyData = impactData?.monthlyReintegrations ?? []
-  const donationBreakdown = impactData?.donationBreakdown ?? []
+  const donationBreakdown = (impactData?.donationBreakdown ?? [])
+    .slice()
+    .sort((a, b) => b.value - a.value)
 
   return (
     <section
