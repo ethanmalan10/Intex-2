@@ -101,7 +101,7 @@ export default function RegisterPage() {
         <a
           href="/"
           className="inline-flex items-center gap-1.5 text-sm mb-6 hover:underline"
-          style={{ color: '#2A9D8F' }}
+          style={{ color: '#1F766E' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -112,7 +112,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <p className="text-2xl font-bold" style={{ color: '#264653' }}>Create an account</p>
-          <p className="text-sm text-stone-400 mt-1">Join BrighterPath as a donor</p>
+          <p className="text-sm text-stone-600 mt-1">Join BrighterPath as a donor</p>
         </div>
 
         {/* Form error */}
@@ -189,7 +189,7 @@ export default function RegisterPage() {
             />
             {errors.password
               ? <p className="text-xs" style={{ color: '#E53E3E' }}>{errors.password}</p>
-              : <p className="text-xs text-stone-400">Minimum 8 characters.</p>
+              : <p className="text-xs text-stone-600">Minimum 8 characters.</p>
             }
           </div>
 
@@ -242,9 +242,9 @@ export default function RegisterPage() {
             {loading ? 'Creating account…' : 'Create account'}
           </button>
 
-          <p className="text-center text-sm text-stone-400 mt-1">
+          <p className="text-center text-sm text-stone-600 mt-1">
             Already have an account?{' '}
-            <a href="/login" style={{ color: '#2A9D8F' }} className="font-medium hover:underline">
+            <a href="/login" style={{ color: '#1F766E' }} className="font-medium hover:underline">
               Sign in
             </a>
           </p>
