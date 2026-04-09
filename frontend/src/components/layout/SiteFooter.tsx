@@ -68,7 +68,7 @@ export default function SiteFooter() {
                 rel="noreferrer"
                 aria-label={social.label}
                 title={social.label}
-                className="rounded-md p-1 transition-colors hover:text-teal-400"
+                className="rounded-md p-1.5 transition-colors hover:text-teal-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/60"
               >
                 {social.icon}
               </a>

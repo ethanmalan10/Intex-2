@@ -13,6 +13,7 @@ import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
 import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
 import DonatePage from './pages/protected/DonatePage'
+import MyProfilePage from './pages/protected/MyProfilePage'
 import DonorsContributionsPage from './DonorsContributionsPage'
 
 function PublicLandingWrapper() {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/donate" element={<ProtectedRoute><DonatePage /></ProtectedRoute>} />
+          <Route path="/my-profile" element={<ProtectedRoute><MyProfilePage /></ProtectedRoute>} />
 
           {/* Protected admin routes */}
           <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />

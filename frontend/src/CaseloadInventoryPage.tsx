@@ -707,7 +707,7 @@ export default function CaseloadInventoryPage() {
         <section className="mx-auto max-w-7xl px-6 py-10">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-stone-900">Resident Records</h1>
+              <h1 className="text-3xl font-bold text-teal-800">Resident Records</h1>
               <p className="mt-2 text-stone-600">
                 Core case management: resident profiles aligned with agency records. Search, filter, and maintain
                 demographics, case category, disability, family profile, admission, referral, assignment, and
@@ -726,7 +726,7 @@ export default function CaseloadInventoryPage() {
         </section>
 
         <section className="mx-auto max-w-7xl space-y-4 px-6 pb-6">
-          <div className="flex flex-wrap gap-3 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
+          <div className="flex flex-wrap gap-3 rounded-2xl border border-teal-100 bg-white p-4 shadow-sm">
             <label className="min-w-[180px] flex-1 text-sm">
               <span className="mb-1 block font-medium text-stone-700">Search</span>
               <input
@@ -810,14 +810,14 @@ export default function CaseloadInventoryPage() {
           <div className="grid gap-6 lg:grid-cols-5">
             <div className="lg:col-span-2">
               <div className="flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm">
-                <div className="border-b border-stone-200 px-4 py-3">
-                  <h2 className="text-sm font-semibold text-stone-800">Residents ({filteredResidents.length})</h2>
+                <div className="border-b border-teal-100 bg-teal-50/40 px-4 py-3">
+                  <h2 className="text-sm font-semibold text-teal-800">Residents ({filteredResidents.length})</h2>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto max-h-[36rem] lg:max-h-[44rem]">
                   <div className="hidden md:block overflow-x-auto">
                     <table className="min-w-full text-left text-sm">
                     <thead>
-                      <tr className="border-b border-stone-200 text-xs text-stone-500">
+                      <tr className="border-b border-stone-200 text-xs text-teal-700">
                         <th className="px-3 py-2">Record</th>
                         <th className="px-3 py-2">Safehouse</th>
                         <th className="px-3 py-2">Status</th>
@@ -830,7 +830,7 @@ export default function CaseloadInventoryPage() {
                         return (
                           <tr
                             key={r.residentId}
-                            className={`cursor-pointer border-b border-stone-100 hover:bg-stone-50 ${
+                            className={`cursor-pointer border-b border-stone-100 hover:bg-teal-50/40 ${
                               selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50' : ''
                             }`}
                             onClick={() => {
@@ -864,7 +864,7 @@ export default function CaseloadInventoryPage() {
                         key={r.residentId}
                         type="button"
                         className={`w-full px-4 py-3 text-left hover:bg-stone-50 ${
-                          selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50' : ''
+                          selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50/70' : ''
                         }`}
                         onClick={() => {
                           setSelectedId(r.residentId)
@@ -888,7 +888,7 @@ export default function CaseloadInventoryPage() {
             </div>
 
             <div className="lg:col-span-3">
-              <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
                 {panelMode === 'create' && activeDraft && (
                   <ProfileForm
                     title="New resident profile"
@@ -929,7 +929,7 @@ export default function CaseloadInventoryPage() {
                       </button>
                     </div>
                     <ProfileReadOnly r={selected} />
-                    <p className="mt-6 border-t border-stone-200 pt-4 text-xs text-stone-400">
+                    <p className="mt-6 border-t border-teal-100 pt-4 text-xs text-stone-400">
                       Restricted notes are not shown on this preview. They will be available once authentication and role
                       checks are enabled.
                     </p>
@@ -951,7 +951,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
   return (
     <div className="mt-6 space-y-6">
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Identity &amp; placement</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Identity &amp; placement</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Safehouse" value={SAFEHOUSES[r.safehouseId] ?? String(r.safehouseId)} />
           <Field label="Case status" value={r.caseStatus} />
@@ -959,7 +959,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Demographics</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Demographics</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Sex" value={r.sex} />
           <Field label="Date of birth" value={formatOptionalDate(r.dateOfBirth)} />
@@ -969,7 +969,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Case category &amp; sub-categories</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Case category &amp; sub-categories</h3>
         <p className="mt-2 text-sm">
           <span className="font-medium text-stone-700">Category:</span> {r.caseCategory}
         </p>
@@ -983,7 +983,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </div>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Disability &amp; special needs</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Disability &amp; special needs</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="PWD" value={r.isPwd ? 'Yes' : 'No'} />
           <Field label="PWD type" value={r.pwdType || '—'} />
@@ -992,7 +992,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Family socio-demographic</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Family socio-demographic</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="4Ps beneficiary" value={r.familyIs4ps ? 'Yes' : 'No'} />
           <Field label="Solo parent household" value={r.familySoloParent ? 'Yes' : 'No'} />
@@ -1002,7 +1002,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Admission</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Admission</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Date of admission" value={formatOptionalDate(r.dateOfAdmission)} />
           <Field label="Age upon admission" value={r.ageUponAdmission || '—'} />
@@ -1011,7 +1011,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Referral</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Referral</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Referral source" value={r.referralSource || '—'} />
           <Field label="Referring agency / person" value={r.referringAgencyPerson || '—'} />
@@ -1020,7 +1020,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Assignment &amp; case study</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Assignment &amp; case study</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Assigned social worker" value={r.assignedSocialWorker || '—'} />
           <Field label="Initial case assessment" value={r.initialCaseAssessment || '—'} />
@@ -1028,7 +1028,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
         </dl>
       </section>
       <section>
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">Reintegration &amp; risk</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-teal-700">Reintegration &amp; risk</h3>
         <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
           <Field label="Reintegration type" value={r.reintegrationType || '—'} />
           <Field label="Reintegration status" value={r.reintegrationStatus || '—'} />
@@ -1045,7 +1045,7 @@ function ProfileReadOnly({ r }: { r: ResidentRecord }) {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs text-stone-500">{label}</dt>
+      <dt className="text-xs text-teal-700">{label}</dt>
       <dd className="text-stone-800">{value}</dd>
     </div>
   )
@@ -1081,7 +1081,7 @@ function ProfileForm({
       {formError && <p className="text-sm text-rose-700">{formError}</p>}
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Identity &amp; placement</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Identity &amp; placement</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <TextInput label="Case control no." value={draft.caseControlNo} onChange={(v) => updateDraft({ caseControlNo: v })} required />
           <TextInput label="Internal code" value={draft.internalCode} onChange={(v) => updateDraft({ internalCode: v })} required />
@@ -1104,7 +1104,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Demographics</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Demographics</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-sm">
             <span className="mb-1 block font-medium text-stone-700">Sex</span>
@@ -1134,7 +1134,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Case category &amp; sub-categories</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Case category &amp; sub-categories</legend>
         <div className="mt-3">
           <TextInput label="Case category" value={draft.caseCategory} onChange={(v) => updateDraft({ caseCategory: v })} required />
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -1153,7 +1153,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Disability &amp; special needs</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Disability &amp; special needs</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={draft.isPwd} onChange={(e) => updateDraft({ isPwd: e.target.checked })} />
@@ -1177,7 +1177,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Family socio-demographic</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Family socio-demographic</legend>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <Checkbox label="4Ps beneficiary" checked={draft.familyIs4ps} onChange={(v) => updateDraft({ familyIs4ps: v })} />
           <Checkbox label="Solo parent household" checked={draft.familySoloParent} onChange={(v) => updateDraft({ familySoloParent: v })} />
@@ -1192,7 +1192,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Admission</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Admission</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-sm">
             <span className="mb-1 block font-medium text-stone-700">Date of admission</span>
@@ -1215,7 +1215,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Referral</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Referral</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <TextInput label="Referral source" value={draft.referralSource} onChange={(v) => updateDraft({ referralSource: v })} />
           <TextInput
@@ -1229,7 +1229,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Assignment &amp; case study</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Assignment &amp; case study</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <TextInput
             label="Assigned social worker"
@@ -1250,7 +1250,7 @@ function ProfileForm({
       </fieldset>
 
       <fieldset className="rounded-xl border border-stone-200 p-4">
-        <legend className="px-1 text-sm font-semibold text-stone-800">Reintegration &amp; risk</legend>
+        <legend className="px-1 text-sm font-semibold text-teal-800">Reintegration &amp; risk</legend>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <TextInput label="Reintegration type" value={draft.reintegrationType} onChange={(v) => updateDraft({ reintegrationType: v })} />
           <TextInput

@@ -102,6 +102,50 @@ public class AuthController : ControllerBase
         });
     }
 
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> Profile()
+    {
+        var user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        if (user == null) return Unauthorized();
+
+        var normalizedEmail = (user.Email ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalizedEmail))
+        {
+            return Ok(new
+            {
+                user.Id,
+                user.Email,
+                user.FirstName,
+                user.LastName,
+                totalDonations = 0m,
+            });
+        }
+
+        var emailLower = normalizedEmail.ToLowerInvariant();
+        var supporterIds = await _db.Supporters
+            .Where(s => s.Email != null && s.Email.Trim().ToLower() == emailLower)
+            .Select(s => s.SupporterId)
+            .ToListAsync();
+
+        decimal totalDonations = 0m;
+        if (supporterIds.Count > 0)
+        {
+            totalDonations = await _db.Donations
+                .Where(d => supporterIds.Contains(d.SupporterId))
+                .SumAsync(d => d.Amount ?? 0m);
+        }
+
+        return Ok(new
+        {
+            user.Id,
+            user.Email,
+            user.FirstName,
+            user.LastName,
+            totalDonations,
+        });
+    }
+
     private async Task<string> GenerateJwtToken(ApplicationUser user)
     {
         var secret = Environment.GetEnvironmentVariable("JWT_SECRET")

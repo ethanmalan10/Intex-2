@@ -72,7 +72,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div
+    <main
+      role="main"
+      aria-label="Sign in page"
       className="min-h-screen flex items-center justify-center px-4"
       style={{ backgroundColor: '#FAF7F2' }}
     >
@@ -81,7 +83,7 @@ export default function LoginPage() {
         <a
           href="/"
           className="inline-flex items-center gap-1.5 text-sm mb-6 hover:underline"
-          style={{ color: '#2A9D8F' }}
+          style={{ color: '#1F766E' }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -92,7 +94,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <p className="text-2xl font-bold" style={{ color: '#264653' }}>BrighterPath</p>
-          <p className="text-sm text-stone-400 mt-1">Sign in to your account</p>
+          <p className="text-sm text-stone-600 mt-1">Sign in to your account</p>
         </div>
 
         {/* Registration success */}
@@ -212,9 +214,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-stone-400 mt-4">
+        <p className="text-center text-sm text-stone-600 mt-4">
           Don't have an account?{' '}
-          <a href="/register" style={{ color: '#2A9D8F' }} className="font-medium hover:underline">
+          <a href="/register" style={{ color: '#1F766E' }} className="font-medium hover:underline">
             Create one
           </a>
         </p>
@@ -223,6 +225,6 @@ export default function LoginPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
-    </div>
+    </main>
   )
 }

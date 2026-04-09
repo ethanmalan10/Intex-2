@@ -186,7 +186,7 @@ function Hero({ heroData, isLoading, hasError }: {
             <span className="text-amber-400">safe place</span><br />
             to heal.
           </h1>
-          <p className="text-white/70 text-xl leading-relaxed mb-10 max-w-md">
+          <p className="text-white/80 text-xl leading-relaxed mb-10 max-w-md">
             BrighterPath provides safehouses, rehabilitation, and reintegration for girls
             who are survivors of sexual abuse and trafficking in Brazil.
           </p>
@@ -495,7 +495,7 @@ function GetHelp() {
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Are you in danger?<br />You are not alone.
           </h2>
-          <p className="text-white/60 text-lg max-w-xl mx-auto mb-14 leading-relaxed">
+          <p className="text-white/70 text-lg max-w-xl mx-auto mb-14 leading-relaxed">
             If you are a girl in Brazil who needs safety, someone to talk to, or a way out —
             every option below is free and completely confidential.
           </p>

@@ -48,6 +48,12 @@ export default function SiteNav({ variant }: SiteNavProps) {
     navigate('/')
   }
 
+  function handleMyProfile() {
+    setOpen(false)
+    setAccountOpen(false)
+    navigate('/my-profile')
+  }
+
   useEffect(() => {
     const onDocumentMouseDown = (event: MouseEvent) => {
       const target = event.target as Node
@@ -154,8 +160,15 @@ export default function SiteNav({ variant }: SiteNavProps) {
                     Welcome, {welcomeName}
                   </button>
                   {showAccountMenu ? (
-                    <div className="absolute right-0 top-full pt-2 w-32">
+                    <div className="absolute right-0 top-full pt-2 w-40">
                       <div className="rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={handleMyProfile}
+                          className="block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                        >
+                          My Profile
+                        </button>
                         <button
                           type="button"
                           onClick={handleLogout}
@@ -236,6 +249,9 @@ export default function SiteNav({ variant }: SiteNavProps) {
           {user ? (
             <div className="flex items-center gap-3">
               <span>Welcome, {welcomeName}</span>
+              <button type="button" onClick={handleMyProfile} className="text-sm text-stone-500 hover:text-teal-700">
+                My Profile
+              </button>
               <button type="button" onClick={handleLogout} className="text-sm text-stone-500 hover:text-teal-700">
                 Logout
               </button>
