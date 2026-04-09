@@ -168,11 +168,11 @@ function Hero({ heroData, isLoading, hasError }: {
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center scale-105"
-        style={{ backgroundImage: 'url(/hero.jpg)' }}
+        style={{ backgroundImage: 'url(/hero.jpg)', filter: 'brightness(0.95)' }}
       />
-      {/* Dark gradient overlay — heavier at bottom to bleed into next section */}
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-900/80 via-stone-900/70 to-stone-900/90" />
-      <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-transparent to-transparent" />
+      {/* Keep text readable with a lighter overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-teal-900/35 via-stone-900/25 to-stone-900/35" />
+      <div className="absolute inset-0 bg-gradient-to-t from-stone-900/30 via-transparent to-transparent" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6 pt-28 pb-24 grid md:grid-cols-2 gap-12 items-center">
         {/* Left — copy */}
@@ -340,8 +340,19 @@ function ImpactDashboard({
   const donationBreakdown = impactData?.donationBreakdown ?? []
 
   return (
-    <section id="our-impact" className="py-24 bg-stone-50 px-6">
-      <div className="max-w-6xl mx-auto">
+    <section
+      id="our-impact"
+      className="relative py-24 px-6"
+    >
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: "url('/images/girlsongrass.jpeg')",
+          filter: 'brightness(1.05) contrast(1.1) saturate(1.14)',
+        }}
+      />
+      <div className="absolute inset-0 bg-white/76" />
+      <div className="relative z-10 max-w-6xl mx-auto">
         <Fade className="text-center mb-14">
           <p className="text-teal-600 uppercase tracking-widest text-xs font-semibold mb-3">Proof of Impact</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-3">Your donations at work</h2>
