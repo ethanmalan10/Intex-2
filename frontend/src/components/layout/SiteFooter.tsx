@@ -1,6 +1,10 @@
+import { useAuth } from '../../context/AuthContext'
 import { footerNavItems } from './navConfig'
 
 export default function SiteFooter() {
+  const { user } = useAuth()
+  const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
+  const visibleFooterNav = footerNavItems.filter((item) => !item.adminOnly || isAdmin)
   const socialLinks = [
     {
       label: 'Website',
@@ -43,7 +47,7 @@ export default function SiteFooter() {
         <div>
           <p className="text-stone-400 font-semibold text-xs uppercase tracking-wider mb-4">Navigate</p>
           <ul className="grid grid-cols-1 gap-y-2 text-stone-500 text-sm md:grid-cols-2 md:gap-x-8 md:gap-y-2">
-            {footerNavItems.map((item) => (
+            {visibleFooterNav.map((item) => (
               <li key={item.label}>
                 <a href={item.href} className="hover:text-teal-400 transition-colors">
                   {item.label}
