@@ -101,7 +101,7 @@ export default function PrivacyNoticePage() {
           </a>
           <h1 className="mt-5 text-4xl font-bold">Privacy Notice</h1>
           <p className="mt-3 max-w-3xl text-sm text-white/80">
-            Last updated: April 7, 2026. This page explains how Lighthouse collects, uses, stores, and protects
+            Last updated: April 7, 2026. This page explains how BrighterPath collects, uses, stores, and protects
             personal information across website, donation, and support workflows.
           </p>
         </div>
