@@ -158,7 +158,11 @@ const DONUT_COLORS = ['#5f8c6e', '#7fada0', '#a3c4b5', '#c9ddd5']
 // ─────────────────────────────────────────────────────────────────────────────
 // Hero — full bleed photo, strong mission statement, clear CTA
 // ─────────────────────────────────────────────────────────────────────────────
-function Hero({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
+function Hero({ heroData, isLoading, hasError }: {
+  heroData: { girlsCurrentlyInCare: number; successfulReintegrationsToDate: number; activeSafehouses: number } | null
+  isLoading: boolean
+  hasError: boolean
+}) {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
@@ -201,9 +205,9 @@ function Hero({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
         {/* Right — trust signals */}
         <div className="hidden md:flex flex-col gap-4">
           {[
-            { n: summary?.activeResidents?.toString() ?? '…', label: 'Girls currently in our care' },
-            { n: summary?.totalReintegrations?.toString() ?? '…', label: 'Successful reintegrations to date' },
-            { n: summary?.activeSafehouses?.toString() ?? '…', label: 'Active safehouses across Brazil' },
+            { n: heroData?.girlsCurrentlyInCare?.toString() ?? '…', label: 'Girls currently in our care' },
+            { n: heroData?.successfulReintegrationsToDate?.toString() ?? '…', label: 'Successful reintegrations to date' },
+            { n: heroData?.activeSafehouses?.toString() ?? '…', label: 'Active safehouses across Brazil' },
           ].map((s, i) => (
             <div key={i}
               className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-5 flex items-center gap-5"
