@@ -1,10 +1,12 @@
 using backend.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/landing")]
 public class LandingController : ControllerBase
 {
@@ -22,22 +24,30 @@ public class LandingController : ControllerBase
         var yearStart = new DateOnly(today.Year, 1, 1);
 
         var girlsCurrentlyInCare = await _db.Residents
-            .CountAsync(r => r.DateClosed == null && !string.Equals(r.CaseStatus, "Closed", StringComparison.OrdinalIgnoreCase));
+            .CountAsync(r => r.DateClosed == null && r.CaseStatus.ToLower() != "closed");
 
         var successfulReintegrationsToDate = await _db.Residents
-            .CountAsync(r => r.DateClosed != null);
+            .CountAsync(r => r.ReintegrationStatus != null &&
+                             r.ReintegrationStatus.ToLower() == "completed");
 
-        var activeSafehouses = await _db.Safehouses.CountAsync();
+        var activeSafehouses = await _db.Safehouses
+            .CountAsync(s => s.Status.ToLower() == "active");
 
+        var monthStart = new DateOnly(today.Year, today.Month, 1);
         var counselingSessionsThisMonth = await _db.ProcessRecordings
-            .CountAsync(p => p.SessionDate >= yearStart);
+            .CountAsync(p => p.SessionDate >= monthStart);
 
         var monthlyDonations = await _db.Donations
             .Where(d => d.DonationDate >= today.AddDays(-30))
             .SumAsync(d => (d.Amount ?? d.EstimatedValue) ?? 0m);
 
+        var latestClosedYear = await _db.Residents
+            .Where(r => r.DateClosed != null)
+            .MaxAsync(r => (int?)r.DateClosed!.Value.Year) ?? today.Year;
+        var latestYearStart = new DateOnly(latestClosedYear, 1, 1);
+        var latestYearEnd = new DateOnly(latestClosedYear, 12, 31);
         var monthlyReintegrations = await _db.Residents
-            .Where(r => r.DateClosed != null && r.DateClosed >= yearStart)
+            .Where(r => r.DateClosed != null && r.DateClosed >= latestYearStart && r.DateClosed <= latestYearEnd)
             .GroupBy(r => r.DateClosed!.Value.Month)
             .Select(g => new { month = g.Key, reintegrations = g.Count() })
             .ToListAsync();
@@ -83,7 +93,9 @@ public class LandingController : ControllerBase
                 successfulReintegrations = successfulReintegrationsToDate,
                 activeSafehouses,
                 counselingSessionsThisMonth,
-                volunteerHoursThisMonth = (int?)null,
+                volunteerHoursThisMonth = (int)(await _db.ProcessRecordings
+                    .Where(p => p.SessionDate >= monthStart)
+                    .SumAsync(p => (long?)p.SessionDurationMinutes) ?? 0L) / 60,
                 monthlyDonations,
                 monthlyReintegrations = monthlyTrend,
                 donationBreakdown

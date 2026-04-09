@@ -47,7 +47,7 @@ const ALLOCATION_COLOR_BY_NAME: Record<string, string> = {
   outreach: '#2a9d8f',
   transport: '#0f766e',
 }
-const HIDDEN_KPI_LABELS = new Set(['Counseling sessions', 'Monthly donations', 'Volunteer hours'])
+const HIDDEN_KPI_LABELS = new Set(['Counseling sessions', 'Monthly donations', 'Donations this month', 'Volunteer hours'])
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
 
 const FALLBACK_DATA: DashboardData = {

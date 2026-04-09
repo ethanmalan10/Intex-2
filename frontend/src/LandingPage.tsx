@@ -356,24 +356,18 @@ function ImpactDashboard({
         </Fade>
 
         {/* Animated counters */}
-        <Fade className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-14">
+        <Fade className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
           {isLoading || !impactData ? (
             <>
               <AnimatedStat target={0} label="Girls currently in care" />
               <AnimatedStat target={0} label="Successful reintegrations" />
               <AnimatedStat target={0} label="Active safehouses" />
-              <AnimatedStat target={0} label="Counseling sessions this month" />
-              <AnimatedStat target={0} label="Volunteer hours this month" delay={100} />
-              <AnimatedStat target={0} prefix="$" label="Donations this month" delay={200} />
             </>
           ) : (
             <>
               <AnimatedStat target={impactData.girlsCurrentlyInCare} label="Girls currently in care" />
               <AnimatedStat target={impactData.successfulReintegrations} label="Successful reintegrations" />
               <AnimatedStat target={impactData.activeSafehouses} label="Active safehouses" />
-              <AnimatedStat target={impactData.counselingSessionsThisMonth} label="Counseling sessions this month" />
-              <AnimatedStat target={impactData.volunteerHoursThisMonth ?? 0} label="Volunteer hours this month" delay={100} />
-              <AnimatedStat target={impactData.monthlyDonations} prefix="$" label="Donations this month" delay={200} />
             </>
           )}
         </Fade>
