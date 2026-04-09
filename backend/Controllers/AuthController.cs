@@ -26,6 +26,7 @@ public class AuthController : ControllerBase
         _db = db;
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
@@ -71,6 +72,7 @@ public class AuthController : ControllerBase
         return Ok(new { message = "User registered successfully." });
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
@@ -148,9 +150,12 @@ public class AuthController : ControllerBase
 
     private async Task<string> GenerateJwtToken(ApplicationUser user)
     {
+        // Must match Program.cs (env vars first; Jwt:Secret from user secrets only — never committed appsettings).
         var secret = Environment.GetEnvironmentVariable("JWT_SECRET")
+            ?? Environment.GetEnvironmentVariable("Jwt__Secret")
             ?? _configuration["Jwt:Secret"]
-            ?? throw new InvalidOperationException("JWT_SECRET is not configured.");
+            ?? throw new InvalidOperationException(
+                "JWT signing key is not configured. Set JWT_SECRET or Jwt__Secret, or Jwt:Secret via user secrets.");
         var issuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
             ?? _configuration["Jwt:Issuer"]
             ?? "circlehealing";

@@ -3,6 +3,17 @@ node_modules/
 dist/
 .vite/
 
+# Secrets / local env (keep *.example tracked)
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
 # .NET / Backend
 bin/
 obj/

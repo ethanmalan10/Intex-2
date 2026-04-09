@@ -544,6 +544,12 @@ export default function HomeVisitationCaseConferencesPage() {
                   </button>
                 ) : null}
               </div>
+              {!isAdmin ? (
+                <p className="mt-2 text-xs text-stone-500">
+                  Scheduling new case conferences is limited to administrators; you can still log home visits and view
+                  conference history.
+                </p>
+              ) : null}
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-teal-100 p-4">
                   <h3 className="text-sm font-semibold text-teal-700">Upcoming Conferences</h3>

@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import LandingPage from './LandingPage'
-import CookieConsent from './CookieConsent'
 import PrivacyNoticePage from './PrivacyNoticePage'
 import ImpactDashboardPage from './ImpactDashboardPage'
 import AdminDashboardPage from './AdminDashboardPage'
@@ -15,20 +14,17 @@ import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPa
 import DonatePage from './pages/protected/DonatePage'
 import MyProfilePage from './pages/protected/MyProfilePage'
 import DonorsContributionsPage from './DonorsContributionsPage'
+import CookieConsent from './CookieConsent'
 
 function PublicLandingWrapper() {
-  return (
-    <>
-      <LandingPage />
-      <CookieConsent />
-    </>
-  )
+  return <LandingPage />
 }
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CookieConsent />
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<PublicLandingWrapper />} />
@@ -43,10 +39,10 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/admin/*" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
           <Route path="/donors-contributions" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><DonorsContributionsPage /></ProtectedRoute>} />
-          <Route path="/process-recording" element={<ProtectedRoute requiredRole="Admin"><ProcessRecordingPage /></ProtectedRoute>} />
-          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute requiredRole="Admin"><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
-          <Route path="/caseload-inventory" element={<ProtectedRoute requiredRole="Admin"><CaseloadInventoryPage /></ProtectedRoute>} />
-          <Route path="/reports-analytics" element={<ProtectedRoute requiredRole="Admin"><ReportsAnalyticsPage /></ProtectedRoute>} />
+          <Route path="/process-recording" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><ProcessRecordingPage /></ProtectedRoute>} />
+          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
+          <Route path="/caseload-inventory" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><CaseloadInventoryPage /></ProtectedRoute>} />
+          <Route path="/reports-analytics" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><ReportsAnalyticsPage /></ProtectedRoute>} />
 
           {/* Legacy redirects */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />
