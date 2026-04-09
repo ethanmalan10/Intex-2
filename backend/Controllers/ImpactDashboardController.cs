@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[AllowAnonymous]
 [Route("api/impact-dashboard")]
 public class ImpactDashboardController : ControllerBase
 {
@@ -20,36 +20,58 @@ public class ImpactDashboardController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
-        var yearStart = new DateOnly(today.Year, 1, 1);
+        var now = DateOnly.FromDateTime(DateTime.UtcNow);
+        var currentYear = now.Year;
+        var monthStart = new DateOnly(currentYear, now.Month, 1);
 
-        var girlsServed = await _db.Residents.CountAsync(r => r.DateEnrolled >= yearStart);
-        var reintegrations = await _db.Residents.CountAsync(r => r.DateClosed != null && r.DateClosed >= yearStart);
-        var counselingSessions = await _db.ProcessRecordings.CountAsync(p => p.SessionDate >= yearStart);
-        var activeSafehouses = await _db.Safehouses.CountAsync();
-        var monthlyDonations = await _db.Donations
-            .Where(d => d.DonationDate >= today.AddDays(-30))
-            .SumAsync(d => (d.Amount ?? d.EstimatedValue) ?? 0m);
+        // ── KPIs ──────────────────────────────────────────────────────────────
 
-        var monthlyReintegrations = await _db.Residents
-            .Where(r => r.DateClosed != null && r.DateClosed >= yearStart)
+        var girlsServedThisYear = await _db.Residents
+            .CountAsync(r => r.DateEnrolled.Year == currentYear);
+
+        var successfulReintegrations = await _db.Residents
+            .CountAsync(r => r.ReintegrationStatus != null &&
+                             r.ReintegrationStatus.ToLower() == "completed");
+
+        var counselingSessions = await _db.ProcessRecordings
+            .CountAsync(p => p.SessionDate.Year == currentYear);
+
+        var activeSafehouses = await _db.Safehouses
+            .CountAsync(s => s.Status.ToLower() == "active");
+
+        var volunteerHours = (int)(await _db.ProcessRecordings
+            .Where(p => p.SessionDate.Year == currentYear)
+            .SumAsync(p => (long?)p.SessionDurationMinutes) ?? 0L) / 60;
+
+        var monthlyDonations = (int)(await _db.Donations
+            .Where(d => d.DonationDate >= monthStart && d.Amount != null)
+            .SumAsync(d => (decimal?)d.Amount) ?? 0m);
+
+        // ── Monthly reintegrations (current year, grouped by month) ───────────
+
+        var reintegrationsByMonth = await _db.Residents
+            .Where(r => r.DateClosed != null &&
+                        r.DateClosed.Value.Year == currentYear &&
+                        r.ReintegrationStatus != null &&
+                        r.ReintegrationStatus.ToLower() == "completed")
             .GroupBy(r => r.DateClosed!.Value.Month)
             .Select(g => new { Month = g.Key, Count = g.Count() })
             .ToListAsync();
 
-        var monthNames = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-        var trend = Enumerable.Range(1, 12)
-            .Select(m => new
-            {
-                month = monthNames[m - 1],
-                reintegrations = monthlyReintegrations.FirstOrDefault(x => x.Month == m)?.Count ?? 0
-            })
-            .ToList();
+        var monthNames = new[] { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
+        var monthlyReintegrations = Enumerable.Range(1, 12).Select(m => new
+        {
+            month = monthNames[m - 1],
+            reintegrations = reintegrationsByMonth.FirstOrDefault(x => x.Month == m)?.Count ?? 0,
+        }).ToList();
+
+        // ── Resource allocation (by program area, as percentages) ─────────────
 
         var allocationRaw = await _db.DonationAllocations
             .GroupBy(a => a.ProgramArea)
             .Select(g => new { name = g.Key, amount = g.Sum(x => x.AmountAllocated) })
             .ToListAsync();
+
         var totalAlloc = allocationRaw.Sum(x => x.amount);
         var allocation = totalAlloc <= 0
             ? new List<AllocationSlice>
@@ -60,39 +82,51 @@ public class ImpactDashboardController : ControllerBase
                 new("Outreach", 15),
             }
             : allocationRaw
-                .Select(x => new AllocationSlice(x.name, (int)Math.Round((x.amount / totalAlloc) * 100, MidpointRounding.AwayFromZero)))
+                .OrderByDescending(x => x.amount)
+                .Select(x => new AllocationSlice(x.name, (int)Math.Round(x.amount / totalAlloc * 100, MidpointRounding.AwayFromZero)))
                 .Where(x => x.value > 0)
                 .ToList();
 
-        var avgEducation = await _db.SafehouseMonthlyMetrics.Where(x => x.AvgEducationProgress != null).AverageAsync(x => (double?)x.AvgEducationProgress) ?? 0d;
-        var avgHealth = await _db.SafehouseMonthlyMetrics.Where(x => x.AvgHealthScore != null).AverageAsync(x => (double?)x.AvgHealthScore) ?? 0d;
-        var readinessRate = girlsServed == 0 ? 0 : (double)reintegrations / girlsServed * 100d;
+        // ── Progress indicators ───────────────────────────────────────────────
+
+        var avgEducation = await _db.SafehouseMonthlyMetrics
+            .Where(x => x.AvgEducationProgress != null)
+            .AverageAsync(x => (double?)x.AvgEducationProgress) ?? 0d;
+
+        var avgHealth = await _db.SafehouseMonthlyMetrics
+            .Where(x => x.AvgHealthScore != null)
+            .AverageAsync(x => (double?)x.AvgHealthScore) ?? 0d;
+
+        var activeResidents = await _db.Residents
+            .Where(r => r.CaseStatus.ToLower() == "active")
+            .ToListAsync();
+        var readinessPct = activeResidents.Count == 0 ? 0.0 :
+            (double)activeResidents.Count(r =>
+                r.ReintegrationStatus != null &&
+                r.ReintegrationStatus.ToLower() != "not started") /
+            activeResidents.Count * 100;
 
         return Ok(new
         {
-            updatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            anonymization = new
-            {
-                minGroupSize = 5,
-                roundingBase = 5
-            },
+            updatedAt = now.ToString("yyyy-MM-dd"),
+            anonymization = new { minGroupSize = 5, roundingBase = 5 },
             kpis = new object[]
             {
-                new { label = "Girls served this year", value = girlsServed, whyItMatters = "Shows how many lives received direct support." },
-                new { label = "Successful reintegrations", value = reintegrations, whyItMatters = "Represents stable transitions back to family or community." },
-                new { label = "Counseling sessions", value = counselingSessions, whyItMatters = "Captures mental health support volume across programs." },
-                new { label = "Active safehouses", value = activeSafehouses, whyItMatters = "Indicates current shelter capacity." },
-                new { label = "Volunteer hours", value = 0, whyItMatters = "Tracks community contribution to operations." },
-                new { label = "Monthly donations", value = monthlyDonations, prefix = "$", whyItMatters = "Supports planning for care, staffing, and supplies." },
+                new { label = "Girls served this year",     value = girlsServedThisYear,       prefix = "",  suffix = "", whyItMatters = "Shows how many lives received direct support this year." },
+                new { label = "Successful reintegrations",  value = successfulReintegrations,   prefix = "",  suffix = "", whyItMatters = "Represents stable transitions back to family or community." },
+                new { label = "Counseling sessions",        value = counselingSessions,          prefix = "",  suffix = "", whyItMatters = "Captures mental health support volume this year." },
+                new { label = "Active safehouses",          value = activeSafehouses,            prefix = "",  suffix = "", whyItMatters = "Indicates current shelter capacity." },
+                new { label = "Volunteer hours",            value = volunteerHours,              prefix = "",  suffix = "", whyItMatters = "Tracks staff time contributed to resident care this year." },
+                new { label = "Donations this month",       value = monthlyDonations,            prefix = "$", suffix = "", whyItMatters = "Supports planning for care, staffing, and supplies." },
             },
-            monthlyReintegrations = trend,
+            monthlyReintegrations,
             allocation,
             progressIndicators = new object[]
             {
-                new { area = "Education Progress", value = (int)Math.Round(avgEducation, MidpointRounding.AwayFromZero), description = "Residents reaching targeted education milestone bands." },
-                new { area = "Wellbeing Improvement", value = (int)Math.Round(avgHealth, MidpointRounding.AwayFromZero), description = "Residents with improved wellbeing score trends." },
-                new { area = "Reintegration Readiness", value = (int)Math.Round(readinessRate, MidpointRounding.AwayFromZero), description = "Residents in readiness bands for next-step planning." },
-            }
+                new { area = "Education Progress",      value = (int)Math.Round(avgEducation,  MidpointRounding.AwayFromZero), description = "Average education progress across residents." },
+                new { area = "Wellbeing Score",         value = (int)Math.Round(avgHealth,     MidpointRounding.AwayFromZero), description = "Average general health score across safehouses." },
+                new { area = "Reintegration Readiness", value = (int)Math.Round(readinessPct,  MidpointRounding.AwayFromZero), description = "Active residents with reintegration work underway or completed." },
+            },
         });
     }
 }
