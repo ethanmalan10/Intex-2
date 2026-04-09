@@ -10,15 +10,24 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using backend.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Binding & TLS (deployment) ─────────────────────────────────────────────
+// Kestrel listens on HTTP only; public HTTPS is expected from a reverse proxy (e.g. Railway, Azure App
+// Service) that terminates TLS and forwards requests. Forwarded headers below let UseHttpsRedirection
+// and security features see the original scheme (https) and client IP.
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5050";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddControllers();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
+    // X-Forwarded-Proto: so redirects and HSTS logic match the client-facing scheme behind TLS termination.
+    // X-Forwarded-For: optional client IP for rate limiting / logging.
+    // In production, set KNOWN_PROXIES / KNOWN_NETWORKS_CIDR so only your proxy can spoof these headers.
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     options.ForwardLimit = 1;
 
@@ -47,6 +56,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
         }
     }
 });
+// HSTS is applied only when not Development (see pipeline below). Use together with HTTPS at the edge.
 builder.Services.AddHsts(options =>
 {
     options.MaxAge = TimeSpan.FromDays(60);
@@ -95,12 +105,19 @@ if (databaseUrl.StartsWith("postgresql://") || databaseUrl.StartsWith("postgres:
 {
     var uri = new Uri(databaseUrl);
     var userInfo = uri.UserInfo.Split(':');
+    // Trust Server Certificate: default true (matches prior behavior; many managed DBs use chains that
+    // require this in container images). Set DATABASE_SSL_TRUST_SERVER_CERTIFICATE=false only when Npgsql
+    // can validate the server cert against the default CA bundle (stricter; verify in staging first).
+    var trustServerCertificate = !string.Equals(
+        Environment.GetEnvironmentVariable("DATABASE_SSL_TRUST_SERVER_CERTIFICATE"),
+        "false",
+        StringComparison.OrdinalIgnoreCase);
     connectionString =
         $"Host={uri.Host};Port={uri.Port};" +
         $"Database={uri.AbsolutePath.TrimStart('/')};" +
         $"Username={userInfo[0]};" +
         $"Password={userInfo[1]};" +
-        $"SSL Mode=Require;Trust Server Certificate=true";
+        $"SSL Mode=Require;Trust Server Certificate={trustServerCertificate}";
 }
 else
 {
@@ -128,8 +145,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 // ── JWT ───────────────────────────────────────────────────────────────────────
+// Signing key: prefer explicit env vars; last resort is IConfiguration["Jwt:Secret"] for dotnet user-secrets / Jwt__Secret.
+// Never add Jwt:Secret to committed appsettings*.json files.
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? throw new InvalidOperationException("JWT_SECRET is not configured.");
+    ?? Environment.GetEnvironmentVariable("Jwt__Secret")
+    ?? builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException(
+        "JWT signing key is not configured. Set JWT_SECRET or Jwt__Secret, or Jwt:Secret via user secrets — not in committed JSON.");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
     ?? builder.Configuration["Jwt:Issuer"]
     ?? "circlehealing";
@@ -156,7 +178,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Require authentication for every endpoint unless marked [AllowAnonymous] (public APIs + login/register + health).
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
 builder.Services.AddProblemDetails();
 builder.Services.AddRateLimiter(options =>
 {
@@ -179,6 +207,7 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+app.UseApiSecurityHeaders();
 app.UseRateLimiter();
 app.UseExceptionHandler(exceptionApp =>
 {
@@ -197,10 +226,12 @@ app.UseExceptionHandler(exceptionApp =>
         await context.Response.WriteAsJsonAsync(problem);
     });
 });
+// HSTS: instruct browsers to use HTTPS for future visits (non-Development only). Pair with TLS at the proxy.
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
+// Redirect HTTP -> HTTPS when the request scheme is known (uses forwarded headers behind a proxy).
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();

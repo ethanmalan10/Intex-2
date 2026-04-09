@@ -130,9 +130,21 @@ public class AdminUsersController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(request.Role))
         {
+            var roleInput = request.Role.Trim().ToLowerInvariant();
+            if (roleInput is not ("admin" or "staff" or "donor"))
+                return BadRequest(new { message = "Role must be admin, staff, or donor." });
+
+            var identityRoleName = roleInput switch
+            {
+                "admin" => "Admin",
+                "staff" => "staff",
+                "donor" => "donor",
+                _ => roleInput
+            };
+
             var currentRoles = await _userManager.GetRolesAsync(user);
             if (currentRoles.Count > 0) await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            await _userManager.AddToRoleAsync(user, request.Role);
+            await _userManager.AddToRoleAsync(user, identityRoleName);
         }
 
         return Ok(new { message = "User updated." });
@@ -161,11 +173,20 @@ public class AdminUsersController : ControllerBase
         }
 
         var email = request.Email.Trim();
-        var role = request.Role.Trim().ToLowerInvariant();
-        if (role is not ("admin" or "staff" or "donor"))
+        var roleInput = request.Role.Trim().ToLowerInvariant();
+        if (roleInput is not ("admin" or "staff" or "donor"))
         {
             return BadRequest(new { message = "Role must be admin, staff, or donor." });
         }
+
+        // Identity stores seeded role names as "Admin", "staff", "donor" — must match exactly for AddToRoleAsync.
+        var identityRoleName = roleInput switch
+        {
+            "admin" => "Admin",
+            "staff" => "staff",
+            "donor" => "donor",
+            _ => roleInput
+        };
 
         if (await _userManager.FindByEmailAsync(email) is not null)
         {
@@ -195,7 +216,7 @@ public class AdminUsersController : ControllerBase
             });
         }
 
-        var roleResult = await _userManager.AddToRoleAsync(user, role);
+        var roleResult = await _userManager.AddToRoleAsync(user, identityRoleName);
         if (!roleResult.Succeeded)
         {
             return BadRequest(new
@@ -207,7 +228,7 @@ public class AdminUsersController : ControllerBase
 
         // Keep donor reporting consistent by creating a linked Supporter row for donor users.
         var emailLower = email.ToLowerInvariant();
-        if (role == "donor" && !await _db.Supporters.AnyAsync(s => s.Email != null && s.Email.Trim().ToLower() == emailLower))
+        if (roleInput == "donor" && !await _db.Supporters.AnyAsync(s => s.Email != null && s.Email.Trim().ToLower() == emailLower))
         {
             _db.Supporters.Add(new Supporter
             {
