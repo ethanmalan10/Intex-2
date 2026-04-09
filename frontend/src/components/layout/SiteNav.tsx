@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
-import { primaryNavItems } from './navConfig'
+import { useEffect, useRef, useState } from 'react'
+import { adminViewItems, primaryNavItems } from './navConfig'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 
 type SiteNavProps = {
   variant: 'landing' | 'default'
@@ -8,6 +10,16 @@ type SiteNavProps = {
 export default function SiteNav({ variant }: SiteNavProps) {
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
+  const [adminHoverOpen, setAdminHoverOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
+  const [accountHoverOpen, setAccountHoverOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+  const adminDropdownRef = useRef<HTMLLIElement | null>(null)
+  const accountDropdownRef = useRef<HTMLLIElement | null>(null)
+  const isAdmin = (user?.roles ?? []).some((r) => r.toLowerCase() === 'admin')
+  const navItems = primaryNavItems
 
   useEffect(() => {
     if (variant !== 'landing') return
@@ -23,6 +35,33 @@ export default function SiteNav({ variant }: SiteNavProps) {
   const brandClass = isOpaque ? 'text-teal-700' : 'text-white'
   const linkClass = isOpaque ? 'text-stone-600' : 'text-white/80'
   const burgerClass = isOpaque ? 'bg-stone-600' : 'bg-white'
+  const welcomeName = user?.firstName?.trim() || user?.email?.split('@')[0] || 'User'
+  const ourImpactItem = navItems.find((item) => item.label === 'Our Impact')
+  const getHelpItem = navItems.find((item) => item.label === 'Get Help')
+  const showAdminMenu = adminOpen || adminHoverOpen
+  const showAccountMenu = accountOpen || accountHoverOpen
+
+  function handleLogout() {
+    logout()
+    setOpen(false)
+    setAccountOpen(false)
+    navigate('/')
+  }
+
+  useEffect(() => {
+    const onDocumentMouseDown = (event: MouseEvent) => {
+      const target = event.target as Node
+      const inAdmin = !!adminDropdownRef.current?.contains(target)
+      const inAccount = !!accountDropdownRef.current?.contains(target)
+      if (!inAdmin && !inAccount) {
+        setAdminOpen(false)
+        setAccountOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', onDocumentMouseDown)
+    return () => document.removeEventListener('mousedown', onDocumentMouseDown)
+  }, [])
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${containerClass}`}>
@@ -32,40 +71,110 @@ export default function SiteNav({ variant }: SiteNavProps) {
           <span>BrighterPath</span>
         </a>
 
-        <ul className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {primaryNavItems.map((item) => (
-            <li key={item.label}>
-              {item.label === 'Get Help' ? (
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium ml-auto">
+          <ul className="flex items-center gap-8">
+            {ourImpactItem ? (
+              <li>
                 <a
-                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
-                  className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <a
-                  href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                  href={variant === 'landing' ? ourImpactItem.landingHref : ourImpactItem.defaultHref}
                   className={`transition-colors hover:text-teal-400 ${linkClass}`}
                 >
-                  {item.label}
+                  {ourImpactItem.label}
+                </a>
+              </li>
+            ) : null}
+            {isAdmin ? (
+              <li
+                className="relative"
+                ref={adminDropdownRef}
+                onMouseEnter={() => setAdminHoverOpen(true)}
+                onMouseLeave={() => setAdminHoverOpen(false)}
+              >
+                <button
+                  type="button"
+                  className={`transition-colors hover:text-teal-400 ${linkClass} flex items-center gap-1`}
+                  onClick={() => {
+                    setAdminOpen((v) => !v)
+                    setAccountOpen(false)
+                  }}
+                >
+                  Admin View <span aria-hidden="true">▾</span>
+                </button>
+                {showAdminMenu ? (
+                  <div className="absolute right-0 top-full pt-2 w-64">
+                    <div className="rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                      {adminViewItems.map((item) => (
+                        <a
+                          key={item.label}
+                          href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                          className="block rounded-lg px-3 py-2 text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                        >
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </li>
+            ) : null}
+            {getHelpItem ? (
+              <li>
+                <a
+                  href={variant === 'landing' ? getHelpItem.landingHref : getHelpItem.defaultHref}
+                  className="rounded-full border border-rose-300 bg-rose-100 px-4 py-2 font-semibold text-rose-700 transition-colors hover:bg-rose-200"
+                >
+                  {getHelpItem.label}
+                </a>
+              </li>
+            ) : null}
+            <li>
+              <a
+                href="/donate"
+                className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
+              >
+                Donate
+              </a>
+            </li>
+            <li
+              className="relative"
+              ref={accountDropdownRef}
+              onMouseEnter={() => setAccountHoverOpen(true)}
+              onMouseLeave={() => setAccountHoverOpen(false)}
+            >
+              {user ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccountOpen((v) => !v)
+                      setAdminOpen(false)
+                    }}
+                    className={`transition-colors hover:text-teal-400 ${linkClass}`}
+                  >
+                    Welcome, {welcomeName}
+                  </button>
+                  {showAccountMenu ? (
+                    <div className="absolute right-0 top-full pt-2 w-32">
+                      <div className="rounded-xl border border-stone-200 bg-white p-2 shadow-lg">
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="block w-full rounded-lg px-3 py-2 text-left text-sm text-stone-700 hover:bg-stone-50 hover:text-teal-700"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
+                  Login
                 </a>
               )}
             </li>
-          ))}
-          <li>
-            <a href="/login" className={`transition-colors hover:text-teal-400 ${linkClass}`}>
-              Login
-            </a>
-          </li>
-          <li>
-            <a
-              href={variant === 'landing' ? '#donate' : '/#donate'}
-              className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-semibold hover:bg-teal-600 transition-colors shadow-md"
-            >
-              Donate
-            </a>
-          </li>
-        </ul>
+          </ul>
+        </div>
 
         <button
           className="md:hidden flex flex-col gap-1.5 p-1"
@@ -86,7 +195,7 @@ export default function SiteNav({ variant }: SiteNavProps) {
 
       {open && (
         <div className="md:hidden bg-white border-t border-stone-100 px-6 pb-5 pt-3 flex flex-col gap-4 text-stone-600 text-sm font-medium">
-          {primaryNavItems.map((item) => (
+          {navItems.map((item) => (
             item.label === 'Get Help' ? (
               <a
                 key={item.label}
@@ -107,11 +216,37 @@ export default function SiteNav({ variant }: SiteNavProps) {
               </a>
             )
           ))}
-          <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
-            Login
-          </a>
+          {isAdmin ? (
+            <div className="rounded-lg border border-stone-200 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Admin View</p>
+              <div className="mt-2 flex flex-col gap-2">
+                {adminViewItems.map((item) => (
+                  <a
+                    key={item.label}
+                    href={variant === 'landing' ? item.landingHref : item.defaultHref}
+                    onClick={() => setOpen(false)}
+                    className="hover:text-teal-700"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span>Welcome, {welcomeName}</span>
+              <button type="button" onClick={handleLogout} className="text-sm text-stone-500 hover:text-teal-700">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <a href="/login" onClick={() => setOpen(false)} className="hover:text-teal-700">
+              Login
+            </a>
+          )}
           <a
-            href={variant === 'landing' ? '#donate' : '/#donate'}
+            href="/donate"
             onClick={() => setOpen(false)}
             className="self-start px-5 py-2 rounded-full bg-teal-600 text-white hover:bg-teal-700 transition-colors"
           >

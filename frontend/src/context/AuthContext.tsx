@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { clearAuthToken, getAuthToken, setAuthToken } from '../utils/authToken'
 
 const API = import.meta.env.VITE_API_BASE_URL
 
@@ -37,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
+    const token = getAuthToken()
     if (!token) {
       setIsLoading(false)
       return
@@ -49,13 +50,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (token: string) => {
-    localStorage.setItem('token', token)
+    setAuthToken(token)
     const u = await fetchMe(token)
     setUser(u)
   }
 
   const logout = () => {
-    localStorage.removeItem('token')
+    clearAuthToken()
     setUser(null)
   }
 

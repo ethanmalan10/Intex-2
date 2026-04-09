@@ -12,6 +12,8 @@ import ReportsAnalyticsPage from './ReportsAnalyticsPage'
 import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
 import HomeVisitationCaseConferencesPage from './HomeVisitationCaseConferencesPage'
+import DonatePage from './pages/protected/DonatePage'
+import DonorsContributionsPage from './DonorsContributionsPage'
 
 function PublicLandingWrapper() {
   return (
@@ -33,14 +35,16 @@ export default function App() {
           <Route path="/privacy-notice" element={<PrivacyNoticePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/donate" element={<ProtectedRoute><DonatePage /></ProtectedRoute>} />
 
           {/* Protected admin routes */}
-          <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
-          <Route path="/admin/*" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
-          <Route path="/process-recording" element={<ProtectedRoute><ProcessRecordingPage /></ProtectedRoute>} />
-          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
-          <Route path="/caseload-inventory" element={<ProtectedRoute><CaseloadInventoryPage /></ProtectedRoute>} />
-          <Route path="/reports-analytics" element={<ProtectedRoute><ReportsAnalyticsPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute requiredRole="Admin"><AdminDashboardPage /></ProtectedRoute>} />
+          <Route path="/donors-contributions" element={<ProtectedRoute requiredRoles={['Admin', 'staff']}><DonorsContributionsPage /></ProtectedRoute>} />
+          <Route path="/process-recording" element={<ProtectedRoute requiredRole="Admin"><ProcessRecordingPage /></ProtectedRoute>} />
+          <Route path="/home-visitation-case-conferences" element={<ProtectedRoute requiredRole="Admin"><HomeVisitationCaseConferencesPage /></ProtectedRoute>} />
+          <Route path="/caseload-inventory" element={<ProtectedRoute requiredRole="Admin"><CaseloadInventoryPage /></ProtectedRoute>} />
+          <Route path="/reports-analytics" element={<ProtectedRoute requiredRole="Admin"><ReportsAnalyticsPage /></ProtectedRoute>} />
 
           {/* Legacy redirects */}
           <Route path="/admin-dashboard" element={<Navigate to="/admin" replace />} />

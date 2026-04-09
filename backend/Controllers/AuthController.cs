@@ -1,10 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace backend.Controllers;
@@ -15,22 +17,29 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly AppDbContext _db;
 
-    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+    public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration, AppDbContext db)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _db = db;
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
+        var email = request.Email.Trim();
+        var firstName = request.FirstName?.Trim();
+        var lastName = request.LastName?.Trim();
+        var displayName = string.Join(' ', new[] { firstName, lastName }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
         var user = new ApplicationUser
         {
-            UserName = request.Email,
-            Email = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            UserName = email,
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
@@ -38,6 +47,26 @@ public class AuthController : ControllerBase
             return BadRequest(result.Errors);
 
         await _userManager.AddToRoleAsync(user, "donor");
+
+        var emailLower = email.ToLowerInvariant();
+        var supporterExists = await _db.Supporters.AnyAsync(
+            s => s.Email != null && s.Email.Trim().ToLower() == emailLower);
+        if (!supporterExists)
+        {
+            _db.Supporters.Add(new Supporter
+            {
+                SupporterType = "MonetaryDonor",
+                DisplayName = string.IsNullOrWhiteSpace(displayName) ? email : displayName,
+                FirstName = firstName,
+                LastName = lastName,
+                RelationshipType = "Donor",
+                Country = "Brazil",
+                Email = email,
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _db.SaveChangesAsync();
+        }
 
         return Ok(new { message = "User registered successfully." });
     }

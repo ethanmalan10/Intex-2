@@ -5,6 +5,36 @@ import {
 } from 'recharts'
 import PublicLayout from './components/layout/PublicLayout'
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+
+type LandingChartPoint = {
+  month: string
+  reintegrations: number
+}
+
+type LandingAllocationPoint = {
+  name: string
+  value: number
+}
+
+type LandingApiData = {
+  hero: {
+    girlsCurrentlyInCare: number
+    successfulReintegrationsToDate: number
+    activeSafehouses: number
+  }
+  impact: {
+    girlsCurrentlyInCare: number
+    successfulReintegrations: number
+    activeSafehouses: number
+    counselingSessionsThisMonth: number
+    volunteerHoursThisMonth: number | null
+    monthlyDonations: number
+    monthlyReintegrations: LandingChartPoint[]
+    donationBreakdown: LandingAllocationPoint[]
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Scroll animation hook
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,29 +151,8 @@ function PersonIcon({ className, style }: { className?: string; style?: CSSPrope
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dashboard data
+// Landing chart colors
 // ─────────────────────────────────────────────────────────────────────────────
-const monthlyData = [
-  { month: 'Jan', reintegrations: 8 },
-  { month: 'Feb', reintegrations: 11 },
-  { month: 'Mar', reintegrations: 7 },
-  { month: 'Apr', reintegrations: 13 },
-  { month: 'May', reintegrations: 10 },
-  { month: 'Jun', reintegrations: 9 },
-  { month: 'Jul', reintegrations: 14 },
-  { month: 'Aug', reintegrations: 12 },
-  { month: 'Sep', reintegrations: 10 },
-  { month: 'Oct', reintegrations: 15 },
-  { month: 'Nov', reintegrations: 11 },
-  { month: 'Dec', reintegrations: 4 },
-]
-
-const donationBreakdown = [
-  { name: 'Education', value: 35 },
-  { name: 'Wellbeing', value: 30 },
-  { name: 'Operations', value: 20 },
-  { name: 'Outreach', value: 15 },
-]
 const DONUT_COLORS = ['#5f8c6e', '#7fada0', '#a3c4b5', '#c9ddd5']
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -178,7 +187,7 @@ function Hero({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
             who are survivors of sexual abuse and trafficking in Brazil.
           </p>
           <div className="flex flex-wrap gap-4">
-            <a href="#donate"
+            <a href="/donate"
               className="px-8 py-3.5 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-400 transition-colors shadow-lg shadow-teal-900/40">
               Donate Now
             </a>
@@ -199,7 +208,9 @@ function Hero({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
             <div key={i}
               className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-5 flex items-center gap-5"
               style={{ animationDelay: `${i * 150}ms` }}>
-              <span className="text-4xl font-bold text-teal-400">{s.n}</span>
+              <span className="text-4xl font-bold text-teal-400">
+                {isLoading ? '...' : hasError || s.n == null ? 'N/A' : s.n.toLocaleString()}
+              </span>
               <span className="text-white/80 text-sm leading-snug">{s.label}</span>
             </div>
           ))}
@@ -312,19 +323,17 @@ function RealitySection() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Impact dashboard
 // ─────────────────────────────────────────────────────────────────────────────
-const FALLBACK_SUMMARY = {
-  activeResidents: 47,
-  totalReintegrations: 124,
-  activeSafehouses: 6,
-  counselingSessionsThisMonth: 183,
-  volunteerHoursThisMonth: 340,
-  donationsThisMonth: 42500,
-}
-
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
-
-function ImpactDashboard({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
-  const s = summary
+function ImpactDashboard({
+  impactData,
+  isLoading,
+  hasError,
+}: {
+  impactData: LandingApiData['impact'] | null
+  isLoading: boolean
+  hasError: boolean
+}) {
+  const monthlyData = impactData?.monthlyReintegrations ?? []
+  const donationBreakdown = impactData?.donationBreakdown ?? []
 
   return (
     <section id="our-impact" className="py-24 bg-stone-50 px-6">
@@ -335,14 +344,34 @@ function ImpactDashboard({ summary }: { summary: typeof FALLBACK_SUMMARY | null 
           <p className="text-stone-500 max-w-xl mx-auto text-base">
             We believe donors deserve to see exactly where their support goes. Every metric below is real, aggregated, and anonymized.
           </p>
+          {hasError ? (
+            <p className="mt-2 text-sm text-amber-700">
+              Live landing metrics are temporarily unavailable.
+            </p>
+          ) : null}
         </Fade>
 
         {/* Animated counters */}
-        <Fade className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-14">
-          <AnimatedStat target={s?.activeResidents ?? null}         label="Girls currently in care" />
-          <AnimatedStat target={s?.totalReintegrations ?? null}     label="Successful reintegrations" />
-          <AnimatedStat target={s?.activeSafehouses ?? null}        label="Active safehouses" />
-          <AnimatedStat target={s?.volunteerHoursThisMonth ?? null} label="Volunteer hours this month" delay={100} />
+        <Fade className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-14">
+          {isLoading || !impactData ? (
+            <>
+              <AnimatedStat target={0} label="Girls currently in care" />
+              <AnimatedStat target={0} label="Successful reintegrations" />
+              <AnimatedStat target={0} label="Active safehouses" />
+              <AnimatedStat target={0} label="Counseling sessions this month" />
+              <AnimatedStat target={0} label="Volunteer hours this month" delay={100} />
+              <AnimatedStat target={0} prefix="$" label="Donations this month" delay={200} />
+            </>
+          ) : (
+            <>
+              <AnimatedStat target={impactData.girlsCurrentlyInCare} label="Girls currently in care" />
+              <AnimatedStat target={impactData.successfulReintegrations} label="Successful reintegrations" />
+              <AnimatedStat target={impactData.activeSafehouses} label="Active safehouses" />
+              <AnimatedStat target={impactData.counselingSessionsThisMonth} label="Counseling sessions this month" />
+              <AnimatedStat target={impactData.volunteerHoursThisMonth ?? 0} label="Volunteer hours this month" delay={100} />
+              <AnimatedStat target={impactData.monthlyDonations} prefix="$" label="Donations this month" delay={200} />
+            </>
+          )}
         </Fade>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -426,7 +455,7 @@ function MeetAna() {
                 <p className="italic text-stone-700 text-xl leading-snug">"I finally felt like someone believed in me."</p>
               </blockquote>
               <div className="pt-2 flex flex-wrap gap-4">
-                <a href="#donate"
+                <a href="/donate"
                   className="px-7 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm">
                   Donate in Ana's Honor
                 </a>
@@ -534,7 +563,7 @@ function DonateCTA() {
               </button>
             ))}
           </div>
-          <a href="#"
+          <a href="/donate"
             className="inline-block px-10 py-4 rounded-full bg-white text-teal-700 font-bold text-lg hover:bg-teal-50 transition-colors shadow-xl shadow-teal-900/30">
             Donate Securely
           </a>
@@ -551,20 +580,41 @@ function DonateCTA() {
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
-  const [summary, setSummary] = useState<typeof FALLBACK_SUMMARY | null>(null)
+  const [landingData, setLandingData] = useState<LandingApiData | null>(null)
+  const [isLoadingLanding, setIsLoadingLanding] = useState(true)
+  const [landingError, setLandingError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/impact/summary`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => setSummary(data))
-      .catch(() => setSummary(FALLBACK_SUMMARY))
+    fetch(`${API_BASE_URL}/api/landing`)
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        throw new Error(`Request failed (HTTP ${res.status}).`)
+      })
+      .then((json: LandingApiData) => {
+        setLandingData(json)
+        setIsLoadingLanding(false)
+        setLandingError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setLandingError(msg)
+        setIsLoadingLanding(false)
+      })
   }, [])
 
   return (
     <PublicLayout navVariant="landing" offsetTop={false}>
-      <Hero summary={summary} />
+      <Hero
+        heroData={landingData?.hero ?? null}
+        isLoading={isLoadingLanding}
+        hasError={!!landingError}
+      />
       <RealitySection />
-      <ImpactDashboard summary={summary} />
+      <ImpactDashboard
+        impactData={landingData?.impact ?? null}
+        isLoading={isLoadingLanding}
+        hasError={!!landingError}
+      />
       <MeetAna />
       <GetHelp />
       <DonateCTA />

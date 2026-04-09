@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace backend.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/admin-dashboard")]
 public class AdminDashboardController : ControllerBase
 {
@@ -87,12 +89,12 @@ public class AdminDashboardController : ControllerBase
         double SafeNormalize(double value, double min, double max)
             => max <= min ? 0.0 : (value - min) / (max - min);
 
-        var minRecency = supporterRows.Min(r => (double)r.RecencyDays);
-        var maxRecency = supporterRows.Max(r => (double)r.RecencyDays);
-        var minFreq = supporterRows.Min(r => (double)r.Frequency365);
-        var maxFreq = supporterRows.Max(r => (double)r.Frequency365);
-        var minChannels = supporterRows.Min(r => (double)r.ChannelCount365);
-        var maxChannels = supporterRows.Max(r => (double)r.ChannelCount365);
+        var minRecency = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.RecencyDays);
+        var maxRecency = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.RecencyDays);
+        var minFreq = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.Frequency365);
+        var maxFreq = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.Frequency365);
+        var minChannels = supporterRows.Count == 0 ? 0d : supporterRows.Min(r => (double)r.ChannelCount365);
+        var maxChannels = supporterRows.Count == 0 ? 0d : supporterRows.Max(r => (double)r.ChannelCount365);
 
         foreach (var row in supporterRows)
         {
@@ -155,6 +157,26 @@ public class AdminDashboardController : ControllerBase
         var lowIntensity = counselingRows.Except(highIntensity).ToList();
         var highReadyRate = highIntensity.Count == 0 ? 0 : Math.Round(highIntensity.Count(x => x.Ready365) * 100.0 / highIntensity.Count, 1);
         var lowReadyRate = lowIntensity.Count == 0 ? 0 : Math.Round(lowIntensity.Count(x => x.Ready365) * 100.0 / lowIntensity.Count, 1);
+        var counselingSessionBucketReadiness = new[]
+        {
+            new { label = "0-2 sessions", min = 0, max = 2 },
+            new { label = "3-5 sessions", min = 3, max = 5 },
+            new { label = "6-10 sessions", min = 6, max = 10 },
+            new { label = "11+ sessions", min = 11, max = int.MaxValue },
+        }
+        .Select(bucket =>
+        {
+            var bucketRows = counselingRows
+                .Where(x => x.SessionCount90 >= bucket.min && x.SessionCount90 <= bucket.max)
+                .ToList();
+            var rate = bucketRows.Count == 0 ? 0 : Math.Round(bucketRows.Count(x => x.Ready365) * 100.0 / bucketRows.Count, 1);
+            return new
+            {
+                label = bucket.label,
+                value = rate
+            };
+        })
+        .ToList();
 
         var firstDonationBySupporter = allDonations
             .GroupBy(d => d.SupporterId)
@@ -182,8 +204,10 @@ public class AdminDashboardController : ControllerBase
                 : (today.ToDateTime(TimeOnly.MinValue) - lastDonation.DonationDate.ToDateTime(TimeOnly.MinValue)).Days;
             var freq365 = don365.Count;
             var recurringShare = freq365 == 0 ? 0 : don365.Count(d => d.IsRecurring) / (double)freq365;
-            var score = (1.4 * Math.Min(freq365 / 12.0, 1.0)) + (0.9 * recurringShare) - (1.3 * Math.Min(recencyDays / 365.0, 1.0));
-            return new { s.SupporterId, Score = score };
+            var rawScore = (1.4 * Math.Min(freq365 / 12.0, 1.0)) + (0.9 * recurringShare) - (1.3 * Math.Min(recencyDays / 365.0, 1.0));
+            // Convert weighted index to 0-1 likelihood for consistent percent display in UI.
+            var likelihood = 1.0 / (1.0 + Math.Exp(-rawScore));
+            return new { s.SupporterId, Score = likelihood };
         }).ToList();
         var topFiveLikelyDonorNames = donorLikelihoodRows
             .OrderByDescending(r => r.Score)
@@ -216,6 +240,21 @@ public class AdminDashboardController : ControllerBase
             .Take(5)
             .ToList();
         var topFiveLikelyReadyNames = topFiveLikelyReadyRows.Select(x => x.name).ToList();
+        var readinessByReintegrationType = readinessEligible
+            .GroupBy(r => string.IsNullOrWhiteSpace(r.ReintegrationType) ? "Unknown" : r.ReintegrationType.Trim())
+            .Select(g =>
+            {
+                var residents = g.ToList();
+                var readyCount = residents.Count(r => r.DateClosed != null && r.DateClosed <= r.DateEnrolled.AddDays(365));
+                var rate = residents.Count == 0 ? 0 : Math.Round(readyCount * 100.0 / residents.Count, 1);
+                return new
+                {
+                    label = g.Key,
+                    value = rate
+                };
+            })
+            .OrderByDescending(x => x.value)
+            .ToList();
 
         var concernResidents = allProcess
             .Where(p => p.SessionDate >= today.AddDays(-90) && p.ConcernsFlagged)
@@ -246,11 +285,16 @@ public class AdminDashboardController : ControllerBase
 
         var donatedWithPost = allDonations.Where(d => d.ReferralPostId != null).ToList();
         var avgDonationFromSocial = donatedWithPost.Count == 0 ? 0m : Math.Round(donatedWithPost.Average(d => d.Amount ?? d.EstimatedValue ?? 0m), 2);
-        var topPlatform = (from d in donatedWithPost
-                           join p in allPosts on d.ReferralPostId equals p.PostId
-                           group d by p.Platform into g
-                           orderby g.Count() descending
-                           select new { Platform = g.Key, Count = g.Count() }).FirstOrDefault();
+        var referredDonationsByPlatform = (from d in donatedWithPost
+                                           join p in allPosts on d.ReferralPostId equals p.PostId
+                                           group d by (string.IsNullOrWhiteSpace(p.Platform) ? "Unknown" : p.Platform.Trim()) into g
+                                           orderby g.Count() descending
+                                           select new
+                                           {
+                                               Platform = g.Key,
+                                               Count = g.Count()
+                                           }).ToList();
+        var topPlatform = referredDonationsByPlatform.FirstOrDefault();
         var topPlatformLabel = topPlatform == null ? "N/A" : $"{topPlatform.Platform} ({topPlatform.Count} referred donations)";
 
         return Ok(new
@@ -302,6 +346,8 @@ public class AdminDashboardController : ControllerBase
                         new { label = "High Intensity", value = highReadyRate },
                         new { label = "Low Intensity", value = lowReadyRate },
                     }
+                    ,
+                    sessionBucketReadiness = counselingSessionBucketReadiness
                 },
                 donorRecurrenceForecast = new
                 {
@@ -322,6 +368,7 @@ public class AdminDashboardController : ControllerBase
                         new { label = "Ready <=365d", value = readinessRate },
                         new { label = "Not Ready <=365d", value = Math.Round(100 - readinessRate, 1) },
                     },
+                    readinessByReintegrationType = readinessByReintegrationType,
                     topLikelyReadyScores = topFiveLikelyReadyRows
                 },
                 residentRiskEscalation = new
@@ -336,11 +383,9 @@ public class AdminDashboardController : ControllerBase
                 },
                 socialContentDonationImpact = new
                 {
-                    donationImpactSummary = new[]
-                    {
-                        new { label = "Referred Donations", value = (double)donatedWithPost.Count },
-                        new { label = "Avg Referred Donation", value = (double)avgDonationFromSocial },
-                    }
+                    donationImpactSummary = referredDonationsByPlatform
+                        .Select(x => new { label = x.Platform, value = (double)x.Count })
+                        .ToList()
                 }
             },
             pipelineResults = new[]
@@ -355,7 +400,7 @@ public class AdminDashboardController : ControllerBase
                         $"Active supporters scored: {activeSupporters.Count}",
                         $"High risk: {highRiskCount}, Medium risk: {mediumRiskCount}, Low risk: {lowRiskCount}",
                         $"Top risk score: {(topAtRisk.FirstOrDefault()?.RiskScore ?? 0):0.000}",
-                        $"Top 5 high-risk supporters: {(topFiveHighRiskNames.Count == 0 ? "None" : string.Join(", ", topFiveHighRiskNames))}"
+                        $"Most at-risk supporters: {(topFiveHighRiskNames.Count == 0 ? "None" : string.Join(", ", topFiveHighRiskNames))}"
                     }
                 },
                 new

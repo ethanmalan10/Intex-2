@@ -1,10 +1,15 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using backend.Data;
 using backend.Models;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,18 +17,71 @@ var port = Environment.GetEnvironmentVariable("PORT") ?? "5050";
 builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddControllers();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+
+    var knownProxiesEnv = Environment.GetEnvironmentVariable("KNOWN_PROXIES");
+    if (!string.IsNullOrWhiteSpace(knownProxiesEnv))
+    {
+        foreach (var ip in knownProxiesEnv.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (System.Net.IPAddress.TryParse(ip, out var parsed))
+                options.KnownProxies.Add(parsed);
+        }
+    }
+
+    var knownNetworksEnv = Environment.GetEnvironmentVariable("KNOWN_NETWORKS_CIDR");
+    if (!string.IsNullOrWhiteSpace(knownNetworksEnv))
+    {
+        foreach (var cidr in knownNetworksEnv.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = cidr.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 2 &&
+                System.Net.IPAddress.TryParse(parts[0], out var prefix) &&
+                int.TryParse(parts[1], out var prefixLength))
+            {
+                options.KnownIPNetworks.Add(new System.Net.IPNetwork(prefix, prefixLength));
+            }
+        }
+    }
+});
+builder.Services.AddHsts(options =>
+{
+    options.MaxAge = TimeSpan.FromDays(60);
+    options.IncludeSubDomains = true;
+    options.Preload = true;
+});
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         var originsEnv = Environment.GetEnvironmentVariable("FRONTEND_ORIGIN");
-        var origins = (originsEnv ?? string.Empty)
-            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var configuredOrigins = (originsEnv ?? string.Empty)
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(o => o.Trim().TrimEnd('/'))
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .ToList();
 
-        if (origins.Length > 0)
-            policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
-        else
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        // Safe defaults for Railway production + local frontend development.
+        var defaultOrigins = new[]
+        {
+            "https://intex-2-production.up.railway.app",
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:4173",
+            "http://127.0.0.1:4173",
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+        };
+
+        var origins = configuredOrigins
+            .Concat(defaultOrigins)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -61,13 +119,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequireDigit = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredUniqueChars = 1;
+    options.Lockout.AllowedForNewUsers = true;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
 
 // ── JWT ───────────────────────────────────────────────────────────────────────
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
-    ?? builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("JWT_SECRET is not configured.");
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
     ?? builder.Configuration["Jwt:Issuer"]
@@ -96,9 +157,51 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddProblemDetails();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
+            });
+    });
+});
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+app.UseRateLimiter();
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var feature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "An unexpected error occurred.",
+            Detail = app.Environment.IsDevelopment() ? feature?.Error.Message : null,
+            Instance = context.Request.Path
+        };
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsJsonAsync(problem);
+    });
+});
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -119,10 +222,11 @@ using (var scope = app.Services.CreateScope())
             await roleManager.CreateAsync(new IdentityRole(role));
     }
 
-    // Seed admin user
-    const string adminEmail = "admin@circlehealing.org";
-    const string adminPassword = "Admin@CircleHeal1!";
-    if (await userManager.FindByEmailAsync(adminEmail) is null)
+    // Seed bootstrap admin user if credentials are explicitly configured.
+    var adminEmail = Environment.GetEnvironmentVariable("BOOTSTRAP_ADMIN_EMAIL");
+    var adminPassword = Environment.GetEnvironmentVariable("BOOTSTRAP_ADMIN_PASSWORD");
+    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword)
+        && await userManager.FindByEmailAsync(adminEmail) is null)
     {
         var admin = new ApplicationUser
         {
