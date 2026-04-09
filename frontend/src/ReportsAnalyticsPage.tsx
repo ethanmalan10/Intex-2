@@ -206,7 +206,7 @@ export default function ReportsAnalyticsPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-6xl px-6 py-10">
-          <h1 className="text-3xl font-bold text-stone-900">Reports & Analytics</h1>
+          <h1 className="text-3xl font-bold text-teal-800">Reports & Analytics</h1>
           <p className="mt-2 text-stone-600">
             Pipeline-level reporting for decision support, monitoring, and operational planning.
           </p>
@@ -215,14 +215,19 @@ export default function ReportsAnalyticsPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-6 pb-12">
-          <h2 className="mb-3 text-lg font-semibold text-stone-900">Pipeline Results by Use Case</h2>
+          <h2 className="mb-3 text-lg font-semibold text-teal-800">Pipeline Results by Use Case</h2>
           <div className="space-y-4">
             {data.pipelineResults.map((pipeline) => (
-              <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-wide text-stone-500">Pipeline</p>
+              <article key={pipeline.name} className="rounded-2xl border border-teal-100 bg-white p-5 shadow-sm">
+                <p className="text-xs uppercase tracking-wide text-teal-700">Pipeline</p>
                 <p className="mt-1 font-semibold text-teal-700">{formatPipelineDisplayName(pipeline.name)}</p>
                 <p className="mt-2 text-sm text-stone-700"><strong>Business problem:</strong> {pipeline.businessProblem}</p>
-                <p className="mt-2 text-sm text-stone-600"><strong>Status:</strong> {pipeline.runStatus}</p>
+                <p className="mt-2 text-sm text-stone-600">
+                  <strong>Status:</strong>{' '}
+                  <span className="inline-flex rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">
+                    {pipeline.runStatus}
+                  </span>
+                </p>
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-stone-700">
                   {pipeline.results.map((line) => (
                     <li key={line}>{line}</li>
@@ -391,7 +396,7 @@ export default function ReportsAnalyticsPage() {
               </article>
             ))}
             {data.pipelineResults.length === 0 && (
-              <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+              <article className="rounded-2xl border border-teal-100 bg-white p-5 shadow-sm">
                 <p className="text-sm text-stone-600">No pipeline results available yet. Add or refresh source data, then reload this page.</p>
               </article>
             )}

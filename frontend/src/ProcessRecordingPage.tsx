@@ -219,7 +219,7 @@ export default function ProcessRecordingPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-6xl px-6 py-10">
-          <h1 className="text-3xl font-bold text-stone-900">Counseling Notes</h1>
+          <h1 className="text-3xl font-bold text-teal-800">Counseling Notes</h1>
           <p className="mt-2 text-stone-600">
             Document counseling sessions and review each resident&apos;s healing journey over time.
           </p>
@@ -227,8 +227,8 @@ export default function ProcessRecordingPage() {
         </section>
 
         <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5 lg:items-stretch">
-          <article className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-stone-900">New Counseling Entry</h2>
+          <article className="flex h-full flex-col rounded-2xl border border-teal-100 bg-white p-6 shadow-sm lg:col-span-2">
+            <h2 className="text-lg font-semibold text-teal-800">New Counseling Entry</h2>
             <p className="mt-1 text-sm text-stone-600">Create a dated session record for the selected resident.</p>
 
             <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
@@ -329,8 +329,8 @@ export default function ProcessRecordingPage() {
             </form>
           </article>
 
-          <article className="flex h-full min-h-[24rem] flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-3">
-            <h2 className="text-lg font-semibold text-stone-900">
+          <article className="flex h-full min-h-[24rem] flex-col rounded-2xl border border-teal-100 bg-white p-6 shadow-sm lg:col-span-3">
+            <h2 className="text-lg font-semibold text-teal-800">
               {selectedResident?.name ?? 'Resident'} History
             </h2>
             <p className="mt-1 text-sm text-stone-600">Displayed in chronological order (most recent first).</p>
@@ -351,9 +351,9 @@ export default function ProcessRecordingPage() {
               ) : (
                 <div className="h-full space-y-4 overflow-y-auto pr-1 max-h-[36rem] lg:max-h-[44rem]">
                   {residentEntries.map((entry) => (
-                    <div key={entry.id} className="rounded-xl border border-stone-200 p-4">
+                    <div key={entry.id} className="rounded-xl border border-stone-200 p-4 hover:bg-teal-50/30">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="text-sm font-semibold text-stone-900">
+                        <p className="text-sm font-semibold text-teal-800">
                           {new Date(entry.sessionDate).toLocaleDateString()} - {entry.sessionType} Session
                         </p>
                         <p className="text-xs text-stone-500">Social Worker: {entry.socialWorker}</p>

@@ -352,7 +352,7 @@ export default function HomeVisitationCaseConferencesPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-6xl px-6 py-10">
-          <h1 className="text-3xl font-bold text-stone-900">Home Visitation &amp; Case Conferences</h1>
+          <h1 className="text-3xl font-bold text-teal-800">Home Visitation &amp; Case Conferences</h1>
           <p className="mt-2 text-stone-600">
             Log field visits and track upcoming and historical case conferences for each resident.
           </p>
@@ -360,8 +360,8 @@ export default function HomeVisitationCaseConferencesPage() {
         </section>
 
         <section className="mx-auto grid max-w-6xl gap-6 px-6 pb-12 lg:grid-cols-5 lg:items-stretch">
-          <article className="flex h-full flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-stone-900">New Home/Field Visit</h2>
+          <article className="flex h-full flex-col rounded-2xl border border-teal-100 bg-white p-6 shadow-sm lg:col-span-2">
+            <h2 className="text-lg font-semibold text-teal-800">New Home/Field Visit</h2>
             <p className="mt-1 text-sm text-stone-600">Record visit details for the selected resident.</p>
 
             <form className="mt-5 space-y-4" onSubmit={onSubmit}>
@@ -440,8 +440,8 @@ export default function HomeVisitationCaseConferencesPage() {
                 </select>
               </label>
 
-              <fieldset className="rounded-lg border border-stone-200 p-3">
-                <legend className="px-1 text-sm font-medium text-stone-700">Safety Concerns</legend>
+              <fieldset className="rounded-lg border border-teal-100 bg-teal-50/30 p-3">
+                <legend className="px-1 text-sm font-medium text-teal-700">Safety Concerns</legend>
                 <div className="mt-1 flex items-center gap-4 text-sm">
                   <label className="flex items-center gap-2">
                     <input
@@ -482,8 +482,8 @@ export default function HomeVisitationCaseConferencesPage() {
           </article>
 
           <div className="space-y-6 lg:col-span-3">
-            <article className="flex min-h-[24rem] flex-col rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-stone-900">
+            <article className="flex min-h-[24rem] flex-col rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-teal-800">
                 {selectedResident?.name ?? 'Resident'} Visitation History
               </h2>
               <p className="mt-1 text-sm text-stone-600">Most recent visits appear first.</p>
@@ -504,9 +504,9 @@ export default function HomeVisitationCaseConferencesPage() {
                 ) : (
                   <div className="h-full space-y-3 overflow-y-auto pr-1 max-h-[36rem] lg:max-h-[44rem]">
                     {residentVisits.map((visit) => (
-                      <div key={visit.id} className="rounded-xl border border-stone-200 p-4">
+                      <div key={visit.id} className="rounded-xl border border-stone-200 p-4 hover:bg-teal-50/30">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-sm font-semibold text-stone-900">
+                          <p className="text-sm font-semibold text-teal-800">
                             {new Date(visit.visitDate).toLocaleDateString()} - {visit.visitType}
                           </p>
                           <p className="text-xs text-stone-500">Social Worker: {visit.socialWorker}</p>
@@ -531,9 +531,9 @@ export default function HomeVisitationCaseConferencesPage() {
               </div>
             </article>
 
-            <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
+            <article className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-semibold text-stone-900">Case Conferences</h2>
+                <h2 className="text-lg font-semibold text-teal-800">Case Conferences</h2>
                 {isAdmin ? (
                   <button
                     type="button"
@@ -545,8 +545,8 @@ export default function HomeVisitationCaseConferencesPage() {
                 ) : null}
               </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <div className="rounded-xl border border-stone-200 p-4">
-                  <h3 className="text-sm font-semibold text-stone-800">Upcoming Conferences</h3>
+                <div className="rounded-xl border border-teal-100 p-4">
+                  <h3 className="text-sm font-semibold text-teal-700">Upcoming Conferences</h3>
                   {upcomingConferences.length === 0 ? (
                     <p className="mt-2 text-sm text-stone-600">No upcoming conferences.</p>
                   ) : (
@@ -561,8 +561,8 @@ export default function HomeVisitationCaseConferencesPage() {
                   )}
                 </div>
 
-                <div className="rounded-xl border border-stone-200 p-4">
-                  <h3 className="text-sm font-semibold text-stone-800">Conference History</h3>
+                <div className="rounded-xl border border-teal-100 p-4">
+                  <h3 className="text-sm font-semibold text-teal-700">Conference History</h3>
                   {conferencesError ? (
                     <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                       <span>{conferencesError}</span>

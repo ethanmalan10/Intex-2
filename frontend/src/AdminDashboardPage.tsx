@@ -320,7 +320,7 @@ export default function AdminDashboardPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-6xl px-6 py-10">
-          <h1 className="text-3xl font-bold text-stone-900">Admin Dashboard</h1>
+          <h1 className="text-3xl font-bold text-teal-800">Admin Dashboard</h1>
           <p className="mt-2 text-stone-600">
             Daily operations overview: resident capacity, donation flow, upcoming conferences, and inactive-supporter pipeline risk.
           </p>
@@ -354,8 +354,8 @@ export default function AdminDashboardPage() {
 
       <section className="mx-auto max-w-6xl px-6 pb-8">
         <div className="grid gap-4 lg:grid-cols-2">
-          <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-semibold text-stone-800">Donations Over Time</p>
+          <article className="rounded-2xl border border-teal-100 bg-white p-4 shadow-sm">
+            <p className="text-sm font-semibold text-teal-700">Donations Over Time</p>
             <div className="mt-3 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.donationsOverTime}>
@@ -368,8 +368,8 @@ export default function AdminDashboardPage() {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm">
-            <p className="text-sm font-semibold text-stone-800">Donors Added Over Time</p>
+          <article className="rounded-2xl border border-teal-100 bg-white p-4 shadow-sm">
+            <p className="text-sm font-semibold text-teal-700">Donors Added Over Time</p>
             <div className="mt-3 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={analytics.donorsAddedOverTime}>
@@ -387,7 +387,7 @@ export default function AdminDashboardPage() {
       <section className="mx-auto max-w-6xl px-6 pb-16">
         <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xl font-semibold text-stone-900">User Management</h2>
+            <h2 className="text-xl font-semibold text-teal-800">User Management</h2>
             <button
               onClick={() => setShowCreateUser(true)}
               className="rounded-full bg-teal-600 px-4 py-2 text-xs font-semibold text-white hover:bg-teal-700"
@@ -398,8 +398,8 @@ export default function AdminDashboardPage() {
           <p className="mt-1 text-sm text-stone-600">View users, roles, donations, and manage accounts.</p>
 
           {showCreateUser && (
-            <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
-              <p className="text-sm font-semibold text-stone-700">Create User</p>
+            <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/40 p-4">
+              <p className="text-sm font-semibold text-teal-800">Create User</p>
               <div className="mt-2 grid gap-2 md:grid-cols-4">
                 <input
                   value={createUserForm.fullName}
@@ -451,7 +451,7 @@ export default function AdminDashboardPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name or email"
-              className="rounded-lg border border-stone-300 px-3 py-2 text-sm"
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200"
             />
             <div className="flex items-center gap-3 text-sm">
               {['all', 'admin', 'staff', 'donor'].map((r) => (
@@ -462,14 +462,14 @@ export default function AdminDashboardPage() {
               ))}
             </div>
             <label htmlFor="user-sort" className="sr-only">Sort users</label>
-            <select id="user-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+            <select id="user-sort" value={sort} onChange={(e) => setSort(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200">
               <option value="newest">Newest to oldest</option>
               <option value="oldest">Oldest to newest</option>
               <option value="donation-high">Donation high to low</option>
               <option value="donation-low">Donation low to high</option>
             </select>
             <label htmlFor="user-donation-filter" className="sr-only">Filter users by donation activity</label>
-            <select id="user-donation-filter" value={donationFilter} onChange={(e) => setDonationFilter(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">
+            <select id="user-donation-filter" value={donationFilter} onChange={(e) => setDonationFilter(e.target.value)} className="rounded-lg border border-stone-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-200">
               <option value="all">All users</option>
               <option value="with">With donations</option>
               <option value="without">No donations</option>
@@ -482,7 +482,7 @@ export default function AdminDashboardPage() {
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-stone-200 text-stone-700">
+                <tr className="border-b border-stone-200 bg-teal-50/50 text-stone-700">
                   <th className="py-2 pr-4">Email</th>
                   <th className="py-2 pr-4">Role</th>
                   <th className="py-2 pr-4">Total Donations</th>
@@ -492,13 +492,17 @@ export default function AdminDashboardPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="border-b border-stone-100">
+                  <tr key={u.id} className="border-b border-stone-100 hover:bg-teal-50/40">
                     <td className="py-2 pr-4">
-                      <button onClick={() => openDetails(u.id)} className="text-left hover:underline">
+                      <button onClick={() => openDetails(u.id)} className="text-left text-teal-700 hover:text-teal-800 hover:underline">
                         {u.email}
                       </button>
                     </td>
-                    <td className="py-2 pr-4">{u.primaryRole}</td>
+                    <td className="py-2 pr-4">
+                      <span className="inline-flex rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">
+                        {u.primaryRole}
+                      </span>
+                    </td>
                     <td className="py-2 pr-4">${u.totalDonations.toFixed(2)}</td>
                     <td className="py-2 pr-4">{u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}</td>
                     <td className="py-2 flex gap-2">
@@ -512,8 +516,8 @@ export default function AdminDashboardPage() {
           </div>
 
           {editingUserId && (
-            <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50 p-4">
-              <p className="text-sm font-semibold text-stone-700">Edit user</p>
+            <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/40 p-4">
+              <p className="text-sm font-semibold text-teal-800">Edit user</p>
               <div className="mt-2 grid gap-2 md:grid-cols-4">
                 <input value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} className="rounded border border-stone-300 px-2 py-1 text-sm" />
                 <input value={editForm.firstName} onChange={(e) => setEditForm({ ...editForm, firstName: e.target.value })} placeholder="First name" className="rounded border border-stone-300 px-2 py-1 text-sm" />
@@ -559,8 +563,8 @@ export default function AdminDashboardPage() {
 
 function Kpi({ title, value }: { title: string; value: string }) {
   return (
-    <article className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-stone-500">{title}</p>
+    <article className="rounded-2xl border border-teal-100 bg-white p-5 shadow-sm">
+      <p className="text-sm text-teal-700">{title}</p>
       <p className="mt-2 text-2xl font-bold text-teal-700">{value}</p>
     </article>
   )

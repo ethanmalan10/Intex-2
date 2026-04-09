@@ -296,7 +296,7 @@ export default function DonorsContributionsPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto w-full max-w-[1680px] px-4 py-10 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-stone-900">Donors &amp; Contributions</h1>
+          <h1 className="text-3xl font-bold text-teal-800">Donors &amp; Contributions</h1>
           <p className="mt-2 text-sm text-stone-600">
             Admins can create and edit supporters and donations. Staff can view records only.
           </p>
@@ -308,7 +308,7 @@ export default function DonorsContributionsPage() {
                 type="button"
                 onClick={() => setTab(t)}
                 className={`rounded-full px-4 py-2 text-sm ${
-                  tab === t ? 'bg-teal-600 text-white' : 'bg-white border border-stone-300 text-stone-700'
+                  tab === t ? 'bg-teal-600 text-white shadow-sm shadow-teal-200/60' : 'bg-white border border-stone-300 text-stone-700 hover:border-teal-300 hover:text-teal-700'
                 }`}
               >
                 {t === 'supporters' ? 'Supporters' : t === 'donations' ? 'Donations' : 'Allocations'}
@@ -316,12 +316,12 @@ export default function DonorsContributionsPage() {
             ))}
           </div>
 
-          {error && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {error && <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
           {tab === 'supporters' && (
             <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-stone-200 bg-white p-4">
-                <h2 className="text-lg font-semibold">Supporter filters</h2>
+              <div className="rounded-xl border border-teal-100 bg-white p-4">
+                <h2 className="text-lg font-semibold text-teal-800">Supporter filters</h2>
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                   <input className="rounded border border-stone-300 px-3 py-2" placeholder="Search name or email" value={supporterSearch} onChange={(e) => setSupporterSearch(e.target.value)} />
                   <input className="rounded border border-stone-300 px-3 py-2" placeholder="Status (active/inactive)" value={supporterStatus} onChange={(e) => setSupporterStatus(e.target.value)} />
@@ -330,8 +330,8 @@ export default function DonorsContributionsPage() {
               </div>
 
               {isAdmin && (
-                <div className="rounded-xl border border-stone-200 bg-white p-4">
-                  <h3 className="text-base font-semibold">{editingSupporterId ? 'Edit supporter' : 'Create supporter'}</h3>
+                <div className="rounded-xl border border-teal-100 bg-white p-4">
+                  <h3 className="text-base font-semibold text-teal-800">{editingSupporterId ? 'Edit supporter' : 'Create supporter'}</h3>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <input className="rounded border border-stone-300 px-3 py-2" placeholder="Display name" value={supporterForm.displayName} onChange={(e) => setSupporterForm({ ...supporterForm, displayName: e.target.value })} />
                     <input className="rounded border border-stone-300 px-3 py-2" placeholder="Supporter type" value={supporterForm.supporterType} onChange={(e) => setSupporterForm({ ...supporterForm, supporterType: e.target.value })} />
@@ -354,7 +354,7 @@ export default function DonorsContributionsPage() {
 
               <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-stone-100 text-left text-stone-700">
+                  <thead className="bg-teal-50 text-left text-stone-700">
                     <tr>
                       <th className="px-4 py-3">Name</th>
                       <th className="px-4 py-3">Type</th>
@@ -367,13 +367,17 @@ export default function DonorsContributionsPage() {
                     {isLoading ? (
                       <tr><td className="px-4 py-4" colSpan={isAdmin ? 5 : 4}>Loading supporters...</td></tr>
                     ) : supporters.length === 0 ? (
-                      <tr><td className="px-4 py-4" colSpan={isAdmin ? 5 : 4}>No supporters found.</td></tr>
+                      <tr><td className="px-4 py-4 text-stone-600" colSpan={isAdmin ? 5 : 4}>No supporters found.</td></tr>
                     ) : supporters.map((s) => (
-                      <tr key={s.supporterId} className="border-t border-stone-100">
+                      <tr key={s.supporterId} className="border-t border-stone-100 hover:bg-teal-50/40">
                         <td className="px-4 py-3">{s.displayName}</td>
                         <td className="px-4 py-3">{s.supporterType}</td>
                         <td className="px-4 py-3">{s.email}</td>
-                        <td className="px-4 py-3">{s.status}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-800">
+                            {s.status}
+                          </span>
+                        </td>
                         {isAdmin && (
                           <td className="px-4 py-3">
                             <button type="button" onClick={() => startEditSupporter(s)} className="rounded border border-stone-300 px-3 py-1 text-xs">Edit</button>
@@ -390,8 +394,8 @@ export default function DonorsContributionsPage() {
           {tab === 'donations' && (
             <div className="mt-6 space-y-4">
               {isAdmin && (
-                <div className="rounded-xl border border-stone-200 bg-white p-4">
-                  <h3 className="text-base font-semibold">{editingDonationId ? 'Edit donation' : 'Create donation'}</h3>
+                <div className="rounded-xl border border-teal-100 bg-white p-4">
+                  <h3 className="text-base font-semibold text-teal-800">{editingDonationId ? 'Edit donation' : 'Create donation'}</h3>
                   <div className="mt-3 grid gap-3 md:grid-cols-2">
                     <select className="rounded border border-stone-300 px-3 py-2" value={donationForm.supporterId} onChange={(e) => setDonationForm({ ...donationForm, supporterId: e.target.value })}>
                       <option value="">Select supporter</option>
@@ -418,7 +422,7 @@ export default function DonorsContributionsPage() {
 
               <div className="overflow-x-auto rounded-xl border border-stone-200 bg-white">
                 <table className="min-w-full text-sm">
-                  <thead className="bg-stone-100 text-left text-stone-700">
+                  <thead className="bg-teal-50 text-left text-stone-700">
                     <tr>
                       <th className="px-4 py-3">Date</th>
                       <th className="px-4 py-3">Supporter</th>
@@ -434,7 +438,7 @@ export default function DonorsContributionsPage() {
                     ) : donations.length === 0 ? (
                       <tr><td className="px-4 py-4" colSpan={isAdmin ? 6 : 5}>No donations found.</td></tr>
                     ) : donations.map((d) => (
-                      <tr key={d.donationId} className="border-t border-stone-100">
+                      <tr key={d.donationId} className="border-t border-stone-100 hover:bg-teal-50/40">
                         <td className="px-4 py-3">{d.donationDate}</td>
                         <td className="px-4 py-3">{supporters.find((s) => s.supporterId === d.supporterId)?.displayName ?? d.supporterId}</td>
                         <td className="px-4 py-3">{d.donationType}</td>
@@ -456,7 +460,7 @@ export default function DonorsContributionsPage() {
           {tab === 'allocations' && (
             <div className="mt-6 overflow-x-auto rounded-xl border border-stone-200 bg-white">
               <table className="min-w-full text-sm">
-                <thead className="bg-stone-100 text-left text-stone-700">
+                <thead className="bg-teal-50 text-left text-stone-700">
                   <tr>
                     <th className="px-4 py-3">Date</th>
                     <th className="px-4 py-3">Program area</th>
@@ -471,7 +475,7 @@ export default function DonorsContributionsPage() {
                   ) : allocations.length === 0 ? (
                     <tr><td className="px-4 py-4" colSpan={5}>No allocation records found.</td></tr>
                   ) : allocations.map((a) => (
-                    <tr key={a.allocationId} className="border-t border-stone-100">
+                    <tr key={a.allocationId} className="border-t border-stone-100 hover:bg-teal-50/40">
                       <td className="px-4 py-3">{a.allocationDate}</td>
                       <td className="px-4 py-3">{a.programArea}</td>
                       <td className="px-4 py-3">{a.safehouseId}</td>
