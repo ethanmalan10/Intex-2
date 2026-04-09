@@ -6,6 +6,12 @@ import { getAuthToken } from '../../utils/authToken'
 const API = import.meta.env.VITE_API_BASE_URL
 
 const AMOUNTS = [10, 25, 50, 100, 250, 500, 750, 1000]
+const USD_TO_BRL_RATE = 5.2
+const BRL_FORMATTER = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  maximumFractionDigits: 2,
+})
 const AMOUNT_DESCRIPTIONS: Record<number, string> = {
   10: "Provides daily nutritious meals for one girl for an entire week",
   25: "Supplies school books and materials for one child's month",
@@ -26,6 +32,16 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState('')
   const [customError, setCustomError] = useState('')
   const [pendingAmount, setPendingAmount] = useState<number | null>(null)
+  const parsedCustomAmount = Number(customAmount)
+  const hasCustomValue = customAmount.trim().length > 0
+  const activeAmount = hasCustomValue
+    ? Number.isFinite(parsedCustomAmount) && parsedCustomAmount > 0
+      ? parsedCustomAmount
+      : null
+    : selectedAmount && selectedAmount > 0
+      ? selectedAmount
+      : null
+  const convertedReais = activeAmount ? BRL_FORMATTER.format(activeAmount * USD_TO_BRL_RATE) : ''
 
   async function donate(amount: number) {
     const token = getAuthToken()
@@ -172,6 +188,16 @@ export default function DonatePage() {
             </div>
           </div>
 
+          <div
+            className={`mt-4 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 transition-opacity duration-200 ${
+              activeAmount ? 'opacity-100' : 'pointer-events-none opacity-0'
+            }`}
+            aria-live="polite"
+          >
+            {activeAmount
+              ? `Your donation equals about ${convertedReais} in Brazil—making a real difference locally.`
+              : ''}
+          </div>
           <button
             type="button"
             onClick={submitSelectedDonation}
