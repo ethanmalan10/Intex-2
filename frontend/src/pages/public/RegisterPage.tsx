@@ -30,8 +30,8 @@ export default function RegisterPage() {
 
     if (!password) {
       e.password = 'Password is required.'
-    } else if (password.length < 8) {
-      e.password = 'Password must be at least 8 characters.'
+    } else if (password.length < 14) {
+      e.password = 'Password must be at least 14 characters.'
     }
 
     if (!confirmPassword) {
@@ -191,7 +191,7 @@ export default function RegisterPage() {
             />
             {errors.password
               ? <p className="text-xs" style={{ color: '#E53E3E' }}>{errors.password}</p>
-              : <p className="text-xs text-stone-600">Minimum 8 characters.</p>
+              : <p className="text-xs text-stone-600">Minimum 14 characters.</p>
             }
           </div>
 
