@@ -189,14 +189,16 @@ export default function DonatePage() {
           </div>
 
           <div
-            className={`mt-4 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-teal-800 transition-opacity duration-200 ${
+            className={`mt-4 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3 text-lg leading-relaxed text-teal-800 transition-opacity duration-200 ${
               activeAmount ? 'opacity-100' : 'pointer-events-none opacity-0'
             }`}
             aria-live="polite"
           >
-            {activeAmount
-              ? `Your donation equals about ${convertedReais} in Brazil—making a real difference locally.`
-              : ''}
+            {activeAmount ? (
+              <span>
+                Your donation equals about <span className="font-semibold text-amber-400">{convertedReais}</span> in Brazil—making a real difference locally.
+              </span>
+            ) : ''}
           </div>
           <button
             type="button"
