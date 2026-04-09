@@ -511,7 +511,6 @@ public class AdminDashboardController : ControllerBase
                     runStatus = "Live summary from social posts + linked donations",
                     results = new[]
                     {
-                        $"Social posts evaluated: {allPosts.Count}",
                         $"Overall 7-day conversion rate: {overallPostConversionRate:0.00}%",
                         $"Top converting post type: {(postTypeConversionRates.FirstOrDefault()?.label ?? "N/A")}",
                         $"Highest post-type conversion rate: {(postTypeConversionRates.FirstOrDefault()?.value ?? 0):0.00}%"
