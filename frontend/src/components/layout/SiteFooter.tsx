@@ -42,7 +42,7 @@ export default function SiteFooter() {
         </div>
         <div>
           <p className="text-stone-400 font-semibold text-xs uppercase tracking-wider mb-4">Navigate</p>
-          <ul className="flex flex-col gap-2 text-stone-500 text-sm">
+          <ul className="grid grid-cols-1 gap-y-2 text-stone-500 text-sm md:grid-cols-2 md:gap-x-8 md:gap-y-2">
             {footerNavItems.map((item) => (
               <li key={item.label}>
                 <a href={item.href} className="hover:text-teal-400 transition-colors">
