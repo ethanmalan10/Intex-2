@@ -132,7 +132,7 @@ function AnimatedStat({
       <p className="text-4xl sm:text-5xl font-bold text-teal-700 tabular-nums">
         {target === null ? '…' : `${prefix}${value.toLocaleString()}${suffix}`}
       </p>
-      <p className="text-stone-500 text-sm mt-2 leading-snug">{label}</p>
+      <p className="text-stone-500 text-base mt-2 leading-snug">{label}</p>
     </div>
   )
 }
@@ -179,24 +179,24 @@ function Hero({ heroData, isLoading, hasError }: {
         <div>
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-4 py-1.5 mb-8">
             <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-            <span className="text-white/80 text-xs tracking-widest uppercase font-medium">Brazil · Active Program</span>
+            <span className="text-white/80 text-sm tracking-widest uppercase font-medium">Brazil · Active Program</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold text-white leading-tight mb-6">
+          <h1 className="text-6xl sm:text-7xl font-bold text-white leading-tight mb-6">
             Every girl<br />deserves a<br />
             <span className="text-amber-400">safe place</span><br />
             to heal.
           </h1>
-          <p className="text-white/70 text-lg leading-relaxed mb-10 max-w-md">
+          <p className="text-white/70 text-xl leading-relaxed mb-10 max-w-md">
             BrighterPath provides safehouses, rehabilitation, and reintegration for girls
             who are survivors of sexual abuse and trafficking in Brazil.
           </p>
           <div className="flex flex-wrap gap-4">
             <a href="/donate"
-              className="px-8 py-3.5 rounded-full bg-teal-500 text-white font-bold hover:bg-teal-400 transition-colors shadow-lg shadow-teal-900/40">
+              className="px-8 py-3.5 rounded-full bg-teal-500 text-white text-lg font-bold hover:bg-teal-400 transition-colors shadow-lg shadow-teal-900/40">
               Donate Now
             </a>
             <a href="/impact-dashboard"
-              className="px-8 py-3.5 rounded-full border-2 border-white/30 text-white font-semibold hover:bg-white/10 transition-colors backdrop-blur">
+              className="px-8 py-3.5 rounded-full border-2 border-white/30 text-white text-lg font-semibold hover:bg-white/10 transition-colors backdrop-blur">
               See Our Impact
             </a>
           </div>
@@ -215,7 +215,7 @@ function Hero({ heroData, isLoading, hasError }: {
               <span className="text-4xl font-bold text-teal-400">
                 {isLoading ? '...' : hasError || s.n == null ? 'N/A' : s.n.toLocaleString()}
               </span>
-              <span className="text-white/80 text-sm leading-snug">{s.label}</span>
+              <span className="text-white/80 text-base leading-snug">{s.label}</span>
             </div>
           ))}
         </div>
@@ -223,7 +223,7 @@ function Hero({ heroData, isLoading, hasError }: {
 
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40">
-        <span className="text-xs uppercase tracking-widest">Scroll</span>
+        <span className="text-sm uppercase tracking-widest">Scroll</span>
         <svg className="w-4 h-4 animate-bounce" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
@@ -288,8 +288,8 @@ function RealitySection() {
       <div className="max-w-4xl mx-auto flex flex-col items-center gap-12 text-center">
 
         <Fade>
-          <p className="text-teal-600 uppercase tracking-widest text-xs font-semibold mb-4">The Reality in Brazil</p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-stone-800 leading-tight">
+          <p className="text-teal-600 uppercase tracking-widest text-sm font-semibold mb-4">The Reality in Brazil</p>
+          <h2 className="text-5xl sm:text-6xl font-bold text-stone-800 leading-tight">
             This problem is<br />bigger than it looks.
           </h2>
         </Fade>
@@ -298,10 +298,10 @@ function RealitySection() {
         <Fade className="w-full">
           <div className="flex flex-col items-center gap-2">
             <p className="text-7xl sm:text-8xl font-bold text-teal-400 leading-none">80%</p>
-            <p className="text-stone-700 text-xl sm:text-2xl font-medium">
+            <p className="text-stone-700 text-2xl sm:text-3xl font-medium">
               of child sexual abuse in Brazil happens<br />at home, by a family member.
             </p>
-            <p className="text-stone-400 text-xs mt-1">Brazil Ministry of Human Rights, 2023</p>
+            <p className="text-stone-400 text-sm mt-1">Brazil Ministry of Human Rights, 2023</p>
           </div>
         </Fade>
 
@@ -312,7 +312,7 @@ function RealitySection() {
 
         <Fade>
           <div className="mt-4 max-w-xl">
-            <p className="text-stone-400 text-base leading-relaxed">
+            <p className="text-stone-400 text-lg leading-relaxed">
               These are not distant statistics. They are daughters, sisters, neighbors.
               BrighterPath exists because someone has to show up for them.
             </p>
@@ -354,13 +354,13 @@ function ImpactDashboard({
       <div className="absolute inset-0 bg-white/76" />
       <div className="relative z-10 max-w-6xl mx-auto">
         <Fade className="text-center mb-14">
-          <p className="text-teal-600 uppercase tracking-widest text-xs font-semibold mb-3">Proof of Impact</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-3">Your donations at work</h2>
-          <p className="text-stone-500 max-w-xl mx-auto text-base">
+          <p className="text-teal-600 uppercase tracking-widest text-sm font-semibold mb-3">Proof of Impact</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-stone-800 mb-3">Your donations at work</h2>
+          <p className="text-stone-500 max-w-xl mx-auto text-lg">
             We believe donors deserve to see exactly where their support goes. Every metric below is real, aggregated, and anonymized.
           </p>
           {hasError ? (
-            <p className="mt-2 text-sm text-amber-700">
+            <p className="mt-2 text-base text-amber-700">
               Live landing metrics are temporarily unavailable.
             </p>
           ) : null}
@@ -386,14 +386,14 @@ function ImpactDashboard({
         <div className="grid md:grid-cols-2 gap-8">
           {/* Bar chart */}
           <Fade className="bg-white rounded-2xl p-8 shadow-sm border border-stone-100">
-            <h3 className="text-stone-700 font-semibold text-base mb-1">Monthly Reintegrations</h3>
-            <p className="text-stone-400 text-xs mb-6">Girls returned to safe, stable lives — this year</p>
+            <h3 className="text-stone-700 font-semibold text-lg mb-1">Monthly Reintegrations</h3>
+            <p className="text-stone-400 text-sm mb-6">Girls returned to safe, stable lives — this year</p>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 13, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 13, fill: '#a8a29e' }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', fontSize: '12px' }}
+                  contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.08)', fontSize: '14px' }}
                   cursor={{ fill: '#f0fdf4' }}
                 />
                 <Bar dataKey="reintegrations" fill="#5f8c6e" radius={[5, 5, 0, 0]} />
@@ -403,8 +403,8 @@ function ImpactDashboard({
 
           {/* Donut chart */}
           <Fade className="bg-white rounded-2xl p-8 shadow-sm border border-stone-100" delay={150}>
-            <h3 className="text-stone-700 font-semibold text-base mb-1">Donation Breakdown</h3>
-            <p className="text-stone-400 text-xs mb-6">How every dollar is allocated by program area</p>
+            <h3 className="text-stone-700 font-semibold text-lg mb-1">Donation Breakdown</h3>
+            <p className="text-stone-400 text-sm mb-6">How every dollar is allocated by program area</p>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
                 <Pie data={donationBreakdown} cx="50%" cy="50%" innerRadius={60} outerRadius={95} paddingAngle={3} dataKey="value">
@@ -412,8 +412,8 @@ function ImpactDashboard({
                     <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => `${v}%`} contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '12px' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#78716c' }} />
+                <Tooltip formatter={(v) => `${v}%`} contentStyle={{ borderRadius: '10px', border: 'none', fontSize: '14px' }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '14px', color: '#78716c' }} />
               </PieChart>
             </ResponsiveContainer>
           </Fade>
@@ -431,8 +431,8 @@ function MeetAna() {
     <section id="our-story" className="py-24 bg-white px-6">
       <div className="max-w-6xl mx-auto">
         <Fade className="text-center mb-14">
-          <p className="text-teal-600 uppercase tracking-widest text-xs font-semibold mb-3">A Story of Hope</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-stone-800">Meet Ana</h2>
+          <p className="text-teal-600 uppercase tracking-widest text-sm font-semibold mb-3">A Story of Hope</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-stone-800">Meet Ana</h2>
         </Fade>
 
         <Fade>
@@ -448,28 +448,28 @@ function MeetAna() {
             <div className="md:w-3/5 p-10 sm:p-12 flex flex-col justify-center gap-5">
               <div className="flex items-center gap-3">
                 <span className="w-8 h-px bg-teal-400" />
-                <span className="text-teal-600 text-xs uppercase tracking-widest font-semibold">Success Story #124</span>
+                <span className="text-teal-600 text-sm uppercase tracking-widest font-semibold">Success Story #124</span>
               </div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-stone-800">
+              <h3 className="text-3xl sm:text-4xl font-bold text-stone-800">
                 Ana*
-                <span className="text-stone-400 text-base font-normal ml-2">(name changed for privacy)</span>
+                <span className="text-stone-400 text-lg font-normal ml-2">(name changed for privacy)</span>
               </h3>
-              <p className="text-stone-400 text-sm">Admitted at 14 · Now 19</p>
-              <p className="text-stone-600 leading-relaxed text-base">
+              <p className="text-stone-400 text-base">Admitted at 14 · Now 19</p>
+              <p className="text-stone-600 leading-relaxed text-lg">
                 Ana came to BrighterPath at 14 after being referred by a local NGO. During her time in our safehouse
                 she completed her secondary education and discovered a passion for graphic design. Today she runs a
                 small freelance design business and volunteers mentoring younger girls in our program.
               </p>
               <blockquote className="border-l-4 border-teal-400 pl-6 py-1">
-                <p className="italic text-stone-700 text-xl leading-snug">"I finally felt like someone believed in me."</p>
+                <p className="italic text-stone-700 text-2xl leading-snug">"I finally felt like someone believed in me."</p>
               </blockquote>
               <div className="pt-2 flex flex-wrap gap-4">
                 <a href="/donate"
-                  className="px-7 py-3 rounded-full bg-teal-600 text-white font-semibold hover:bg-teal-700 transition-colors shadow-sm">
+                  className="px-7 py-3 rounded-full bg-teal-600 text-white text-lg font-semibold hover:bg-teal-700 transition-colors shadow-sm">
                   Donate in Ana's Honor
                 </a>
                 <a href="/impact-dashboard"
-                  className="px-7 py-3 rounded-full border-2 border-stone-200 text-stone-600 font-semibold hover:border-teal-400 hover:text-teal-600 transition-colors">
+                  className="px-7 py-3 rounded-full border-2 border-stone-200 text-stone-600 text-lg font-semibold hover:border-teal-400 hover:text-teal-600 transition-colors">
                   See All Impact
                 </a>
               </div>
@@ -489,11 +489,11 @@ function GetHelp() {
     <section id="get-help" className="py-24 bg-teal-900 px-6">
       <div className="max-w-5xl mx-auto text-center">
         <Fade>
-          <p className="text-teal-400 uppercase tracking-widest text-xs font-semibold mb-4">Confidential Support</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <p className="text-teal-400 uppercase tracking-widest text-sm font-semibold mb-4">Confidential Support</p>
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Are you in danger?<br />You are not alone.
           </h2>
-          <p className="text-white/60 text-base max-w-xl mx-auto mb-14 leading-relaxed">
+          <p className="text-white/60 text-lg max-w-xl mx-auto mb-14 leading-relaxed">
             If you are a girl in Brazil who needs safety, someone to talk to, or a way out —
             every option below is free and completely confidential.
           </p>
@@ -508,9 +508,9 @@ function GetHelp() {
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-white text-lg">WhatsApp</h3>
-              <p className="text-white/50 text-sm leading-relaxed">Message us confidentially, anytime.</p>
-              <a href="https://wa.me/5511999999999" className="text-teal-400 font-medium text-sm hover:underline">+55 11 99999-9999</a>
+              <h3 className="font-semibold text-white text-xl">WhatsApp</h3>
+              <p className="text-white/50 text-base leading-relaxed">Message us confidentially, anytime.</p>
+              <a href="https://wa.me/5511999999999" className="text-teal-400 font-medium text-base hover:underline">+55 11 99999-9999</a>
             </div>
 
             {/* Disque 100 */}
@@ -520,8 +520,8 @@ function GetHelp() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-white text-lg">Disque 100</h3>
-              <p className="text-white/50 text-sm leading-relaxed text-center">Brazil's national hotline. Free and confidential.</p>
+              <h3 className="font-semibold text-white text-xl">Disque 100</h3>
+              <p className="text-white/50 text-base leading-relaxed text-center">Brazil's national hotline. Free and confidential.</p>
               <span className="text-teal-400 font-bold text-3xl">100</span>
             </div>
 
@@ -532,9 +532,9 @@ function GetHelp() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="font-semibold text-white text-lg">Secure Form</h3>
-              <p className="text-white/50 text-sm leading-relaxed">Fill out our safe contact form at your own pace.</p>
-              <button className="mt-1 px-5 py-2 rounded-full bg-amber-400 text-stone-900 text-sm font-semibold hover:bg-amber-300 transition-colors">
+              <h3 className="font-semibold text-white text-xl">Secure Form</h3>
+              <p className="text-white/50 text-base leading-relaxed">Fill out our safe contact form at your own pace.</p>
+              <button className="mt-1 px-5 py-2 rounded-full bg-amber-400 text-stone-900 text-base font-semibold hover:bg-amber-300 transition-colors">
                 Open Form
               </button>
             </div>
@@ -542,7 +542,7 @@ function GetHelp() {
         </Fade>
 
         <Fade>
-          <p className="text-white/30 text-xs">Your safety is our priority. All contacts are strictly confidential.</p>
+          <p className="text-white/30 text-sm">Your safety is our priority. All contacts are strictly confidential.</p>
         </Fade>
       </div>
     </section>
@@ -557,18 +557,18 @@ function DonateCTA() {
     <section id="donate" className="py-24 bg-gradient-to-br from-teal-600 to-teal-800 px-6">
       <div className="max-w-4xl mx-auto text-center">
         <Fade>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4">
             Be the reason a girl finds safety.
           </h2>
-          <p className="text-teal-100/80 text-lg max-w-xl mx-auto mb-10 leading-relaxed">
+          <p className="text-teal-100/80 text-xl max-w-xl mx-auto mb-10 leading-relaxed">
             Every donation — no matter the size — funds a bed in a safehouse, a counseling session,
             or one more step toward a girl's future.
           </p>
           <a href="/donate"
-            className="inline-block px-10 py-4 rounded-full bg-white text-teal-700 font-bold text-lg hover:bg-teal-50 transition-colors shadow-xl shadow-teal-900/30">
+            className="inline-block px-10 py-4 rounded-full bg-white text-teal-700 font-bold text-xl hover:bg-teal-50 transition-colors shadow-xl shadow-teal-900/30">
             Donate Securely
           </a>
-          <p className="text-teal-100/50 text-xs mt-6">
+          <p className="text-teal-100/50 text-sm mt-6">
             BrighterPath is a registered nonprofit. All donations are tax-deductible where applicable.
           </p>
         </Fade>
