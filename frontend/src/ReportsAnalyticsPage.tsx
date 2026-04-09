@@ -53,6 +53,9 @@ type ReportsData = {
     socialContentDonationImpact?: {
       donationImpactSummary: Array<{ label: string; value: number }>
     }
+    socialPostConversionClassifier?: {
+      postTypeConversionRates: Array<{ label: string; value: number }>
+    }
   }
   pipelineResults: Array<{
     name: string
@@ -193,6 +196,10 @@ export default function ReportsAnalyticsPage() {
         return { platform, totalDonations: item.value }
       })
       .sort((a, b) => b.totalDonations - a.totalDonations)
+  })()
+  const socialPostTypeConversionData = (() => {
+    const summary = data.pipelineVisuals?.socialPostConversionClassifier?.postTypeConversionRates ?? []
+    return [...summary].sort((a, b) => b.value - a.value)
   })()
   const formatPipelineDisplayName = (name: string) =>
     name
@@ -388,6 +395,23 @@ export default function ReportsAnalyticsPage() {
                         <YAxis type="category" dataKey="platform" width={130} />
                         <Tooltip />
                         <Bar dataKey="totalDonations" name="Total Donations" fill={CHART_COLORS.primary} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                {pipeline.name === 'social-post-conversion-classifier' && data.pipelineVisuals?.socialPostConversionClassifier?.postTypeConversionRates && (
+                  <div className="mt-4 h-56">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={socialPostTypeConversionData}
+                        layout="vertical"
+                        margin={{ top: 8, right: 16, left: 24, bottom: 8 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 100]} />
+                        <YAxis type="category" dataKey="label" width={140} />
+                        <Tooltip formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Conversion Rate']} />
+                        <Bar dataKey="value" name="Conversion Rate (%)" fill={CHART_COLORS.primary} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>

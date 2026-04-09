@@ -297,6 +297,40 @@ public class AdminDashboardController : ControllerBase
         var topPlatform = referredDonationsByPlatform.FirstOrDefault();
         var topPlatformLabel = topPlatform == null ? "N/A" : $"{topPlatform.Platform} ({topPlatform.Count} referred donations)";
 
+        var postTypeConversionRates = allPosts
+            .GroupBy(p => string.IsNullOrWhiteSpace(p.PostType) ? "Unknown" : p.PostType.Trim())
+            .Select(g =>
+            {
+                var posts = g.ToList();
+                var convertedCount = posts.Count(post =>
+                {
+                    var postDate = DateOnly.FromDateTime(post.CreatedAt.Date);
+                    var endDate = postDate.AddDays(7);
+                    return allDonations.Any(d =>
+                        d.ReferralPostId == post.PostId &&
+                        d.DonationDate >= postDate &&
+                        d.DonationDate <= endDate);
+                });
+                var rate = posts.Count == 0 ? 0 : Math.Round(convertedCount * 100.0 / posts.Count, 2);
+                return new
+                {
+                    label = g.Key,
+                    value = rate
+                };
+            })
+            .OrderByDescending(x => x.value)
+            .ToList();
+        var overallPostConversionRate = allPosts.Count == 0 ? 0 : Math.Round(
+            allPosts.Count(post =>
+            {
+                var postDate = DateOnly.FromDateTime(post.CreatedAt.Date);
+                var endDate = postDate.AddDays(7);
+                return allDonations.Any(d =>
+                    d.ReferralPostId == post.PostId &&
+                    d.DonationDate >= postDate &&
+                    d.DonationDate <= endDate);
+            }) * 100.0 / allPosts.Count, 2);
+
         return Ok(new
         {
             generatedAtUtc = DateTime.UtcNow,
@@ -386,6 +420,10 @@ public class AdminDashboardController : ControllerBase
                     donationImpactSummary = referredDonationsByPlatform
                         .Select(x => new { label = x.Platform, value = (double)x.Count })
                         .ToList()
+                },
+                socialPostConversionClassifier = new
+                {
+                    postTypeConversionRates = postTypeConversionRates
                 }
             },
             pipelineResults = new[]
@@ -464,6 +502,19 @@ public class AdminDashboardController : ControllerBase
                         $"Donations with social referral post id: {donatedWithPost.Count}",
                         $"Average donation from social referrals: {avgDonationFromSocial:0.00}",
                         $"Top platform by referred donations: {topPlatformLabel}"
+                    }
+                },
+                new
+                {
+                    name = "social-post-conversion-classifier",
+                    businessProblem = "Which post types are most likely to convert to at least one linked donation within 7 days?",
+                    runStatus = "Live summary from social posts + linked donations",
+                    results = new[]
+                    {
+                        $"Social posts evaluated: {allPosts.Count}",
+                        $"Overall 7-day conversion rate: {overallPostConversionRate:0.00}%",
+                        $"Top converting post type: {(postTypeConversionRates.FirstOrDefault()?.label ?? "N/A")}",
+                        $"Highest post-type conversion rate: {(postTypeConversionRates.FirstOrDefault()?.value ?? 0):0.00}%"
                     }
                 }
             }
