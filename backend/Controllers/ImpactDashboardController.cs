@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[AllowAnonymous]
 [Route("api/impact-dashboard")]
 public class ImpactDashboardController : ControllerBase
 {
