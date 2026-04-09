@@ -117,12 +117,14 @@ function KpiCard({ kpi }: { kpi: Kpi }) {
   )
 }
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+
 export default function ImpactDashboardPage() {
   const [rawData, setRawData] = useState<DashboardData>(FALLBACK_DATA)
 
   useEffect(() => {
-    fetch('/impact-dashboard.json')
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('fallback'))))
+    fetch(`${API_BASE_URL}/api/impact/dashboard`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('API unavailable'))))
       .then((json: DashboardData) => setRawData(json))
       .catch(() => setRawData(FALLBACK_DATA))
   }, [])
