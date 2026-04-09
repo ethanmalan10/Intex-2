@@ -18,12 +18,19 @@ export const adminViewItems: NavItem[] = [
   { label: 'Reports & Analytics', landingHref: '/reports-analytics', defaultHref: '/reports-analytics' },
 ]
 
-export const footerNavItems = [
+export type FooterNavItem = {
+  label: string
+  href: string
+  /** Matches routes with Admin-only access in App.tsx */
+  adminOnly?: boolean
+}
+
+export const footerNavItems: FooterNavItem[] = [
   { label: 'Our Impact', href: '/impact-dashboard' },
-  { label: 'Residents', href: '/caseload-inventory' },
-  { label: 'Reports & Analytics', href: '/reports-analytics' },
-  { label: 'Counseling', href: '/process-recording' },
-  { label: 'Home Visitation & Case Conferences', href: '/home-visitation-case-conferences' },
+  { label: 'Residents', href: '/caseload-inventory', adminOnly: true },
+  { label: 'Reports & Analytics', href: '/reports-analytics', adminOnly: true },
+  { label: 'Counseling', href: '/process-recording', adminOnly: true },
+  { label: 'Home Visitation & Case Conferences', href: '/home-visitation-case-conferences', adminOnly: true },
   { label: 'Get Help', href: '/#get-help' },
   { label: 'Our Story', href: '/#our-story' },
   { label: 'Donate', href: '/donate' },
