@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
 
 type Resident = {
   id: number
@@ -83,13 +84,15 @@ const EMPTY_FORM: FormState = {
 }
 
 export default function ProcessRecordingPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [entries, setEntries] = useState<ProcessRecording[]>(INITIAL_RECORDINGS)
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM)
   const [formError, setFormError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [entriesError, setEntriesError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/residents`, {
@@ -97,8 +100,7 @@ export default function ProcessRecordingPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
         const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
@@ -115,14 +117,13 @@ export default function ProcessRecordingPage() {
       })
   }, [])
 
-  useEffect(() => {
+  const loadEntries = () => {
     fetch(`${API_BASE_URL}/api/process-recordings?residentId=${selectedResidentId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then(
         (
@@ -139,11 +140,18 @@ export default function ProcessRecordingPage() {
           }>,
         ) => {
           setEntries(rows)
+          setEntriesError(null)
         },
       )
-      .catch(() => {
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setEntriesError(`Live counseling history unavailable (${msg}). Showing fallback history.`)
         setEntries(INITIAL_RECORDINGS)
       })
+  }
+
+  useEffect(() => {
+    loadEntries()
   }, [selectedResidentId])
 
   const selectedResident = residents.find((r) => r.id === selectedResidentId)
@@ -158,6 +166,7 @@ export default function ProcessRecordingPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) return
 
     if (
       !formState.sessionDate ||
@@ -171,6 +180,7 @@ export default function ProcessRecordingPage() {
       return
     }
 
+    setIsSubmitting(true)
     fetch(`${API_BASE_URL}/api/process-recordings`, {
       method: 'POST',
       headers: {
@@ -190,18 +200,19 @@ export default function ProcessRecordingPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((created: ProcessRecording) => {
         setEntries((prev) => [created, ...prev].sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime()))
         setFormState(EMPTY_FORM)
         setFormError(null)
+        setEntriesError(null)
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : 'Unknown error'
         setFormError(`Unable to save recording (${msg}).`)
       })
+      .finally(() => setIsSubmitting(false))
   }
 
   return (
@@ -310,9 +321,10 @@ export default function ProcessRecordingPage() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800"
               >
-                Save Counseling Entry
+                {isSubmitting ? 'Saving...' : 'Save Counseling Entry'}
               </button>
             </form>
           </article>
@@ -322,6 +334,14 @@ export default function ProcessRecordingPage() {
               {selectedResident?.name ?? 'Resident'} History
             </h2>
             <p className="mt-1 text-sm text-stone-600">Displayed in chronological order (most recent first).</p>
+            {entriesError ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <span>{entriesError}</span>
+                <button type="button" onClick={loadEntries} className="rounded border border-amber-300 px-2 py-1 text-[11px] font-semibold">
+                  Retry
+                </button>
+              </div>
+            ) : null}
 
             <div className="mt-5 min-h-0 flex-1">
               {residentEntries.length === 0 ? (

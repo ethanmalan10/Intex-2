@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
+import { getAuthToken } from './utils/authToken'
+import { useAuth } from './context/AuthContext'
 
 type Resident = {
   id: number
@@ -29,7 +31,7 @@ type HomeVisitEntry = {
 
 type CaseConference = {
   id: number
-  residentId: number
+  residentId: number | null
   conferenceDate: string
   topic: string
   status: 'Upcoming' | 'Completed'
@@ -46,6 +48,13 @@ type FormState = {
   familyCooperationLevel: CooperationLevel
   safetyConcerns: boolean
   followUpActions: string
+}
+
+type ConferenceFormState = {
+  attachToSelectedResident: boolean
+  conferenceDate: string
+  topic: string
+  notes: string
 }
 
 const RESIDENTS: Resident[] = [
@@ -127,8 +136,17 @@ const EMPTY_FORM: FormState = {
   followUpActions: '',
 }
 
+const EMPTY_CONFERENCE_FORM: ConferenceFormState = {
+  attachToSelectedResident: true,
+  conferenceDate: '',
+  topic: '',
+  notes: '',
+}
+
 export default function HomeVisitationCaseConferencesPage() {
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
+  const { user } = useAuth()
+  const isAdmin = user?.roles?.some((role) => role.toLowerCase() === 'admin') ?? false
   const [residents, setResidents] = useState<Resident[]>(RESIDENTS)
   const [selectedResidentId, setSelectedResidentId] = useState<number>(RESIDENTS[0].id)
   const [visits, setVisits] = useState<HomeVisitEntry[]>(INITIAL_VISITS)
@@ -136,6 +154,13 @@ export default function HomeVisitationCaseConferencesPage() {
   const [formState, setFormState] = useState<FormState>(EMPTY_FORM)
   const [formError, setFormError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [visitsError, setVisitsError] = useState<string | null>(null)
+  const [conferencesError, setConferencesError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isConferenceModalOpen, setIsConferenceModalOpen] = useState(false)
+  const [conferenceFormState, setConferenceFormState] = useState<ConferenceFormState>(EMPTY_CONFERENCE_FORM)
+  const [conferenceFormError, setConferenceFormError] = useState<string | null>(null)
+  const [isSavingConference, setIsSavingConference] = useState(false)
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/residents`, {
@@ -143,8 +168,7 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((rows: Array<{ residentId: number; caseControlNo: string; internalCode: string }>) => {
         const mapped = rows.map((r) => ({ id: r.residentId, name: `${r.caseControlNo} / ${r.internalCode}` }))
@@ -161,28 +185,44 @@ export default function HomeVisitationCaseConferencesPage() {
       })
   }, [])
 
-  useEffect(() => {
+  const loadResidentHistory = () => {
     fetch(`${API_BASE_URL}/api/home-visitations?residentId=${selectedResidentId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
-      .then((rows: HomeVisitEntry[]) => setVisits(rows))
-      .catch(() => setVisits(INITIAL_VISITS))
+      .then((rows: HomeVisitEntry[]) => {
+        setVisits(rows)
+        setVisitsError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setVisitsError(`Live visitation history unavailable (${msg}). Showing fallback history.`)
+        setVisits(INITIAL_VISITS)
+      })
 
     fetch(`${API_BASE_URL}/api/case-conferences?residentId=${selectedResidentId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
-      .then((rows: CaseConference[]) => setConferences(rows))
-      .catch(() => setConferences(INITIAL_CONFERENCES))
+      .then((rows: CaseConference[]) => {
+        setConferences(rows)
+        setConferencesError(null)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setConferencesError(`Live conference history unavailable (${msg}). Showing fallback history.`)
+        setConferences(INITIAL_CONFERENCES)
+      })
+  }
+
+  useEffect(() => {
+    loadResidentHistory()
   }, [selectedResidentId])
 
   const selectedResident = residents.find((resident) => resident.id === selectedResidentId)
@@ -218,12 +258,14 @@ export default function HomeVisitationCaseConferencesPage() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) return
 
     if (!formState.visitDate || !formState.socialWorker.trim() || !formState.observations.trim() || !formState.followUpActions.trim()) {
       setFormError('Please complete all required fields before saving this visit.')
       return
     }
 
+    setIsSubmitting(true)
     fetch(`${API_BASE_URL}/api/home-visitations`, {
       method: 'POST',
       headers: {
@@ -243,18 +285,67 @@ export default function HomeVisitationCaseConferencesPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((created: HomeVisitEntry) => {
         setVisits((prev) => [created, ...prev].sort((a, b) => new Date(b.visitDate).getTime() - new Date(a.visitDate).getTime()))
         setFormState(EMPTY_FORM)
         setFormError(null)
+        setVisitsError(null)
       })
       .catch((err: unknown) => {
         const msg = err instanceof Error ? err.message : 'Unknown error'
         setFormError(`Unable to save visit (${msg}).`)
       })
+      .finally(() => setIsSubmitting(false))
+  }
+
+  const closeConferenceModal = () => {
+    if (isSavingConference) return
+    setIsConferenceModalOpen(false)
+    setConferenceFormState(EMPTY_CONFERENCE_FORM)
+    setConferenceFormError(null)
+  }
+
+  const onConferenceSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (isSavingConference) return
+
+    if (!conferenceFormState.conferenceDate || !conferenceFormState.topic.trim() || !conferenceFormState.notes.trim()) {
+      setConferenceFormError('Please complete conference date, topic, and notes.')
+      return
+    }
+
+    setIsSavingConference(true)
+    fetch(`${API_BASE_URL}/api/case-conferences`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        residentId: conferenceFormState.attachToSelectedResident ? selectedResidentId : null,
+        conferenceDate: conferenceFormState.conferenceDate,
+        topic: conferenceFormState.topic.trim(),
+        notes: conferenceFormState.notes.trim(),
+      }),
+    })
+      .then(async (res) => {
+        if (res.ok) return res.json()
+        throw new Error(`Request failed (HTTP ${res.status}).`)
+      })
+      .then((created: CaseConference) => {
+        setConferences((prev) => (created.residentId === selectedResidentId ? [created, ...prev] : prev))
+        setConferencesError(null)
+        setConferenceFormState(EMPTY_CONFERENCE_FORM)
+        setConferenceFormError(null)
+        setIsConferenceModalOpen(false)
+      })
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : 'Unknown error'
+        setConferenceFormError(`Unable to save conference (${msg}).`)
+      })
+      .finally(() => setIsSavingConference(false))
   }
 
   return (
@@ -382,9 +473,10 @@ export default function HomeVisitationCaseConferencesPage() {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800"
               >
-                Save Visit Record
+                {isSubmitting ? 'Saving...' : 'Save Visit Record'}
               </button>
             </form>
           </article>
@@ -395,6 +487,14 @@ export default function HomeVisitationCaseConferencesPage() {
                 {selectedResident?.name ?? 'Resident'} Visitation History
               </h2>
               <p className="mt-1 text-sm text-stone-600">Most recent visits appear first.</p>
+              {visitsError ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  <span>{visitsError}</span>
+                  <button type="button" onClick={loadResidentHistory} className="rounded border border-amber-300 px-2 py-1 text-[11px] font-semibold">
+                    Retry
+                  </button>
+                </div>
+              ) : null}
 
               <div className="mt-4 min-h-0 flex-1">
                 {residentVisits.length === 0 ? (
@@ -432,9 +532,18 @@ export default function HomeVisitationCaseConferencesPage() {
             </article>
 
             <article className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-stone-900">
-                {selectedResident?.name ?? 'Resident'} Case Conferences
-              </h2>
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold text-stone-900">Case Conferences</h2>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsConferenceModalOpen(true)}
+                    className="rounded-lg bg-teal-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-teal-800"
+                  >
+                    Add Conference
+                  </button>
+                ) : null}
+              </div>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="rounded-xl border border-stone-200 p-4">
                   <h3 className="text-sm font-semibold text-stone-800">Upcoming Conferences</h3>
@@ -454,6 +563,14 @@ export default function HomeVisitationCaseConferencesPage() {
 
                 <div className="rounded-xl border border-stone-200 p-4">
                   <h3 className="text-sm font-semibold text-stone-800">Conference History</h3>
+                  {conferencesError ? (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      <span>{conferencesError}</span>
+                      <button type="button" onClick={loadResidentHistory} className="rounded border border-amber-300 px-2 py-1 text-[11px] font-semibold">
+                        Retry
+                      </button>
+                    </div>
+                  ) : null}
                   {conferenceHistory.length === 0 ? (
                     <p className="mt-2 text-sm text-stone-600">No conference history yet.</p>
                   ) : (
@@ -474,6 +591,85 @@ export default function HomeVisitationCaseConferencesPage() {
             </article>
           </div>
         </section>
+
+        {isConferenceModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-4 py-6">
+            <div className="w-full max-w-lg rounded-2xl border border-stone-200 bg-white p-6 shadow-xl">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="text-lg font-semibold text-stone-900">Add Case Conference</h3>
+                <button
+                  type="button"
+                  onClick={closeConferenceModal}
+                  className="rounded border border-stone-300 px-2 py-1 text-xs font-semibold text-stone-700"
+                >
+                  Close
+                </button>
+              </div>
+
+              <form className="mt-4 space-y-4" onSubmit={onConferenceSubmit}>
+                <label className="flex items-center gap-2 text-sm text-stone-700">
+                  <input
+                    type="checkbox"
+                    checked={conferenceFormState.attachToSelectedResident}
+                    onChange={(event) =>
+                      setConferenceFormState((prev) => ({ ...prev, attachToSelectedResident: event.target.checked }))
+                    }
+                  />
+                  Attach to currently selected resident ({selectedResident?.name ?? 'Resident'})
+                </label>
+
+                <label className="block text-sm">
+                  <span className="mb-1 block font-medium text-stone-700">Conference Date</span>
+                  <input
+                    type="date"
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2"
+                    value={conferenceFormState.conferenceDate}
+                    onChange={(event) => setConferenceFormState((prev) => ({ ...prev, conferenceDate: event.target.value }))}
+                    required
+                  />
+                </label>
+
+                <label className="block text-sm">
+                  <span className="mb-1 block font-medium text-stone-700">Topic</span>
+                  <input
+                    type="text"
+                    className="w-full rounded-lg border border-stone-300 px-3 py-2"
+                    value={conferenceFormState.topic}
+                    placeholder="Conference topic"
+                    onChange={(event) => setConferenceFormState((prev) => ({ ...prev, topic: event.target.value }))}
+                    required
+                  />
+                </label>
+
+                <TextAreaField
+                  label="Notes"
+                  value={conferenceFormState.notes}
+                  placeholder="Add key context or intended outcomes."
+                  onChange={(value) => setConferenceFormState((prev) => ({ ...prev, notes: value }))}
+                />
+
+                {conferenceFormError ? <p className="text-sm text-rose-700">{conferenceFormError}</p> : null}
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={closeConferenceModal}
+                    className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingConference}
+                    className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800"
+                  >
+                    {isSavingConference ? 'Saving...' : 'Save Conference'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        ) : null}
       </div>
     </PublicLayout>
   )

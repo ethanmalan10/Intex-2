@@ -10,7 +10,13 @@ export default function LoginPage() {
   const [searchParams] = useSearchParams()
   const justRegistered = searchParams.get('registered') === '1'
   const returnUrlParam = searchParams.get('returnUrl')
-  const returnUrl = returnUrlParam && returnUrlParam.startsWith('/') ? returnUrlParam : '/admin'
+  const safeReturnUrl =
+    returnUrlParam &&
+    /^\/(?!\/)/.test(returnUrlParam) &&
+    !returnUrlParam.includes('://') &&
+    !returnUrlParam.toLowerCase().startsWith('/\\')
+      ? returnUrlParam
+      : '/admin'
 
   const [usernameOrEmail, setUsernameOrEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -57,7 +63,7 @@ export default function LoginPage() {
 
       const data = await res.json()
       await login(data.token)
-      navigate(returnUrl)
+      navigate(safeReturnUrl)
     } catch {
       setFormError('Something went wrong. Please try again.')
     } finally {

@@ -3,11 +3,12 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/home-visitations")]
 public class HomeVisitationsController : ControllerBase
 {
@@ -43,6 +44,9 @@ public class HomeVisitationsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] HomeVisitationCreateRequest body)
     {
+        if (!await _db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId))
+            return BadRequest(new { message = "ResidentId not found." });
+
         var entity = new HomeVisitation
         {
             ResidentId = body.ResidentId,
@@ -75,7 +79,7 @@ public class HomeVisitationsController : ControllerBase
 }
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/case-conferences")]
 public class CaseConferencesController : ControllerBase
 {
@@ -91,11 +95,24 @@ public class CaseConferencesController : ControllerBase
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
-        var rows = await _db.InterventionPlans
+        var standaloneRows = await _db.CaseConferences
+            .Where(c => c.ResidentId == residentId)
+            .OrderByDescending(c => c.ConferenceDate)
+            .Select(p => new CaseConferenceDto(
+                p.ConferenceId,
+                p.ResidentId,
+                p.ConferenceDate,
+                p.Topic,
+                p.ConferenceDate >= today ? "Upcoming" : "Completed",
+                p.Notes
+            ))
+            .ToListAsync();
+
+        var legacyRows = await _db.InterventionPlans
             .Where(p => p.ResidentId == residentId && p.CaseConferenceDate != null)
             .OrderByDescending(p => p.CaseConferenceDate)
             .Select(p => new CaseConferenceDto(
-                p.PlanId,
+                -p.PlanId,
                 p.ResidentId,
                 p.CaseConferenceDate!.Value,
                 p.PlanCategory,
@@ -104,19 +121,53 @@ public class CaseConferencesController : ControllerBase
             ))
             .ToListAsync();
 
+        var rows = standaloneRows
+            .Concat(legacyRows)
+            .OrderByDescending(x => x.ConferenceDate)
+            .ToList();
+
         return Ok(rows);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] CaseConferenceCreateRequest body)
+    {
+        if (body.ResidentId is not null && !await _db.Residents.AnyAsync(r => r.ResidentId == body.ResidentId.Value))
+            return BadRequest(new { message = "ResidentId not found." });
+
+        var entity = new CaseConference
+        {
+            ResidentId = body.ResidentId,
+            ConferenceDate = body.ConferenceDate,
+            Topic = body.Topic.Trim(),
+            Notes = string.IsNullOrWhiteSpace(body.Notes) ? null : body.Notes.Trim()
+        };
+
+        _db.CaseConferences.Add(entity);
+        await _db.SaveChangesAsync();
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        return Ok(new CaseConferenceDto(
+            entity.ConferenceId,
+            entity.ResidentId,
+            entity.ConferenceDate,
+            entity.Topic,
+            entity.ConferenceDate >= today ? "Upcoming" : "Completed",
+            entity.Notes
+        ));
     }
 }
 
 public record HomeVisitationCreateRequest(
-    int ResidentId,
+    [property: Range(1, int.MaxValue)] int ResidentId,
     DateOnly VisitDate,
-    string SocialWorker,
-    string VisitType,
-    string Observations,
-    string FamilyCooperationLevel,
+    [property: Required] string SocialWorker,
+    [property: Required] string VisitType,
+    [property: Required] string Observations,
+    [property: Required] string FamilyCooperationLevel,
     bool SafetyConcerns,
-    string FollowUpActions,
+    [property: Required] string FollowUpActions,
     string? VisitOutcome
 );
 
@@ -134,9 +185,16 @@ public record HomeVisitationDto(
 
 public record CaseConferenceDto(
     int Id,
-    int ResidentId,
+    int? ResidentId,
     DateOnly ConferenceDate,
     string Topic,
     string Status,
+    string? Notes
+);
+
+public record CaseConferenceCreateRequest(
+    int? ResidentId,
+    DateOnly ConferenceDate,
+    [property: Required] string Topic,
     string? Notes
 );

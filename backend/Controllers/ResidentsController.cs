@@ -3,11 +3,12 @@ using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace backend.Controllers;
 
 [ApiController]
-[Authorize(Roles = "Admin,donor,staff")]
+[Authorize(Roles = "Admin,staff")]
 [Route("api/residents")]
 public class ResidentsController : ControllerBase
 {
@@ -65,6 +66,9 @@ public class ResidentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ResidentUpsertRequest body)
     {
+        if (!await _db.Safehouses.AnyAsync(s => s.SafehouseId == body.SafehouseId))
+            return BadRequest(new { message = "SafehouseId does not exist." });
+
         var entity = ToEntity(body);
         entity.CreatedAt = DateTime.UtcNow;
         _db.Residents.Add(entity);
@@ -77,6 +81,8 @@ public class ResidentsController : ControllerBase
     {
         var existing = await _db.Residents.FirstOrDefaultAsync(r => r.ResidentId == residentId);
         if (existing == null) return NotFound();
+        if (!await _db.Safehouses.AnyAsync(s => s.SafehouseId == body.SafehouseId))
+            return BadRequest(new { message = "SafehouseId does not exist." });
 
         Apply(existing, body);
         await _db.SaveChangesAsync();
@@ -155,16 +161,16 @@ public class ResidentsController : ControllerBase
 }
 
 public record ResidentUpsertRequest(
-    string CaseControlNo,
-    string InternalCode,
+    [property: Required] string CaseControlNo,
+    [property: Required] string InternalCode,
     int SafehouseId,
-    string CaseStatus,
-    string Sex,
+    [property: Required] string CaseStatus,
+    [property: Required] string Sex,
     DateOnly DateOfBirth,
     string? BirthStatus,
     string? PlaceOfBirth,
     string? Religion,
-    string CaseCategory,
+    [property: Required] string CaseCategory,
     bool SubCatOrphaned,
     bool SubCatTrafficked,
     bool SubCatChildLabor,
@@ -197,8 +203,8 @@ public record ResidentUpsertRequest(
     DateOnly? DateCaseStudyPrepared,
     string? ReintegrationType,
     string? ReintegrationStatus,
-    string InitialRiskLevel,
-    string CurrentRiskLevel,
+    [property: Required] string InitialRiskLevel,
+    [property: Required] string CurrentRiskLevel,
     DateOnly DateEnrolled,
     DateOnly? DateClosed
 );

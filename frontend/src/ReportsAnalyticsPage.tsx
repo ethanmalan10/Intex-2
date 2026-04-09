@@ -13,6 +13,7 @@ import {
   Cell,
   Legend,
 } from 'recharts'
+import { getAuthToken } from './utils/authToken'
 
 type ReportsData = {
   generatedAtUtc: string
@@ -92,7 +93,7 @@ export default function ReportsAnalyticsPage() {
   const [data, setData] = useState<ReportsData>(FALLBACK)
   const [loadError, setLoadError] = useState<string | null>(null)
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
 
   useEffect(() => {
     fetch(apiUrl, {
@@ -100,8 +101,7 @@ export default function ReportsAnalyticsPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((json: ReportsData) => {
         setData({
@@ -261,7 +261,6 @@ export default function ReportsAnalyticsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip />
-                        <Legend />
                         <Pie
                           data={inactiveSupporterRiskPieData}
                           dataKey="value"
@@ -276,6 +275,14 @@ export default function ReportsAnalyticsPage() {
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-xs text-stone-600">
+                      {inactiveSupporterRiskPieData.map((entry) => (
+                        <span key={entry.label} className="inline-flex items-center gap-2">
+                          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
+                          {entry.label}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.sessionBucketReadiness && (

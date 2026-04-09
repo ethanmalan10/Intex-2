@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import PublicLayout from './components/layout/PublicLayout'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { getAuthToken } from './utils/authToken'
 
 type AdminData = {
   generatedAtUtc: string
@@ -124,7 +125,7 @@ export default function AdminDashboardPage() {
   })
   const [analytics, setAnalytics] = useState<AnalyticsData>({ donationsOverTime: [], donorsAddedOverTime: [] })
   const apiUrl = `${API_BASE_URL}/api/admin-dashboard`
-  const token = localStorage.getItem('token') ?? ''
+  const token = getAuthToken()
 
   useEffect(() => {
     fetch(apiUrl, {
@@ -132,8 +133,7 @@ export default function AdminDashboardPage() {
     })
       .then(async (res) => {
         if (res.ok) return res.json()
-        const body = await res.text()
-        throw new Error(`HTTP ${res.status}${body ? `: ${body.slice(0, 120)}` : ''}`)
+        throw new Error(`Request failed (HTTP ${res.status}).`)
       })
       .then((json: AdminData) => {
         setData(json)
@@ -222,41 +222,49 @@ export default function AdminDashboardPage() {
   }
 
   async function saveEdit(userId: string) {
-    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(editForm),
-    })
-    if (!response.ok) {
-      setActionStatus('Failed to update user.')
-      return
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(editForm),
+      })
+      if (!response.ok) {
+        setActionStatus('Failed to update user.')
+        return
+      }
+      setEditingUserId(null)
+      setActionStatus('User updated.')
+      fetchUsers()
+    } catch {
+      setActionStatus('Network error while updating user.')
     }
-    setEditingUserId(null)
-    setActionStatus('User updated.')
-    fetchUsers()
   }
 
   async function deleteUser(userId: string) {
     const confirmed = window.confirm('Are you sure you want to delete this user account?')
     if (!confirmed) return
 
-    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-      method: 'DELETE',
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    })
-    if (!response.ok) {
-      setActionStatus('Failed to delete user.')
-      return
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+      if (!response.ok) {
+        setActionStatus('Failed to delete user.')
+        return
+      }
+      setActionStatus('User deleted.')
+      if (selectedUserId === userId) {
+        setSelectedUserId(null)
+        setSelectedUser(null)
+      }
+      fetchUsers()
+    } catch {
+      setActionStatus('Network error while deleting user.')
     }
-    setActionStatus('User deleted.')
-    if (selectedUserId === userId) {
-      setSelectedUserId(null)
-      setSelectedUser(null)
-    }
-    fetchUsers()
   }
 
   async function createUser() {
@@ -280,26 +288,30 @@ export default function AdminDashboardPage() {
       return
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({ fullName, email, password, role }),
-    })
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ fullName, email, password, role }),
+      })
 
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null)
-      const message = payload?.message || 'Failed to create user.'
-      setCreateUserError(message)
-      return
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        const message = payload?.message || 'Failed to create user.'
+        setCreateUserError(message)
+        return
+      }
+
+      setShowCreateUser(false)
+      setCreateUserForm({ fullName: '', email: '', password: '', role: 'donor' })
+      setActionStatus('User created.')
+      fetchUsers()
+    } catch {
+      setCreateUserError('Network error while creating user.')
     }
-
-    setShowCreateUser(false)
-    setCreateUserForm({ fullName: '', email: '', password: '', role: 'donor' })
-    setActionStatus('User created.')
-    fetchUsers()
   }
 
   const cc = data?.commandCenter
