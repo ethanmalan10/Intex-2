@@ -92,7 +92,9 @@ export default function RegisterPage() {
   }
 
   return (
-    <div
+    <main
+      role="main"
+      aria-label="Create account page"
       className="min-h-screen flex items-center justify-center px-4 py-12"
       style={{ backgroundColor: '#FAF7F2' }}
     >
@@ -252,6 +254,6 @@ export default function RegisterPage() {
       </div>
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
+    </main>
   )
 }

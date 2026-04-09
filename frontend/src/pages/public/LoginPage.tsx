@@ -72,7 +72,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div
+    <main
+      role="main"
+      aria-label="Sign in page"
       className="min-h-screen flex items-center justify-center px-4"
       style={{ backgroundColor: '#FAF7F2' }}
     >
@@ -223,6 +225,6 @@ export default function LoginPage() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
-    </div>
+    </main>
   )
 }
