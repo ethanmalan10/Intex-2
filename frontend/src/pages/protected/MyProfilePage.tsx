@@ -74,13 +74,13 @@ export default function MyProfilePage() {
           style={{ backgroundImage: "url('/images/girlsrelaxed.jpeg')" }}
           aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-stone-900/18" aria-hidden="true" />
-        <section className="relative z-10 mx-auto w-full max-w-6xl space-y-6">
-          <article className="rounded-2xl border border-stone-200 bg-white/96 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+        <div className="absolute inset-0 bg-white/72" aria-hidden="true" />
+        <section className="relative z-10 mx-auto w-full max-w-6xl space-y-5">
+          <article className="rounded-2xl border border-stone-200 bg-white/90 p-6 shadow-sm backdrop-blur-sm sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">My Profile</p>
             <h1 className="mt-2 text-3xl font-bold text-stone-900 sm:text-4xl">Welcome back, {firstName}</h1>
             <p className="mt-2 text-lg font-medium text-stone-700">Here&apos;s the impact you&apos;re making.</p>
-            <p className="mt-2 text-stone-600">
+            <p className="mt-2 text-sm text-stone-500 sm:text-base">
               Your account details and donor impact are updated in real time from your profile.
             </p>
           </article>
@@ -91,56 +91,57 @@ export default function MyProfilePage() {
             </article>
           ) : null}
 
-          <section className="grid gap-4 lg:grid-cols-3" aria-label="Profile summary">
-            <article className="rounded-2xl border border-teal-200 bg-white/97 p-6 shadow-sm backdrop-blur-sm lg:col-span-2">
+          <section className="grid items-stretch gap-4 lg:grid-cols-3" aria-label="Profile summary">
+            <article className="rounded-2xl border border-teal-200 bg-white/92 p-6 shadow-sm backdrop-blur-sm lg:col-span-2">
               <p className="text-sm font-semibold uppercase tracking-wide text-teal-700">Featured Contribution</p>
               <h2 className="mt-2 text-xl font-semibold text-stone-900">Total Personal Donations</h2>
-              <p className="mt-3 text-5xl font-bold text-teal-700 sm:text-6xl">
+              <p className="mt-3 text-6xl font-extrabold text-teal-700 sm:text-7xl">
                 {isLoading ? 'Loading...' : totalDonations}
               </p>
-              <p className="mt-3 text-lg text-stone-700">
+              <p className="mt-3 text-base text-stone-600 sm:text-lg">
                 You&apos;ve contributed <span className="font-semibold text-teal-700">{isLoading ? '...' : totalDonations}</span> to changing lives.
               </p>
             </article>
-            <article className="rounded-2xl border border-stone-200 bg-white/97 p-5 shadow-sm backdrop-blur-sm">
-              <p className="text-sm text-stone-500">Name</p>
+            <article className="rounded-2xl border border-stone-200 bg-white/92 p-5 shadow-sm backdrop-blur-sm">
+              <p className="text-xs uppercase tracking-wide text-stone-500">Profile Details</p>
+              <p className="mt-3 text-sm text-stone-500">Name</p>
               <p className="mt-2 text-xl font-semibold text-stone-900">
                 {isLoading ? 'Loading...' : displayName}
               </p>
-              <p className="text-sm text-stone-500">Email</p>
+              <p className="mt-4 text-sm text-stone-500">Email</p>
               <p className="mt-2 break-all text-base font-medium text-stone-900">
                 {isLoading ? 'Loading...' : email}
               </p>
             </article>
           </section>
 
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Supporting donor metrics">
-            <article className="rounded-2xl border border-stone-200 bg-white/97 p-5 shadow-sm backdrop-blur-sm">
+          <section className="grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-label="Supporting donor metrics">
+            <article className="rounded-2xl border border-stone-200 bg-white/92 p-5 shadow-sm backdrop-blur-sm">
               <p className="text-sm font-medium text-stone-500">Estimated lives impacted</p>
               <p className="mt-2 text-3xl font-bold text-teal-700">{isLoading ? '...' : estimatedLivesImpacted}</p>
-              <p className="mt-2 text-sm text-stone-600">Estimated from current lifetime giving.</p>
+              <p className="mt-2 text-xs text-stone-500 sm:text-sm">Estimated from current lifetime giving.</p>
             </article>
-            <article className="rounded-2xl border border-stone-200 bg-white/97 p-5 shadow-sm backdrop-blur-sm">
+            <article className="rounded-2xl border border-stone-200 bg-white/92 p-5 shadow-sm backdrop-blur-sm">
               <p className="text-sm font-medium text-stone-500">Counseling sessions supported</p>
               <p className="mt-2 text-3xl font-bold text-teal-700">{isLoading ? '...' : counselingSessionsSupported}</p>
-              <p className="mt-2 text-sm text-stone-600">Approximation based on average session funding.</p>
+              <p className="mt-2 text-xs text-stone-500 sm:text-sm">Approximation based on average session funding.</p>
             </article>
-            <article className="rounded-2xl border border-stone-200 bg-white/97 p-5 shadow-sm backdrop-blur-sm sm:col-span-2 lg:col-span-1">
+            <article className="rounded-2xl border border-stone-200 bg-white/92 p-5 shadow-sm backdrop-blur-sm sm:col-span-2 lg:col-span-1">
               <p className="text-sm font-medium text-stone-500">Months of care funded</p>
               <p className="mt-2 text-3xl font-bold text-teal-700">{isLoading ? '...' : monthsOfCareFunded}</p>
-              <p className="mt-2 text-sm text-stone-600">Estimated months of direct shelter and care.</p>
+              <p className="mt-2 text-xs text-stone-500 sm:text-sm">Estimated months of direct shelter and care.</p>
             </article>
           </section>
 
-          <article className="rounded-2xl border border-teal-100 bg-teal-50/92 p-6 shadow-sm backdrop-blur-sm">
+          <article className="rounded-2xl border-l-4 border-l-teal-500 border-teal-100 bg-teal-50/86 p-6 shadow-sm backdrop-blur-sm">
             <div className="flex items-start gap-3">
               <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-amber-400" aria-hidden="true" />
               <div>
-                <h2 className="text-xl font-semibold text-teal-800">Donor impact snapshot</h2>
-                <p className="mt-2 text-stone-700">
+                <h2 className="text-2xl font-semibold text-teal-800">Donor impact snapshot</h2>
+                <p className="mt-3 text-sm text-stone-700 sm:text-base">
                   Your generosity helps provide safe shelter, trauma-informed counseling, and reintegration support for girls rebuilding their futures.
                 </p>
-                <p className="mt-3 text-sm text-teal-800">
+                <p className="mt-3 text-xs text-teal-800 sm:text-sm">
                   Thank you for standing with survivors and helping create lasting local impact.
                 </p>
               </div>
