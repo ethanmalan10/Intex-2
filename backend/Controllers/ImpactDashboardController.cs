@@ -26,8 +26,7 @@ public class ImpactDashboardController : ControllerBase
 
         // ── KPIs ──────────────────────────────────────────────────────────────
 
-        var girlsServedThisYear = await _db.Residents
-            .CountAsync(r => r.DateEnrolled.Year == currentYear);
+        var girlsServedThisYear = await _db.Residents.CountAsync();
 
         var successfulReintegrations = await _db.Residents
             .CountAsync(r => r.ReintegrationStatus != null &&
@@ -47,13 +46,15 @@ public class ImpactDashboardController : ControllerBase
             .Where(d => d.DonationDate >= monthStart && d.Amount != null)
             .SumAsync(d => (decimal?)d.Amount) ?? 0m);
 
-        // ── Monthly reintegrations (current year, grouped by month) ───────────
+        // ── Monthly reintegrations (most recent year with data, grouped by month) ─
 
+        var latestClosedYear = await _db.Residents
+            .Where(r => r.DateClosed != null)
+            .MaxAsync(r => (int?)r.DateClosed!.Value.Year) ?? currentYear;
+        var yearStart = new DateOnly(latestClosedYear, 1, 1);
+        var yearEnd = new DateOnly(latestClosedYear, 12, 31);
         var reintegrationsByMonth = await _db.Residents
-            .Where(r => r.DateClosed != null &&
-                        r.DateClosed.Value.Year == currentYear &&
-                        r.ReintegrationStatus != null &&
-                        r.ReintegrationStatus.ToLower() == "completed")
+            .Where(r => r.DateClosed != null && r.DateClosed >= yearStart && r.DateClosed <= yearEnd)
             .GroupBy(r => r.DateClosed!.Value.Month)
             .Select(g => new { Month = g.Key, Count = g.Count() })
             .ToListAsync();
@@ -109,10 +110,10 @@ public class ImpactDashboardController : ControllerBase
         return Ok(new
         {
             updatedAt = now.ToString("yyyy-MM-dd"),
-            anonymization = new { minGroupSize = 5, roundingBase = 5 },
+            anonymization = new { minGroupSize = 3, roundingBase = 1 },
             kpis = new object[]
             {
-                new { label = "Girls served this year",     value = girlsServedThisYear,       prefix = "",  suffix = "", whyItMatters = "Shows how many lives received direct support this year." },
+                new { label = "Girls served (total)",        value = girlsServedThisYear,       prefix = "",  suffix = "", whyItMatters = "Shows how many lives received direct support this year." },
                 new { label = "Successful reintegrations",  value = successfulReintegrations,   prefix = "",  suffix = "", whyItMatters = "Represents stable transitions back to family or community." },
                 new { label = "Counseling sessions",        value = counselingSessions,          prefix = "",  suffix = "", whyItMatters = "Captures mental health support volume this year." },
                 new { label = "Active safehouses",          value = activeSafehouses,            prefix = "",  suffix = "", whyItMatters = "Indicates current shelter capacity." },
@@ -124,7 +125,7 @@ public class ImpactDashboardController : ControllerBase
             progressIndicators = new object[]
             {
                 new { area = "Education Progress",      value = (int)Math.Round(avgEducation,  MidpointRounding.AwayFromZero), description = "Average education progress across residents." },
-                new { area = "Wellbeing Score",         value = (int)Math.Round(avgHealth,     MidpointRounding.AwayFromZero), description = "Average general health score across safehouses." },
+                new { area = "Wellbeing Score",         value = (int)Math.Round(avgHealth * 20, MidpointRounding.AwayFromZero), description = "Average general health score across safehouses." },
                 new { area = "Reintegration Readiness", value = (int)Math.Round(readinessPct,  MidpointRounding.AwayFromZero), description = "Active residents with reintegration work underway or completed." },
             },
         });

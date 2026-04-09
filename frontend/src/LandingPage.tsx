@@ -367,24 +367,18 @@ function ImpactDashboard({
         </Fade>
 
         {/* Animated counters */}
-        <Fade className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-14">
+        <Fade className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-14">
           {isLoading || !impactData ? (
             <>
               <AnimatedStat target={0} label="Girls currently in care" />
               <AnimatedStat target={0} label="Successful reintegrations" />
               <AnimatedStat target={0} label="Active safehouses" />
-              <AnimatedStat target={0} label="Counseling sessions this month" />
-              <AnimatedStat target={0} label="Volunteer hours this month" delay={100} />
-              <AnimatedStat target={0} prefix="$" label="Donations this month" delay={200} />
             </>
           ) : (
             <>
               <AnimatedStat target={impactData.girlsCurrentlyInCare} label="Girls currently in care" />
               <AnimatedStat target={impactData.successfulReintegrations} label="Successful reintegrations" />
               <AnimatedStat target={impactData.activeSafehouses} label="Active safehouses" />
-              <AnimatedStat target={impactData.counselingSessionsThisMonth} label="Counseling sessions this month" />
-              <AnimatedStat target={impactData.volunteerHoursThisMonth ?? 0} label="Volunteer hours this month" delay={100} />
-              <AnimatedStat target={impactData.monthlyDonations} prefix="$" label="Donations this month" delay={200} />
             </>
           )}
         </Fade>
@@ -570,14 +564,6 @@ function DonateCTA() {
             Every donation — no matter the size — funds a bed in a safehouse, a counseling session,
             or one more step toward a girl's future.
           </p>
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {['$50', '$150', '$500', 'Custom'].map(amt => (
-              <button key={amt}
-                className="px-8 py-3 rounded-full bg-white/20 border border-white/30 text-white font-semibold hover:bg-white hover:text-teal-700 transition-all">
-                {amt}
-              </button>
-            ))}
-          </div>
           <a href="/donate"
             className="inline-block px-10 py-4 rounded-full bg-white text-teal-700 font-bold text-lg hover:bg-teal-50 transition-colors shadow-xl shadow-teal-900/30">
             Donate Securely
