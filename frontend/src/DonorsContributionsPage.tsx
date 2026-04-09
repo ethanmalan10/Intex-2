@@ -295,7 +295,7 @@ export default function DonorsContributionsPage() {
   return (
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
-        <section className="mx-auto max-w-7xl px-6 py-10">
+        <section className="mx-auto w-full max-w-[1680px] px-4 py-10 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-stone-900">Donors &amp; Contributions</h1>
           <p className="mt-2 text-sm text-stone-600">
             Admins can create and edit supporters and donations. Staff can view records only.
