@@ -88,60 +88,6 @@ const SUBCAT_FIELDS: { key: keyof Pick<
   { key: 'subCatChildWithHiv', label: 'Child with HIV' },
 ]
 
-function emptyResident(residentId: number): ResidentRecord {
-  const today = new Date().toISOString().slice(0, 10)
-  return {
-    residentId,
-    caseControlNo: '',
-    internalCode: '',
-    safehouseId: 1,
-    caseStatus: 'Active',
-    sex: 'F',
-    dateOfBirth: today,
-    birthStatus: '',
-    placeOfBirth: '',
-    religion: '',
-    caseCategory: '',
-    subCatOrphaned: false,
-    subCatTrafficked: false,
-    subCatChildLabor: false,
-    subCatPhysicalAbuse: false,
-    subCatSexualAbuse: false,
-    subCatOsaec: false,
-    subCatCicl: false,
-    subCatAtRisk: false,
-    subCatStreetChild: false,
-    subCatChildWithHiv: false,
-    isPwd: false,
-    pwdType: '',
-    hasSpecialNeeds: false,
-    specialNeedsDiagnosis: '',
-    familyIs4ps: false,
-    familySoloParent: false,
-    familyIndigenous: false,
-    familyParentPwd: false,
-    familyInformalSettler: false,
-    dateOfAdmission: today,
-    ageUponAdmission: '',
-    presentAge: '',
-    lengthOfStay: '',
-    referralSource: '',
-    referringAgencyPerson: '',
-    dateColbRegistered: '',
-    dateColbObtained: '',
-    assignedSocialWorker: '',
-    initialCaseAssessment: '',
-    dateCaseStudyPrepared: '',
-    reintegrationType: '',
-    reintegrationStatus: '',
-    initialRiskLevel: 'Medium',
-    currentRiskLevel: 'Medium',
-    dateEnrolled: today,
-    dateClosed: '',
-    createdAt: new Date().toISOString(),
-  }
-}
-
 const INITIAL_RESIDENTS: ResidentRecord[] = [
   {
     residentId: 1,
@@ -470,7 +416,6 @@ export default function CaseloadInventoryPage() {
   const token = getAuthToken()
   const [residents, setResidents] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
   const [filterOptionsSource, setFilterOptionsSource] = useState<ResidentRecord[]>(INITIAL_RESIDENTS)
-  const [nextId, setNextId] = useState(7)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -480,7 +425,7 @@ export default function CaseloadInventoryPage() {
   const [filterPhysicalAbuseOnly, setFilterPhysicalAbuseOnly] = useState(false)
 
   const [selectedId, setSelectedId] = useState<number | null>(1)
-  const [panelMode, setPanelMode] = useState<'view' | 'edit' | 'create'>('view')
+  const [panelMode, setPanelMode] = useState<'view' | 'edit'>('view')
   const [draft, setDraft] = useState<ResidentRecord | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
@@ -519,7 +464,7 @@ export default function CaseloadInventoryPage() {
       .then((rows: ResidentRecord[]) => {
         setResidents(rows)
         setLoadError(null)
-        if (rows.length > 0 && !rows.some((r) => r.residentId === selectedId) && panelMode !== 'create') {
+        if (rows.length > 0 && !rows.some((r) => r.residentId === selectedId)) {
           setSelectedId(rows[0].residentId)
         }
       })
@@ -528,7 +473,7 @@ export default function CaseloadInventoryPage() {
         setLoadError(`Live API unavailable (${msg}). Showing local fallback records.`)
         setResidents(INITIAL_RESIDENTS)
       })
-  }, [searchQuery, filterStatus, filterSafehouse, filterCategory, panelMode, selectedId])
+  }, [searchQuery, filterStatus, filterSafehouse, filterCategory, selectedId])
 
   const distinctStatuses = useMemo(
     () => [...new Set(filterOptionsSource.map((r) => r.caseStatus))].sort(),
@@ -555,14 +500,6 @@ export default function CaseloadInventoryPage() {
 
   const selected = selectedId != null ? residents.find((r) => r.residentId === selectedId) : null
 
-  const startCreate = () => {
-    const blank = emptyResident(nextId)
-    setSelectedId(null)
-    setDraft(blank)
-    setPanelMode('create')
-    setFormError(null)
-  }
-
   const startEdit = () => {
     if (!selected) return
     setDraft({ ...selected })
@@ -573,12 +510,7 @@ export default function CaseloadInventoryPage() {
   const cancelPanelForm = () => {
     setDraft(null)
     setFormError(null)
-    if (panelMode === 'create') {
-      setPanelMode('view')
-      setSelectedId(residents[0]?.residentId ?? null)
-    } else {
-      setPanelMode('view')
-    }
+    setPanelMode('view')
   }
 
   const validateDraft = (d: ResidentRecord): string | null => {
@@ -607,11 +539,7 @@ export default function CaseloadInventoryPage() {
     }
     try {
       setIsSaving(true)
-      const method = panelMode === 'create' ? 'POST' : 'PUT'
-      const endpoint =
-        panelMode === 'create'
-          ? `${API_BASE_URL}/api/residents`
-          : `${API_BASE_URL}/api/residents/${draft.residentId}`
+      const endpoint = `${API_BASE_URL}/api/residents/${draft.residentId}`
 
       const payload = {
         caseControlNo: draft.caseControlNo,
@@ -663,7 +591,7 @@ export default function CaseloadInventoryPage() {
       }
 
       const res = await fetch(endpoint, {
-        method,
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -676,12 +604,7 @@ export default function CaseloadInventoryPage() {
       }
 
       const saved = (await res.json()) as ResidentRecord
-      if (panelMode === 'create') {
-        setResidents((prev) => [saved, ...prev])
-        setNextId((n) => n + 1)
-      } else {
-        setResidents((prev) => prev.map((r) => (r.residentId === saved.residentId ? saved : r)))
-      }
+      setResidents((prev) => prev.map((r) => (r.residentId === saved.residentId ? saved : r)))
       setSelectedId(saved.residentId)
       setPanelMode('view')
       setDraft(null)
@@ -694,7 +617,7 @@ export default function CaseloadInventoryPage() {
     }
   }
 
-  const activeDraft = panelMode === 'create' || panelMode === 'edit' ? draft : null
+  const activeDraft = panelMode === 'edit' ? draft : null
   const showView = panelMode === 'view' && selected && !draft
 
   const updateDraft = (patch: Partial<ResidentRecord>) => {
@@ -705,23 +628,14 @@ export default function CaseloadInventoryPage() {
     <PublicLayout navVariant="default" offsetTop={true}>
       <div className="min-h-screen bg-stone-50 text-stone-800">
         <section className="mx-auto max-w-7xl px-6 py-10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-teal-800">Resident Records</h1>
-              <p className="mt-2 text-stone-600">
-                Core case management: resident profiles aligned with agency records. Search, filter, and maintain
-                demographics, case category, disability, family profile, admission, referral, assignment, and
-                reintegration.
-              </p>
-              {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
-            </div>
-            <button
-              type="button"
-              onClick={startCreate}
-              className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-800"
-            >
-              Add resident
-            </button>
+          <div>
+            <h1 className="text-3xl font-bold text-teal-800">Resident Records</h1>
+            <p className="mt-2 text-stone-600">
+              Core case management: resident profiles aligned with agency records. Search, filter, and maintain
+              demographics, case category, disability, family profile, admission, referral, assignment, and
+              reintegration.
+            </p>
+            {loadError ? <p className="mt-2 text-sm text-amber-700">{loadError}</p> : null}
           </div>
         </section>
 
@@ -831,7 +745,7 @@ export default function CaseloadInventoryPage() {
                           <tr
                             key={r.residentId}
                             className={`cursor-pointer border-b border-stone-100 hover:bg-teal-50/40 ${
-                              selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50' : ''
+                              selectedId === r.residentId ? 'bg-teal-50' : ''
                             }`}
                             onClick={() => {
                               setSelectedId(r.residentId)
@@ -864,7 +778,7 @@ export default function CaseloadInventoryPage() {
                         key={r.residentId}
                         type="button"
                         className={`w-full px-4 py-3 text-left hover:bg-stone-50 ${
-                          selectedId === r.residentId && panelMode !== 'create' ? 'bg-teal-50/70' : ''
+                          selectedId === r.residentId ? 'bg-teal-50/70' : ''
                         }`}
                         onClick={() => {
                           setSelectedId(r.residentId)
@@ -889,18 +803,6 @@ export default function CaseloadInventoryPage() {
 
             <div className="lg:col-span-3">
               <div className="rounded-2xl border border-teal-100 bg-white p-6 shadow-sm">
-                {panelMode === 'create' && activeDraft && (
-                  <ProfileForm
-                    title="New resident profile"
-                    draft={activeDraft}
-                    updateDraft={updateDraft}
-                    onSubmit={saveDraft}
-                    onCancel={cancelPanelForm}
-                    formError={formError}
-                    isSaving={isSaving}
-                    submitLabel="Create profile"
-                  />
-                )}
                 {panelMode === 'edit' && activeDraft && (
                   <ProfileForm
                     title="Edit resident profile"
@@ -936,7 +838,7 @@ export default function CaseloadInventoryPage() {
                   </>
                 )}
                 {panelMode === 'view' && !selected && (
-                  <p className="text-sm text-stone-600">Select a resident from the list or add a new profile.</p>
+                  <p className="text-sm text-stone-600">Select a resident from the list.</p>
                 )}
               </div>
             </div>

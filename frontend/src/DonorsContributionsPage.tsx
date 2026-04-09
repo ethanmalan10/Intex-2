@@ -24,6 +24,12 @@ interface Donation {
   amount?: number | null
   estimatedValue?: number | null
   notes?: string | null
+  isRecurring?: boolean
+  campaignName?: string | null
+  channelSource?: string
+  currencyCode?: string | null
+  impactUnit?: string | null
+  referralPostId?: number | null
 }
 
 interface Allocation {
@@ -87,6 +93,36 @@ const SUPPORTER_TYPE_FILTER_OPTIONS: { value: string; label: string }[] = [
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+/** API may return `YYYY-MM-DD` or an ISO datetime string; `<input type="date">` needs `YYYY-MM-DD`. */
+function toDateInputValue(raw: string | undefined): string {
+  if (!raw) return ''
+  const s = String(raw).trim()
+  const head = s.slice(0, 10)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(head)) return head
+  return ''
+}
+
+async function errorMessageFromResponse(res: Response, fallback: string): Promise<string> {
+  const text = await res.text()
+  if (!text.trim()) return fallback
+  try {
+    const body = JSON.parse(text) as Record<string, unknown>
+    if (typeof body.message === 'string') return body.message
+    if (typeof body.detail === 'string') return body.detail
+    if (typeof body.title === 'string' && body.title) return body.title
+    const errs = body.errors
+    if (errs && typeof errs === 'object' && errs !== null) {
+      const first = Object.values(errs as Record<string, string[]>)
+        .flat()
+        .find((m) => typeof m === 'string')
+      if (first) return first
+    }
+  } catch {
+    /* ignore */
+  }
+  return fallback
 }
 
 export default function DonorsContributionsPage() {
@@ -174,15 +210,21 @@ export default function DonorsContributionsPage() {
 
   function startEditDonation(d: Donation) {
     setEditingDonationId(d.donationId)
-    setDonationForm((prev) => ({
-      ...prev,
+    setDonationForm({
+      ...emptyDonationForm,
       supporterId: String(d.supporterId ?? ''),
       donationType: d.donationType ?? '',
-      donationDate: d.donationDate ?? '',
+      donationDate: toDateInputValue(d.donationDate),
       amount: d.amount != null ? String(d.amount) : '',
       estimatedValue: d.estimatedValue != null ? String(d.estimatedValue) : '',
       notes: d.notes ?? '',
-    }))
+      isRecurring: Boolean(d.isRecurring),
+      campaignName: d.campaignName ?? '',
+      channelSource: (d.channelSource && d.channelSource.trim()) || 'Direct',
+      currencyCode: (d.currencyCode && d.currencyCode.trim()) || 'USD',
+      impactUnit: d.impactUnit ?? '',
+      referralPostId: d.referralPostId != null ? String(d.referralPostId) : '',
+    })
   }
 
   async function saveSupporter() {
@@ -236,21 +278,32 @@ export default function DonorsContributionsPage() {
   async function saveDonation() {
     if (!isAdmin) return
     const supporterId = Number(donationForm.supporterId)
-    const amount = donationForm.amount ? Number(donationForm.amount) : null
-    const estimatedValue = donationForm.estimatedValue ? Number(donationForm.estimatedValue) : null
-    const referralPostId = donationForm.referralPostId ? Number(donationForm.referralPostId) : null
+    const amountRaw = donationForm.amount.trim()
+    const estRaw = donationForm.estimatedValue.trim()
+    const amount = amountRaw === '' ? null : Number(amountRaw)
+    const estimatedValue = estRaw === '' ? null : Number(estRaw)
+    const refRaw = donationForm.referralPostId.trim()
+    const referralPostId = refRaw === '' ? null : Number(refRaw)
     const donationTypeValue = donationForm.donationType.trim()
 
     if (!Number.isFinite(supporterId) || supporterId <= 0) {
       setError('Please select a valid supporter.')
       return
     }
-    if (!donationForm.donationDate) {
+    if (!donationForm.donationDate.trim()) {
       setError('Donation date is required.')
       return
     }
     if (!donationTypeValue) {
       setError('Donation type is required.')
+      return
+    }
+    if (amountRaw !== '' && (amount === null || !Number.isFinite(amount))) {
+      setError('Amount must be a valid number.')
+      return
+    }
+    if (estRaw !== '' && (estimatedValue === null || !Number.isFinite(estimatedValue))) {
+      setError('Estimated value must be a valid number.')
       return
     }
     if ((amount === null || !Number.isFinite(amount)) && (estimatedValue === null || !Number.isFinite(estimatedValue))) {
@@ -265,7 +318,7 @@ export default function DonorsContributionsPage() {
       setError('Estimated value cannot be negative.')
       return
     }
-    if (referralPostId !== null && (!Number.isFinite(referralPostId) || referralPostId <= 0)) {
+    if (refRaw !== '' && (referralPostId === null || !Number.isFinite(referralPostId) || referralPostId <= 0)) {
       setError('Referral post ID must be a positive number.')
       return
     }
@@ -299,7 +352,10 @@ export default function DonorsContributionsPage() {
         body: JSON.stringify(payload),
       })
 
-      if (!res.ok) throw new Error('Could not save donation.')
+      if (!res.ok) {
+        const msg = await errorMessageFromResponse(res, 'Could not save donation.')
+        throw new Error(msg)
+      }
 
       setDonationForm(emptyDonationForm)
       setEditingDonationId(null)
