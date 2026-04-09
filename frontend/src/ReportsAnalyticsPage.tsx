@@ -261,7 +261,6 @@ export default function ReportsAnalyticsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Tooltip />
-                        <Legend />
                         <Pie
                           data={inactiveSupporterRiskPieData}
                           dataKey="value"
@@ -276,6 +275,14 @@ export default function ReportsAnalyticsPage() {
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
+                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-stone-600">
+                      {inactiveSupporterRiskPieData.map((entry) => (
+                        <span key={entry.label} className="inline-flex items-center gap-2">
+                          <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
+                          {entry.label}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {pipeline.name === 'counseling-intensity-readiness-effect' && data.pipelineVisuals?.counselingIntensityReadinessEffect?.sessionBucketReadiness && (
