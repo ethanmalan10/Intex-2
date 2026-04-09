@@ -1,9 +1,18 @@
 import { ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth()
+export default function ProtectedRoute({
+  children,
+  requiredRole,
+  requiredRoles,
+}: {
+  children: ReactNode
+  requiredRole?: string
+  requiredRoles?: string[]
+}) {
+  const { isAuthenticated, isLoading, user } = useAuth()
+  const location = useLocation()
 
   if (isLoading) {
     return (
@@ -14,7 +23,18 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+    const returnUrl = encodeURIComponent(location.pathname + location.search)
+    return <Navigate to={`/login?returnUrl=${returnUrl}`} replace />
+  }
+
+  const expectedRoles = requiredRoles?.length ? requiredRoles : requiredRole ? [requiredRole] : []
+  if (expectedRoles.length > 0) {
+    const hasRole = (user?.roles ?? []).some((r) =>
+      expectedRoles.some((expected) => expected.toLowerCase() === r.toLowerCase())
+    )
+    if (!hasRole) {
+      return <Navigate to="/" replace />
+    }
   }
 
   return <>{children}</>
