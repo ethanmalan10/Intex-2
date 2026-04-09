@@ -218,8 +218,7 @@ export default function ReportsAnalyticsPage() {
           <h2 className="mb-3 text-lg font-semibold text-teal-800">Pipeline Results by Use Case</h2>
           <div className="space-y-4">
             {data.pipelineResults.map((pipeline) => (
-              <article key={pipeline.name} className="rounded-2xl border border-teal-100 bg-white p-5 shadow-sm">
-                <p className="text-xs uppercase tracking-wide text-teal-700">Pipeline</p>
+              <article key={pipeline.name} className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
                 <p className="mt-1 font-semibold text-teal-700">{formatPipelineDisplayName(pipeline.name)}</p>
                 <p className="mt-2 text-sm text-stone-700"><strong>Business problem:</strong> {pipeline.businessProblem}</p>
                 <p className="mt-2 text-sm text-stone-600">
