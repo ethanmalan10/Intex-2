@@ -22,11 +22,11 @@ public class ImpactDashboardController : ControllerBase
     {
         var now = DateOnly.FromDateTime(DateTime.UtcNow);
         var currentYear = now.Year;
-        var monthStart = new DateOnly(currentYear, now.Month, 1);
 
         // ── KPIs ──────────────────────────────────────────────────────────────
 
-        var girlsServedThisYear = await _db.Residents.CountAsync();
+        var girlsServedThisYear = await _db.Residents
+            .CountAsync(r => r.DateClosed == null && r.CaseStatus.ToLower() != "closed");
 
         var successfulReintegrations = await _db.Residents
             .CountAsync(r => r.ReintegrationStatus != null &&
@@ -43,8 +43,8 @@ public class ImpactDashboardController : ControllerBase
             .SumAsync(p => (long?)p.SessionDurationMinutes) ?? 0L) / 60;
 
         var monthlyDonations = (int)(await _db.Donations
-            .Where(d => d.DonationDate >= monthStart && d.Amount != null)
-            .SumAsync(d => (decimal?)d.Amount) ?? 0m);
+            .Where(d => d.DonationDate >= now.AddDays(-30))
+            .SumAsync(d => (decimal?)((d.Amount ?? d.EstimatedValue) ?? 0m)) ?? 0m);
 
         // ── Monthly reintegrations (most recent year with data, grouped by month) ─
 
@@ -110,6 +110,7 @@ public class ImpactDashboardController : ControllerBase
         return Ok(new
         {
             updatedAt = now.ToString("yyyy-MM-dd"),
+            sourceYear = latestClosedYear,
             anonymization = new { minGroupSize = 3, roundingBase = 1 },
             kpis = new object[]
             {
