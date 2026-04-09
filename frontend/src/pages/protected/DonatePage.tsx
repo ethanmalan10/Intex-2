@@ -116,9 +116,9 @@ export default function DonatePage() {
           </div>
 
           <h1 className="mt-5 text-center text-5xl leading-tight text-stone-900" style={{ fontFamily: 'Georgia, serif' }}>
-            Give Hope
+            Restore Her Hope,
             <br />
-            <span className="italic">to a Girl</span>
+            <span className="mt-5 text-center text-5xl leading-tight text-stone-900" style={{ fontFamily: 'Georgia, serif' }}>Rebuild Her Life</span>
           </h1>
           <p className="mt-4 text-center text-stone-500 text-lg">
             Your gift directly supports girl survivors of abuse in Brazil
