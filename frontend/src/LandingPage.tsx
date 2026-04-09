@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { CSSProperties, useEffect, useRef, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
@@ -52,7 +52,7 @@ function Fade({
 // ─────────────────────────────────────────────────────────────────────────────
 // Stat counter animation
 // ─────────────────────────────────────────────────────────────────────────────
-function useCounter(target: number, duration = 1800) {
+function useCounter(target: number | null, duration = 1800) {
   const [value, setValue] = useState(0)
   const [started, setStarted] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -69,7 +69,7 @@ function useCounter(target: number, duration = 1800) {
   }, [started])
 
   useEffect(() => {
-    if (!started) return
+    if (!started || target === null) return
     let start: number | null = null
     const step = (ts: number) => {
       if (!start) start = ts
@@ -90,7 +90,7 @@ function AnimatedStat({
   label,
   delay = 0,
 }: {
-  target: number
+  target: number | null
   prefix?: string
   suffix?: string
   label: string
@@ -100,7 +100,7 @@ function AnimatedStat({
   return (
     <div ref={ref} className="text-center" style={{ transitionDelay: `${delay}ms` }}>
       <p className="text-4xl sm:text-5xl font-bold text-teal-700 tabular-nums">
-        {prefix}{value.toLocaleString()}{suffix}
+        {target === null ? '…' : `${prefix}${value.toLocaleString()}${suffix}`}
       </p>
       <p className="text-stone-500 text-sm mt-2 leading-snug">{label}</p>
     </div>
@@ -110,9 +110,9 @@ function AnimatedStat({
 // ─────────────────────────────────────────────────────────────────────────────
 // Person icon
 // ─────────────────────────────────────────────────────────────────────────────
-function PersonIcon({ className }: { className?: string }) {
+function PersonIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} style={style}>
       <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4
                7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6
                1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
@@ -149,7 +149,7 @@ const DONUT_COLORS = ['#5f8c6e', '#7fada0', '#a3c4b5', '#c9ddd5']
 // ─────────────────────────────────────────────────────────────────────────────
 // Hero — full bleed photo, strong mission statement, clear CTA
 // ─────────────────────────────────────────────────────────────────────────────
-function Hero() {
+function Hero({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
@@ -192,9 +192,9 @@ function Hero() {
         {/* Right — trust signals */}
         <div className="hidden md:flex flex-col gap-4">
           {[
-            { n: '47', label: 'Girls currently in our care' },
-            { n: '124', label: 'Successful reintegrations to date' },
-            { n: '6', label: 'Active safehouses across Brazil' },
+            { n: summary?.activeResidents?.toString() ?? '…', label: 'Girls currently in our care' },
+            { n: summary?.totalReintegrations?.toString() ?? '…', label: 'Successful reintegrations to date' },
+            { n: summary?.activeSafehouses?.toString() ?? '…', label: 'Active safehouses across Brazil' },
           ].map((s, i) => (
             <div key={i}
               className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-5 flex items-center gap-5"
@@ -218,36 +218,30 @@ function Hero() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Reality section — the 1-in-4 / 1-in-3 graphic
+// Reality section — the 80% statistic graphic
 // ─────────────────────────────────────────────────────────────────────────────
-const TOTAL = 12
-const ABUSED_IDX = [0, 1, 2]
-const KNEW_IDX = 0
+const TOTAL = 4
 const STAGGER = 550
-const PHASE2_DELAY = (ABUSED_IDX.length - 1) * STAGGER + 1600
 
 function IconGrid({ phase }: { phase: number }) {
   return (
-    <div className="grid grid-cols-4 gap-3 sm:gap-5">
+    <div className="flex gap-4 sm:gap-6 justify-center">
       {Array.from({ length: TOTAL }).map((_, i) => {
-        const isAbused = ABUSED_IDX.includes(i)
-        const isKnew = i === KNEW_IDX
-        const order = ABUSED_IDX.indexOf(i)
-        let color = 'text-stone-300'
-        if (isKnew && phase >= 2) color = 'text-amber-400'
-        else if (isAbused && phase >= 1) color = 'text-teal-500'
-        const delay = isAbused && phase >= 1 ? order * STAGGER : 0
+        const isPartial = i === 3
+        const delay = phase >= 1 ? i * STAGGER : 0
         return (
-          <div key={i} className="relative flex items-center justify-center">
-            {isKnew && phase >= 2 && (
-              <span className="absolute inset-0 rounded-full"
-                style={{ background: 'radial-gradient(circle, rgba(251,191,36,0.2) 0%, transparent 70%)' }} />
-            )}
+          <div key={i} className="relative w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20">
+            {/* Grey base always visible */}
+            <PersonIcon className="absolute inset-0 w-full h-full text-stone-300" />
+            {/* Teal overlay fades in with stagger; partial icon clips to 80% */}
             <PersonIcon
-              className={`w-14 h-14 sm:w-18 sm:h-18 md:w-20 md:h-20 transition-all duration-500
-                ${isKnew && phase >= 2 ? 'scale-110' : 'scale-100'} ${color}`}
-              // @ts-expect-error inline style for delay
-              style={{ transitionDelay: `${delay}ms` }}
+              className="absolute inset-0 w-full h-full transition-opacity duration-500"
+              style={{
+                color: '#FBBF24',
+                clipPath: isPartial ? 'inset(0 80% 0 0)' : undefined,
+                transitionDelay: `${delay}ms`,
+                opacity: phase >= 1 ? 1 : 0,
+              }}
             />
           </div>
         )
@@ -268,7 +262,6 @@ function RealitySection() {
       if (e.isIntersecting && !fired) {
         fired = true
         setPhase(1)
-        setTimeout(() => setPhase(2), PHASE2_DELAY)
       }
     }, { threshold: 0.3 })
     obs.observe(el)
@@ -286,30 +279,20 @@ function RealitySection() {
           </h2>
         </Fade>
 
-        {/* Stat 1 */}
+        {/* Stat */}
         <Fade className="w-full">
           <div className="flex flex-col items-center gap-2">
-            <p className="text-7xl sm:text-8xl font-bold text-teal-400 leading-none">1 in 4</p>
+            <p className="text-7xl sm:text-8xl font-bold text-teal-400 leading-none">80%</p>
             <p className="text-stone-700 text-xl sm:text-2xl font-medium">
-              girls in Brazil experiences sexual violence before age 18
+              of child sexual abuse in Brazil happens<br />at home, by a family member.
             </p>
-            <p className="text-stone-400 text-xs mt-1">WHO / UNICEF Brazil</p>
+            <p className="text-stone-400 text-xs mt-1">Brazil Ministry of Human Rights, 2023</p>
           </div>
         </Fade>
 
         {/* Icon grid */}
         <div ref={triggerRef}>
           <IconGrid phase={phase} />
-        </div>
-
-        {/* Stat 2 — fades in with phase 2 */}
-        <div className={`flex flex-col items-center gap-2 transition-all duration-700 ease-out
-          ${phase >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <p className="text-7xl sm:text-8xl font-bold text-amber-400 leading-none">1 in 3</p>
-          <p className="text-stone-700 text-xl sm:text-2xl font-medium">
-            of those girls knew their abuser — a family member or trusted adult
-          </p>
-          <p className="text-stone-400 text-xs mt-1">Childhood Brasil</p>
         </div>
 
         <Fade>
@@ -329,7 +312,20 @@ function RealitySection() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Impact dashboard
 // ─────────────────────────────────────────────────────────────────────────────
-function ImpactDashboard() {
+const FALLBACK_SUMMARY = {
+  activeResidents: 47,
+  totalReintegrations: 124,
+  activeSafehouses: 6,
+  counselingSessionsThisMonth: 183,
+  volunteerHoursThisMonth: 340,
+  donationsThisMonth: 42500,
+}
+
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') ?? ''
+
+function ImpactDashboard({ summary }: { summary: typeof FALLBACK_SUMMARY | null }) {
+  const s = summary
+
   return (
     <section id="our-impact" className="py-24 bg-stone-50 px-6">
       <div className="max-w-6xl mx-auto">
@@ -342,13 +338,11 @@ function ImpactDashboard() {
         </Fade>
 
         {/* Animated counters */}
-        <Fade className="grid grid-cols-2 sm:grid-cols-3 gap-6 mb-14">
-          <AnimatedStat target={47}  label="Girls currently in care" />
-          <AnimatedStat target={124} label="Successful reintegrations" />
-          <AnimatedStat target={6}   label="Active safehouses" />
-          <AnimatedStat target={183} label="Counseling sessions this month" />
-          <AnimatedStat target={340} label="Volunteer hours this month" delay={100} />
-          <AnimatedStat target={42500} prefix="$" label="Donations this month" delay={200} />
+        <Fade className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-14">
+          <AnimatedStat target={s?.activeResidents ?? null}         label="Girls currently in care" />
+          <AnimatedStat target={s?.totalReintegrations ?? null}     label="Successful reintegrations" />
+          <AnimatedStat target={s?.activeSafehouses ?? null}        label="Active safehouses" />
+          <AnimatedStat target={s?.volunteerHoursThisMonth ?? null} label="Volunteer hours this month" delay={100} />
         </Fade>
 
         <div className="grid md:grid-cols-2 gap-8">
@@ -557,11 +551,20 @@ function DonateCTA() {
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const [summary, setSummary] = useState<typeof FALLBACK_SUMMARY | null>(null)
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/impact/summary`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setSummary(data))
+      .catch(() => setSummary(FALLBACK_SUMMARY))
+  }, [])
+
   return (
     <PublicLayout navVariant="landing" offsetTop={false}>
-      <Hero />
+      <Hero summary={summary} />
       <RealitySection />
-      <ImpactDashboard />
+      <ImpactDashboard summary={summary} />
       <MeetAna />
       <GetHelp />
       <DonateCTA />
