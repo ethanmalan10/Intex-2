@@ -275,7 +275,7 @@ export default function ReportsAnalyticsPage() {
                         </Pie>
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="mt-2 flex flex-wrap gap-4 text-xs text-stone-600">
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-4 text-xs text-stone-600">
                       {inactiveSupporterRiskPieData.map((entry) => (
                         <span key={entry.label} className="inline-flex items-center gap-2">
                           <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: entry.color }} />
