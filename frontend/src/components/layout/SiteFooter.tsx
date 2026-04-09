@@ -32,8 +32,8 @@ export default function SiteFooter() {
   ]
 
   return (
-    <footer className="bg-stone-900 px-6 py-12">
-      <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-8 mb-8">
+    <footer className="bg-stone-900 px-6 pt-6 pb-4">
+      <div className="max-w-6xl mx-auto grid sm:grid-cols-3 gap-8 mb-6">
         <div>
           <p className="text-xl font-bold text-teal-500 mb-3">BrighterPath</p>
           <p className="text-stone-500 text-sm leading-relaxed">
@@ -76,7 +76,7 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
-      <div className="max-w-6xl mx-auto pt-6 border-t border-stone-800 text-center text-stone-600 text-xs leading-relaxed">
+      <div className="max-w-6xl mx-auto pt-5 border-t border-stone-800 text-center text-stone-600 text-xs leading-relaxed">
         BrighterPath is a registered nonprofit organization. All resident information is anonymized to protect privacy and safety.
       </div>
     </footer>

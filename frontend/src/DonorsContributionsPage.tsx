@@ -66,6 +66,25 @@ const emptyDonationForm = {
   referralPostId: '',
 }
 
+/** Values match API query params (case-insensitive on server). */
+const SUPPORTER_STATUS_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'All statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
+/** Canonical supporter types used in seed data and registration flows. */
+const SUPPORTER_TYPE_FILTER_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: 'All types' },
+  { value: 'Individual', label: 'Individual' },
+  { value: 'MonetaryDonor', label: 'Monetary donor' },
+  { value: 'InKindDonor', label: 'In-kind donor' },
+  { value: 'Volunteer', label: 'Volunteer' },
+  { value: 'SkillsContributor', label: 'Skills contributor' },
+  { value: 'SocialMediaAdvocate', label: 'Social media advocate' },
+  { value: 'PartnerOrganization', label: 'Partner organization' },
+]
+
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
@@ -324,8 +343,16 @@ export default function DonorsContributionsPage() {
                 <h2 className="text-lg font-semibold text-teal-800">Supporter filters</h2>
                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                   <input className="rounded border border-stone-300 px-3 py-2" placeholder="Search name or email" value={supporterSearch} onChange={(e) => setSupporterSearch(e.target.value)} />
-                  <input className="rounded border border-stone-300 px-3 py-2" placeholder="Status (active/inactive)" value={supporterStatus} onChange={(e) => setSupporterStatus(e.target.value)} />
-                  <input className="rounded border border-stone-300 px-3 py-2" placeholder="Type (e.g. volunteer)" value={supporterType} onChange={(e) => setSupporterType(e.target.value)} />
+                  <select className="rounded border border-stone-300 px-3 py-2" value={supporterStatus} onChange={(e) => setSupporterStatus(e.target.value)} aria-label="Filter supporters by status">
+                    {SUPPORTER_STATUS_FILTER_OPTIONS.map((o) => (
+                      <option key={o.value || 'all'} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
+                  <select className="rounded border border-stone-300 px-3 py-2" value={supporterType} onChange={(e) => setSupporterType(e.target.value)} aria-label="Filter supporters by type">
+                    {SUPPORTER_TYPE_FILTER_OPTIONS.map((o) => (
+                      <option key={o.value || 'all'} value={o.value}>{o.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
